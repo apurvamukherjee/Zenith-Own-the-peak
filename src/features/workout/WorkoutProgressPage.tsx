@@ -10,8 +10,10 @@ import { useExerciseHistory, useLoggedExercises, useRecentPRs } from "../../hook
 import { progressionByDate, volumeLoad } from "../../lib/workout.utils";
 import { prettyDate } from "../../lib/date.utils";
 import { GOLD, VIOLET, TEAL } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 
 export function WorkoutProgressPage() {
+  const t = useTokens();
   const exercises = useLoggedExercises() ?? [];
   const [selected, setSelected] = useState<string>();
   const active = selected ?? exercises[0];
@@ -55,13 +57,13 @@ export function WorkoutProgressPage() {
             <div style={{ width: "100%", height: 220 }}>
               <ResponsiveContainer>
                 <LineChart data={points} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip
                     formatter={(v: number, _n, p) => [`${v} kg (top set ${p.payload.topWeight}×${p.payload.topReps})`, "e1RM"]}
                   />
-                  <Line type="monotone" dataKey="topE1rm" stroke={VIOLET} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="topE1rm" stroke={t.accent} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

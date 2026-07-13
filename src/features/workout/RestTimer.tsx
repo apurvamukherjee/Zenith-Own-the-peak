@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button, Progress } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
-import { VIOLET } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 
 function fmt(s: number) {
   const m = Math.floor(s / 60);
@@ -12,6 +12,7 @@ function fmt(s: number) {
 // Floating rest countdown. `trigger` is a changing key; each new value (with
 // its seconds) restarts the timer.
 export function RestTimer({ trigger }: { trigger: { key: number; seconds: number } | null }) {
+  const t = useTokens();
   const [remaining, setRemaining] = useState(0);
   const [total, setTotal] = useState(0);
   const [open, setOpen] = useState(false);
@@ -60,7 +61,7 @@ export function RestTimer({ trigger }: { trigger: { key: number; seconds: number
         >
           <Progress
             type="circle" percent={pct} size={44}
-            strokeColor={remaining === 0 ? "var(--teal)" : VIOLET}
+            strokeColor={remaining === 0 ? t.teal : t.accent}
             format={() => <span style={{ fontSize: 12, fontWeight: 700 }}>{fmt(remaining)}</span>}
           />
           <div style={{ flex: 1 }}>

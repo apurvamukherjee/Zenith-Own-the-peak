@@ -4,22 +4,68 @@
   --ink: #16131f;
   --ink-soft: #6b6780;
   --violet: #7c5cfc;
+  --accent: #7c5cfc;
   --gold: #ffb020;
   --teal: #12b3a1;
+  --border: #ecebf3;
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  --hero: linear-gradient(135deg, #7c5cfc, #9d7bff);
 }
+
+/* Gothic dark: near-black + aggressive red + ember accents */
+[data-theme="dark"] {
+  --bg: #08080a;
+  --surface: #16131a;
+  --ink: #f3eef2;
+  --ink-soft: #948b98;
+  --violet: #ff2740;
+  --accent: #ff2740;
+  --gold: #f6b93b;
+  --teal: #ff6b3d;
+  --border: #2a2330;
+  --nav-bg: rgba(12, 10, 14, 0.92);
+  --hero: linear-gradient(135deg, #1a0509 0%, #6e0f1c 55%, #d81f34 100%);
+}
+
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--bg);
   color: var(--ink);
   font-family: Inter, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.25s ease, color 0.25s ease;
 }
+
 h1, h2, h3, h4, .display { font-family: "Plus Jakarta Sans", Inter, sans-serif; }
 
+/* Fills the viewport with dvh where supported, safe vh fallback for older iOS */
+.app-root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.hero-grad { background: var(--hero) !important; }
+.avatar-grad { background: var(--hero) !important; }
+
 /* ghost placeholder styling for "beat last week" numbers */
-.ghost input::placeholder { color: #b9b5c9; font-weight: 500; }
+.ghost input::placeholder { color: var(--ink-soft); opacity: 0.7; font-weight: 500; }
+
+/* iOS: inputs must be >=16px or Safari zooms the page on focus */
+input, .ant-input, .ant-input-number-input, textarea, .ant-select-selection-search-input {
+  font-size: 16px !important;
+}
+
+/* Date/time picker inputs are selection-only — never show a keyboard caret */
+.ant-picker input { caret-color: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }

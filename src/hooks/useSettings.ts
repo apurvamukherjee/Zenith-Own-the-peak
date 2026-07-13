@@ -6,10 +6,15 @@ export const DEFAULTS = {
   wakeHour: 9,
   wakingWindowH: 16,
   workoutBumpMl: 750,
-  sleepTargetMin: 480, // 8h
-  proteinTargetG: 90,   // ~1.8 g/kg at 50 kg
-  calorieTargetKcal: 2400,
+  sleepTargetMin: 480,     // 8h
+  calorieTargetKcal: 2600, // surplus for lean gain at ~50kg
+  proteinTargetG: 100,     // ~2 g/kg
   name: "Apurva",
+  themeMode: "dark",       // gothic by default
+  profilePic: "",          // dataURL
+  bgImage: "",             // dataURL
+  bgBlur: 10,              // px
+  bgOpacity: 35,           // 0-100
 };
 export type SettingKey = keyof typeof DEFAULTS;
 

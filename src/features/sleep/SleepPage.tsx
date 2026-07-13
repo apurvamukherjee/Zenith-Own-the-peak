@@ -8,8 +8,10 @@ import { useRecentSleep, upsertSleep } from "./useSleep";
 import { useSetting } from "../../hooks/useSettings";
 import { fmtDuration, sleepDurationMin, todayKey } from "../../lib/date.utils";
 import { VIOLET, TEAL, GOLD } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 
 export function SleepPage() {
+  const t = useTokens();
   const { message } = App.useApp();
   const recent = useRecentSleep(14);
   const target = useSetting("sleepTargetMin");
@@ -63,11 +65,11 @@ export function SleepPage() {
         <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Slept at</div>
-            <TimePicker value={sleepAt} onChange={(v) => v && setSleepAt(v)} format="HH:mm" style={{ width: "100%" }} needConfirm={false} />
+            <TimePicker inputReadOnly value={sleepAt} onChange={(v) => v && setSleepAt(v)} format="HH:mm" style={{ width: "100%" }} needConfirm={false} />
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Woke at</div>
-            <TimePicker value={wakeAt} onChange={(v) => v && setWakeAt(v)} format="HH:mm" style={{ width: "100%" }} needConfirm={false} />
+            <TimePicker inputReadOnly value={wakeAt} onChange={(v) => v && setWakeAt(v)} format="HH:mm" style={{ width: "100%" }} needConfirm={false} />
           </div>
         </div>
         <div style={{ textAlign: "center", marginBottom: 12, fontWeight: 700, color: VIOLET }}>{fmtDuration(preview)}</div>
@@ -81,11 +83,11 @@ export function SleepPage() {
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
             <LineChart data={chart} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} domain={[0, 10]} />
               <Tooltip formatter={(v: number) => [`${v} h`, "Sleep"]} />
-              <Line type="monotone" dataKey="hours" stroke={VIOLET} strokeWidth={3} connectNulls dot={{ r: 2 }} />
+              <Line type="monotone" dataKey="hours" stroke={t.accent} strokeWidth={3} connectNulls dot={{ r: 2 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

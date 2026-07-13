@@ -6,11 +6,12 @@ import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { useTodayWater, useWeeklyWater, useWorkoutToday, addWater, undoLastWater, computeStatus } from "./useWater";
 import { useSetting } from "../../hooks/useSettings";
-import { TEAL, VIOLET } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 
 const QUICK = [250, 500, 1000];
 
 export function WaterPage() {
+  const t = useTokens();
   const { message } = App.useApp();
   const { total } = useTodayWater();
   const weekly = useWeeklyWater();
@@ -43,7 +44,7 @@ export function WaterPage() {
 
       <Card style={{ marginBottom: 16, textAlign: "center" }} styles={{ body: { padding: 24 } }}>
         <Progress
-          type="dashboard" percent={pct} size={180} strokeColor={status === "done" ? TEAL : VIOLET}
+          type="dashboard" percent={pct} size={180} strokeColor={status === "done" ? t.teal : t.accent}
           strokeWidth={10}
           format={() => (
             <div>
@@ -76,7 +77,7 @@ export function WaterPage() {
               <XAxis dataKey="date" tick={{ fontSize: 10 }} />
               <Bar dataKey="ml" radius={[6, 6, 0, 0]}>
                 {weekly.map((d, i) => (
-                  <Cell key={i} fill={d.ml >= goal ? TEAL : "#d9d5ec"} />
+                  <Cell key={i} fill={d.ml >= goal ? t.teal : "rgba(150,150,170,0.35)"} />
                 ))}
               </Bar>
             </BarChart>

@@ -7,9 +7,11 @@ import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { useFuel, addFuel, deleteFuel, computeRows, fuelStats } from "./useFuel";
 import { VIOLET, TEAL, GOLD } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 import { prettyDate } from "../../lib/date.utils";
 
 export function FuelPage() {
+  const t = useTokens();
   const { message } = App.useApp();
   const fills = useFuel();
   const rows = computeRows(fills);
@@ -43,7 +45,7 @@ export function FuelPage() {
 
       <Card title="Log a fill-up" size="small" style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <DatePicker value={date} onChange={(v) => v && setDate(v)} style={{ width: "100%" }} format="DD MMM YYYY" allowClear={false} />
+          <DatePicker inputReadOnly value={date} onChange={(v) => v && setDate(v)} style={{ width: "100%" }} format="DD MMM YYYY" allowClear={false} />
           <InputNumber value={odo} onChange={(v) => setOdo(v ?? undefined)} placeholder="Odometer (km)" style={{ width: "100%" }} controls={false} min={0} />
           <div style={{ display: "flex", gap: 10 }}>
             <InputNumber value={litres} onChange={(v) => setLitres(v ?? undefined)} placeholder="Litres" style={{ flex: 1 }} controls={false} min={0} />
@@ -60,11 +62,11 @@ export function FuelPage() {
           <div style={{ width: "100%", height: 170 }}>
             <ResponsiveContainer>
               <LineChart data={chart} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eee" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v: number) => [`${v} km/L`, "Mileage"]} />
-                <Line type="monotone" dataKey="mileage" stroke={VIOLET} strokeWidth={3} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="mileage" stroke={t.accent} strokeWidth={3} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

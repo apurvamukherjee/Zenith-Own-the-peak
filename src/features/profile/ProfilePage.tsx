@@ -1,8 +1,8 @@
 import { useRef } from "react";
-import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty } from "antd";
+import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty, Segmented, Slider } from "antd";
 import {
   ThunderboltFilled, ReadFilled, MoonFilled, TrophyFilled, RiseOutlined,
-  DownloadOutlined, UploadOutlined, FireFilled,
+  DownloadOutlined, UploadOutlined, FireFilled, BgColorsOutlined, PictureOutlined, UserOutlined, BulbOutlined,
 } from "@ant-design/icons";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
@@ -11,13 +11,30 @@ import { useProfileStats, logBodyweight } from "./useProfile";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { exportAll, importAll } from "../../db/db";
 import { fmtDuration } from "../../lib/date.utils";
+import { fileToDataURL } from "../../lib/image.utils";
 import { VIOLET, TEAL, GOLD } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 
 export function ProfilePage() {
+  const t = useTokens();
   const { message, modal } = App.useApp();
   const stats = useProfileStats();
   const name = useSetting("name");
   const fileRef = useRef<HTMLInputElement>(null);
+  const themeMode = useSetting("themeMode");
+  const profilePic = useSetting("profilePic");
+  const bgImage = useSetting("bgImage");
+  const bgBlur = useSetting("bgBlur");
+  const bgOpacity = useSetting("bgOpacity");
+  const picRef = useRef<HTMLInputElement>(null);
+  const bgRef = useRef<HTMLInputElement>(null);
+
+  async function pickImage(file: File, key: "profilePic" | "bgImage") {
+    try {
+      const dataUrl = await fileToDataURL(file, key === "profilePic" ? 400 : 1400, key === "profilePic" ? 0.85 : 0.8);
+      await setSetting(key, dataUrl);
+    } catch { message.error("Couldn't read that image"); }
+  }
 
   async function handleExport() {
     const json = await exportAll();
@@ -25,7 +42,7 @@ export function ProfilePage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `tracklife-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `zenith-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     message.success("Backup downloaded");
@@ -68,7 +85,7 @@ export function ProfilePage() {
   return (
     <PageTransition>
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-        <Avatar size={56} style={{ background: "linear-gradient(135deg,#7c5cfc,#9d7bff)", fontWeight: 800, fontSize: 22 }}>
+        <Avatar size={56} src={profilePic || undefined} className="avatar-grad" style={{ fontWeight: 800, fontSize: 22 }}>
           {String(name).charAt(0)}
         </Avatar>
         <div>
@@ -91,11 +108,11 @@ export function ProfilePage() {
           <div style={{ width: "100%", height: 120 }}>
             <ResponsiveContainer>
               <LineChart data={bodyweight.series} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eee" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 9 }} />
                 <YAxis tick={{ fontSize: 9 }} domain={["dataMin - 1", "dataMax + 1"]} />
                 <Tooltip formatter={(v: number) => [`${v} kg`, "Weight"]} />
-                <Line type="monotone" dataKey="kg" stroke={VIOLET} strokeWidth={3} dot={{ r: 2 }} />
+                <Line type="monotone" dataKey="kg" stroke={t.accent} strokeWidth={3} dot={{ r: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -118,7 +135,7 @@ export function ProfilePage() {
 
       {/* Study */}
       <Card size="small" style={{ marginBottom: 12 }} title={<span style={{ color: VIOLET }}><ReadFilled /> Study</span>}>
-        <Progress percent={study.pct} strokeColor={VIOLET} />
+        <Progress percent={study.pct} strokeColor={t.accent} />
         <Row gutter={12} style={{ marginTop: 8 }}>
           <Col span={8}><Statistic title="Topics" value={`${study.topicsDone}/${study.topicsTotal}`} /></Col>
           <Col span={8}><Statistic title="Paths" value={study.paths} /></Col>
@@ -154,6 +171,42 @@ export function ProfilePage() {
           <Col span={6}><Statistic title="Month" value={fuel.monthSpend} prefix="₹" valueStyle={{ fontSize: 16, color: GOLD }} /></Col>
           <Col span={6}><Statistic title="Total km" value={fuel.totalKm} valueStyle={{ fontSize: 16 }} /></Col>
         </Row>
+      </Card>
+
+      {/* Appearance */}
+      <Card size="small" style={{ marginBottom: 12 }} title={<span><BgColorsOutlined /> Appearance</span>}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6 }}><BulbOutlined /> Theme</div>
+        <Segmented
+          block value={themeMode}
+          onChange={(v) => setSetting("themeMode", v as string)}
+          options={[{ label: "🖤 Dark", value: "dark" }, { label: "☀️ Light", value: "light" }]}
+          style={{ marginBottom: 16 }}
+        />
+
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><UserOutlined /> Profile picture</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <Avatar size={48} src={profilePic || undefined} className="avatar-grad">{String(name).charAt(0)}</Avatar>
+          <Button icon={<PictureOutlined />} onClick={() => picRef.current?.click()}>Choose</Button>
+          {profilePic && <Button danger type="text" onClick={() => setSetting("profilePic", "")}>Remove</Button>}
+        </div>
+
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><PictureOutlined /> Background image</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Button icon={<PictureOutlined />} onClick={() => bgRef.current?.click()}>{bgImage ? "Replace" : "Choose"}</Button>
+          {bgImage && <Button danger type="text" onClick={() => setSetting("bgImage", "")}>Remove</Button>}
+        </div>
+        {bgImage && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Blur — {bgBlur}px</div>
+            <Slider min={0} max={24} value={bgBlur} onChange={(v) => setSetting("bgBlur", v)} />
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Opacity — {bgOpacity}%</div>
+            <Slider min={0} max={100} value={bgOpacity} onChange={(v) => setSetting("bgOpacity", v)} />
+          </div>
+        )}
+        <input ref={picRef} type="file" accept="image/*" hidden
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f, "profilePic"); e.target.value = ""; }} />
+        <input ref={bgRef} type="file" accept="image/*" hidden
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f, "bgImage"); e.target.value = ""; }} />
       </Card>
 
       {/* Backup */}

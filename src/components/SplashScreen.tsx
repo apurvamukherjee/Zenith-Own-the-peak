@@ -16,7 +16,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       transition={{ duration: 0.5 }}
       style={{
         position: "fixed", inset: 0, zIndex: 999,
-        background: "linear-gradient(160deg,#6b4dfc 0%,#8b6bff 55%,#b39dff 100%)",
+        background: "linear-gradient(160deg,#12060a 0%,#6e0f1c 55%,#d81f34 100%)",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         color: "#fff",
       }}

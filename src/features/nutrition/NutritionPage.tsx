@@ -19,6 +19,7 @@ import {
 import { useReminders, requestReminderPermission } from "../../hooks/useReminders";
 import { useSetting } from "../../hooks/useSettings";
 import { VIOLET, GOLD } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 
 const STATUS_TAG = {
   done: { color: "green", label: "Done" },
@@ -28,6 +29,7 @@ const STATUS_TAG = {
 };
 
 export function NutritionPage() {
+  const t = useTokens();
   const { message } = App.useApp();
   const schedules = useSchedules();
   const logs = useTodayLogs();
@@ -69,14 +71,14 @@ export function NutritionPage() {
         <Row gutter={16} align="middle">
           <Col span={10} style={{ textAlign: "center" }}>
             <Progress type="circle" size={110} percent={Math.min(100, Math.round((protein / proteinTarget) * 100))}
-              strokeColor={VIOLET}
+              strokeColor={t.accent}
               format={() => <div><div className="display" style={{ fontSize: 22, fontWeight: 800 }}>{protein}g</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>of {proteinTarget}g</div></div>} />
             <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>Protein</div>
           </Col>
           <Col span={14}>
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Calories</div>
             <div className="display" style={{ fontSize: 24, fontWeight: 800, color: GOLD }}>{calories}<span style={{ fontSize: 13, color: "var(--ink-soft)", fontWeight: 600 }}> / {calorieTarget}</span></div>
-            <Progress percent={Math.min(100, Math.round((calories / calorieTarget) * 100))} strokeColor={GOLD} showInfo={false} />
+            <Progress percent={Math.min(100, Math.round((calories / calorieTarget) * 100))} strokeColor={t.gold} showInfo={false} />
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 8 }}>
               {calories < calorieTarget ? `${calorieTarget - calories} kcal to your surplus goal — keep eating.` : "Surplus hit. Growth fuel in. 💪"}
             </div>

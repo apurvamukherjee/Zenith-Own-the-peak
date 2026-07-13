@@ -14,6 +14,7 @@ import {
   updateNotes, deleteItem, logStudyMinutes, pathProgress, sourceLabel, useAllItems,
 } from "./useStudy";
 import { VIOLET, GOLD } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 
 const STATUS_META: Record<StudyStatus, { color: string; label: string }> = {
   todo: { color: "default", label: "To learn" },
@@ -22,6 +23,7 @@ const STATUS_META: Record<StudyStatus, { color: string; label: string }> = {
 };
 
 export function StudyPage() {
+  const t = useTokens();
   const paths = usePaths();
   const weekly = useWeeklyStudy();
   const allItems = useAllItems();
@@ -43,7 +45,7 @@ export function StudyPage() {
           <ResponsiveContainer>
             <BarChart data={weekly} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
               <XAxis dataKey="date" tick={{ fontSize: 9 }} />
-              <Bar dataKey="min" fill={VIOLET} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="min" fill={t.accent} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -61,6 +63,7 @@ export function StudyPage() {
 }
 
 function PathCard({ path }: { path: StudyPathDto }) {
+  const t = useTokens();
   const { message } = App.useApp();
   const items = useItems(path.id);
   const { pct, done, total, upNext } = pathProgress(items);
@@ -84,7 +87,7 @@ function PathCard({ path }: { path: StudyPathDto }) {
       </div>
 
       <div style={{ margin: "12px 0 6px", display: "flex", alignItems: "center", gap: 10 }}>
-        <Progress percent={pct} strokeColor={VIOLET} style={{ flex: 1, margin: 0 }} />
+        <Progress percent={pct} strokeColor={t.accent} style={{ flex: 1, margin: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>{done}/{total}</span>
       </div>
 

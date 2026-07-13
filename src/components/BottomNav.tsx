@@ -1,11 +1,10 @@
 import { NavLink } from "react-router-dom";
 import { HomeFilled, ThunderboltFilled, ReadFilled, DashboardFilled } from "@ant-design/icons";
-import { VIOLET } from "../theme";
 
 const items = [
   { to: "/", label: "Home", icon: <HomeFilled /> },
   { to: "/workout", label: "Train", icon: <ThunderboltFilled /> },
-  { to: "/nutrition", label: "Nutrition", icon: <span style={{ fontSize: 17 }}>🍽️</span> },
+  { to: "/nutrition", label: "Fuel", icon: <span style={{ fontSize: 18 }}>🍽️</span> },
   { to: "/study", label: "Learn", icon: <ReadFilled /> },
   { to: "/profile", label: "Stats", icon: <DashboardFilled /> },
 ];
@@ -16,8 +15,9 @@ export function BottomNav() {
       style={{
         position: "sticky", bottom: 0, zIndex: 10,
         display: "flex", justifyContent: "space-around",
-        background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
-        borderTop: "1px solid #ecebf3",
+        background: "var(--nav-bg)",
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+        borderTop: "1px solid var(--border)",
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
@@ -28,7 +28,7 @@ export function BottomNav() {
           end={it.to === "/"}
           style={({ isActive }) => ({
             flex: 1, textAlign: "center", padding: "10px 0 12px",
-            color: isActive ? VIOLET : "#9a96ab",
+            color: isActive ? "var(--accent)" : "var(--ink-soft)",
             fontSize: 11, fontWeight: 600, textDecoration: "none",
             display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
           })}

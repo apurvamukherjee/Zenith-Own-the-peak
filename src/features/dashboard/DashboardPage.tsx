@@ -13,7 +13,8 @@ import { useRecentSleep } from "../sleep/useSleep";
 import { useSchedules, useTodayLogs, useTodayMeals, slotStatus } from "../nutrition/useNutrition";
 import { useSetting } from "../../hooks/useSettings";
 import { consecutiveStreak, fmtDuration, todayKey } from "../../lib/date.utils";
-import { VIOLET, TEAL, GOLD } from "../../theme";
+import { VIOLET, GOLD } from "../../theme";
+import { useTokens } from "../../hooks/useTokens";
 
 function greeting() {
   const h = new Date().getHours();
@@ -23,6 +24,7 @@ function greeting() {
 }
 
 export function DashboardPage() {
+  const t = useTokens();
   const name = useSetting("name");
   const autoDay = dayTypeForDate(new Date());
   const plan = autoDay !== "Rest" ? PPL_PROGRAM[autoDay] : null;
@@ -71,7 +73,7 @@ export function DashboardPage() {
     <PageTransition>
       <SectionTitle eyebrow={greeting()} title={String(name)} />
 
-      <Card style={{ marginBottom: 16, background: "linear-gradient(135deg,#7c5cfc,#9d7bff)", border: "none" }}
+      <Card className="hero-grad" style={{ marginBottom: 16, border: "none" }}
         styles={{ body: { padding: 20 } }}>
         <div style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600, fontSize: 13 }}>{plan ? "Today's training" : "Recovery day"}</div>
         <div className="display" style={{ color: "#fff", fontSize: 30, fontWeight: 800, margin: "4px 0 2px" }}>{plan ? plan.label : "Rest"}</div>
@@ -83,7 +85,7 @@ export function DashboardPage() {
       <Link to="/nutrition" style={{ color: "inherit" }}>
         <Card size="small" style={{ marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <Progress type="circle" percent={Math.min(100, Math.round((protein / proteinTarget) * 100))} size={56} strokeColor={VIOLET}
+            <Progress type="circle" percent={Math.min(100, Math.round((protein / proteinTarget) * 100))} size={56} strokeColor={t.accent}
               format={() => <span style={{ fontSize: 11, fontWeight: 700 }}>{protein}g</span>} />
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700 }}>🍽️ Nutrition <RightOutlined style={{ fontSize: 10, color: "var(--ink-soft)" }} /></div>
@@ -98,7 +100,7 @@ export function DashboardPage() {
       {/* Water */}
       <Card size="small" style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Progress type="circle" percent={waterPct} size={56} strokeColor={waterPct >= 100 ? TEAL : VIOLET}
+          <Progress type="circle" percent={waterPct} size={56} strokeColor={waterPct >= 100 ? t.teal : t.accent}
             format={() => <span style={{ fontSize: 11, fontWeight: 700 }}>{waterPct}%</span>} />
           <div style={{ flex: 1 }}>
             <Link to="/water" style={{ color: "inherit" }}><div style={{ fontWeight: 700 }}>💧 Water <RightOutlined style={{ fontSize: 10, color: "var(--ink-soft)" }} /></div></Link>

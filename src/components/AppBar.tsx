@@ -15,7 +15,7 @@ export function AppBar() {
       style={{
         position: "sticky", top: 0, zIndex: 15, height: 48,
         display: "flex", alignItems: "center", gap: 6, padding: "0 8px",
-        background: "rgba(245,245,251,0.85)", backdropFilter: "blur(12px)",
+        background: "var(--nav-bg)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
         paddingTop: "env(safe-area-inset-top)",
       }}
     >
