@@ -1,0 +1,26 @@
+:root {
+  --bg: #f5f5fb;
+  --surface: #ffffff;
+  --ink: #16131f;
+  --ink-soft: #6b6780;
+  --violet: #7c5cfc;
+  --gold: #ffb020;
+  --teal: #12b3a1;
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+h1, h2, h3, h4, .display { font-family: "Plus Jakarta Sans", Inter, sans-serif; }
+
+/* ghost placeholder styling for "beat last week" numbers */
+.ghost input::placeholder { color: #b9b5c9; font-weight: 500; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
