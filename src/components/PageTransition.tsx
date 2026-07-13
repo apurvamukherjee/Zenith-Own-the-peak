@@ -1,15 +1,6 @@
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
+// Padding wrapper. Page-level motion is handled globally by AnimatedRoutes.
 export function PageTransition({ children }: { children: ReactNode }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      style={{ padding: "20px 16px 24px" }}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div style={{ padding: "8px 16px 24px" }}>{children}</div>;
 }

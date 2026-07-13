@@ -73,7 +73,7 @@ export function ProfilePage() {
         </Avatar>
         <div>
           <h2 className="display" style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{name}</h2>
-          <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Build with discipline.</div>
+          <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Own the peak.</div>
         </div>
       </div>
 

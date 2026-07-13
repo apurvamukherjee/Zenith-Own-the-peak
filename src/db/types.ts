@@ -44,3 +44,16 @@ export interface FuelDto {
 }
 
 export interface SettingDto { key: string; value: number | string; }
+
+export type ScheduleKind = "med" | "supplement" | "meal";
+export interface ScheduleDto {
+  id?: number; kind: ScheduleKind; label: string; dose?: string;
+  time: string; active: number; // time HH:mm, active 1/0
+}
+export interface ScheduleLogDto { id?: number; scheduleId: number; date: string; doneAt: number; }
+
+export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+export interface MealDto {
+  id?: number; date: string; time: string; name: string;
+  mealType: MealType; protein: number; calories: number;
+}

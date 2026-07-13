@@ -49,9 +49,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.55, duration: 0.5 }}
         style={{ margin: 0, fontSize: 40, fontWeight: 800, letterSpacing: -1 }}
-      >
-        TrackLife
-      </motion.h1>
+      >Zenith</motion.h1>
 
       <motion.div
         initial={{ opacity: 0 }}
@@ -59,7 +57,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         transition={{ delay: 0.9, duration: 0.5 }}
         style={{ fontSize: 15, fontWeight: 600, letterSpacing: 3, textTransform: "uppercase", marginTop: 8, opacity: 0.92 }}
       >
-        Build with discipline
+        Own the peak
       </motion.div>
 
       <motion.div

@@ -5,8 +5,8 @@ import { VIOLET } from "../theme";
 const items = [
   { to: "/", label: "Home", icon: <HomeFilled /> },
   { to: "/workout", label: "Train", icon: <ThunderboltFilled /> },
+  { to: "/nutrition", label: "Nutrition", icon: <span style={{ fontSize: 17 }}>🍽️</span> },
   { to: "/study", label: "Learn", icon: <ReadFilled /> },
-  { to: "/fuel", label: "Fuel", icon: <span style={{ fontSize: 18 }}>🏍️</span> },
   { to: "/profile", label: "Stats", icon: <DashboardFilled /> },
 ];
 

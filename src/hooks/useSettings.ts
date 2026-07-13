@@ -7,6 +7,8 @@ export const DEFAULTS = {
   wakingWindowH: 16,
   workoutBumpMl: 750,
   sleepTargetMin: 480, // 8h
+  proteinTargetG: 90,   // ~1.8 g/kg at 50 kg
+  calorieTargetKcal: 2400,
   name: "Apurva",
 };
 export type SettingKey = keyof typeof DEFAULTS;
