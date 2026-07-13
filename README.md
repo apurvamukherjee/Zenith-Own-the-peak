@@ -1,52 +1,48 @@
-# Zenith — "Own the peak"
+<div align="center">
 
-A local-first personal tracker (React 19 + TypeScript + Ant Design). All data
-lives on-device in IndexedDB (Dexie) — no backend, no account. Ships as a static
-SPA (Vercel) and wraps natively with Capacitor, no rewrite. See ARCHITECTURE.md
-for the backend-swap path.
+# ⛰️ Zenith
 
-## Modules
-Splash → Home (universal daily overview) → Train (PPL log, ghost numbers, PR
-detection, rest timer) · Progress (e1RM curves) · Nutrition (meals, macros,
-schedule reminders) · Study (paths, topics, up-next, notes, time) · Water
-(pace-aware warnings) · Sleep (duration, quality, debt) · Fuel (full-to-full
-mileage, ₹ spend) · Stats (all-module metrics, bodyweight, backup, appearance).
+### *Own the peak.*
 
-## What's new in this build
-- **Gothic dark mode** (black + aggressive red) as the default, with a Light
-  toggle in Stats → Appearance. Accents, rings, charts and gradients all reflow.
-- **Profile picture + custom wallpaper**, with user-controlled blur and opacity.
-- **Mobile/Safari hardening**: LAN dev host, broad build target, `dvh` fallback,
-  no white-flash, 16px inputs (kills iOS focus-zoom), `-webkit` blur prefixes,
-  safe-area padding, and a Vercel SPA rewrite.
-- **Date/time pickers are selection-only** — no keyboard pops up on mobile.
+A local-first personal tracker that puts your **training, nutrition, study, sleep, water & bike fuel** in one gothic, offline dashboard — no account, no server, your data never leaves your device.
 
-## Run
-```bash
-npm install
-npm run dev            # prints a Local URL and a Network URL
-```
-On your iPhone/Android (same Wi-Fi), open the **Network** URL it prints
-(e.g. http://192.168.x.x:5173). localhost only works on the computer itself.
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
+![Ant Design](https://img.shields.io/badge/Ant%20Design-5-0170FE?logo=antdesign&logoColor=white)
+![Dexie](https://img.shields.io/badge/Dexie-IndexedDB-EE6E73)
+![PWA](https://img.shields.io/badge/Offline-first-000000)
+![License](https://img.shields.io/badge/license-MIT-informational)
 
-## Build & deploy (Vercel)
-```bash
-npm run build          # -> /dist  (vercel.json handles SPA routing)
-```
-Import the repo on Vercel → framework **Vite** → deploy. Opening the deployed URL
-on your phone is the most reliable way to test.
+</div>
 
-## Native wrapper
-```bash
-npm i @capacitor/core @capacitor/cli
-npx cap init Zenith com.apurva.zenith --web-dir=dist
-npx cap add ios        # and/or android
-npm run build && npx cap sync
-```
-Nutrition reminders (`hooks/useReminders.ts`) become real OS notifications via
-`@capacitor/local-notifications`.
+---
 
-## Theming notes
-Colors live as CSS variables in `index.css` (`:root` = light, `[data-theme="dark"]`
-= gothic). Chart/ring colors use concrete hexes from `theme.ts` `TOKENS` via
-`useTokens()`, since SVG attributes can't read CSS variables.
+> **Local-first by design.** Every metric lives in your browser via IndexedDB (Dexie). It runs fully offline, deploys as a static site to Vercel, and wraps into a native iOS/Android app with Capacitor — from a single codebase.
+
+## ✨ Highlights
+
+- 🏋️ **Real training engine** — your 6-day Push/Pull/Legs split with *ghost numbers to beat*, automatic PR detection, and a rest timer
+- 📈 **Progress that means something** — estimated-1RM curves that rise when you add weight **or** reps
+- 🖤 **Gothic dark mode** — black + aggressive red by default, with a one-tap Light toggle
+- 🎨 **Make it yours** — custom profile picture and a wallpaper with your own blur & opacity
+- 📴 **Works anywhere** — offline, installable, phone-ready, zero backend
+- 💾 **You own the data** — one-tap JSON backup & restore
+
+## 📦 Modules
+
+| | Module | What it tracks |
+|---|---|---|
+| 🏠 | **Home** | A universal daily snapshot — training, water, sleep, streaks, study "up next" |
+| ⚡ | **Train** | PPL logging, ghost numbers, PR flashes, rest timer, week-over-week overload |
+| 📊 | **Progress** | Per-exercise e1RM trend, volume, % gain, PR log |
+| 🍽️ | **Nutrition** | Meals & macros, calorie/protein targets, timed supplement & meal reminders |
+| 📚 | **Study** | Learning paths (YouTube/course/book), topic backlog, auto "up next", notes, time logging |
+| 💧 | **Water** | Pace-aware hydration — warns when you fall behind, celebrates when you hit goal, auto-bumps on gym days |
+| 😴 | **Sleep** | Bed/wake logging, duration, quality, weekly sleep-debt, trend chart |
+| 🏍️ | **Fuel** | Full-to-full mileage (km/L), ₹ monthly spend, cost per km, mileage trend |
+| 📈 | **Stats** | Every metric across all modules + bodyweight trend, backup & appearance settings |
+
+MIT — see [`LICENSE`](./LICENSE).
+
+<div align="center"><sub>Built with discipline · by Apurva</sub></div>
