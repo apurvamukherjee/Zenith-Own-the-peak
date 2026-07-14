@@ -82,14 +82,14 @@ export function useWeeklyReview() {
     if (well.length >= 2 && poor.length >= 2) {
       const avg = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
       const diff = Math.round(((avg(well) - avg(poor)) / avg(poor)) * 100);
-      if (diff >= 3) insights.push({ emoji: "😴", text: `Your top lifts run ~${diff}% heavier on 7h+ sleep nights. Sleep is a lever, not a luxury.`, good: true });
-      else if (diff <= -3) insights.push({ emoji: "🤔", text: `Oddly, recent lifts didn't drop on short-sleep nights — but the trend usually catches up. Protect your sleep.`, good: false });
+      if (diff >= 3) insights.push({ emoji: "sleep", text: `Your top lifts run ~${diff}% heavier on 7h+ sleep nights. Sleep is a lever, not a luxury.`, good: true });
+      else if (diff <= -3) insights.push({ emoji: "think", text: `Oddly, recent lifts didn't drop on short-sleep nights — but the trend usually catches up. Protect your sleep.`, good: false });
     }
 
     // 2) protein consistency
     if (daysWithMeals > 0) {
       const good = proteinHits >= Math.ceil(daysWithMeals * 0.7);
-      insights.push({ emoji: good ? "💪" : "🍗", good,
+      insights.push({ emoji: good ? "muscle" : "protein", good,
         text: good
           ? `You hit ~${proteinTarget}g protein on ${proteinHits}/${daysWithMeals} logged days. That's the growth foundation.`
           : `Protein target hit only ${proteinHits}/${daysWithMeals} days. At ~50kg building mass, this is your #1 fix.` });
@@ -98,21 +98,21 @@ export function useWeeklyReview() {
     // 3) sleep debt
     if (nightsLogged >= 3 && avgSleepCur > 0 && avgSleepCur < sleepTarget - 30) {
       const shortM = sleepTarget - avgSleepCur;
-      insights.push({ emoji: "🌙", good: false, text: `Averaging ${(avgSleepCur / 60).toFixed(1)}h — about ${Math.round(shortM)} min under target most nights. Recovery is capping your gains.` });
+      insights.push({ emoji: "moon", good: false, text: `Averaging ${(avgSleepCur / 60).toFixed(1)}h — about ${Math.round(shortM)} min under target most nights. Recovery is capping your gains.` });
     }
 
     // 4) study consistency
     const studyDays = new Set(study.filter((s) => inCur(s.date)).map((s) => s.date)).size;
-    if (studyDays > 0) insights.push({ emoji: "📚", good: studyDays >= 4, text: `You studied on ${studyDays} of 7 days. ${studyDays >= 4 ? "Consistency compounds." : "Aim for one more day next week."}` });
+    if (studyDays > 0) insights.push({ emoji: "book", good: studyDays >= 4, text: `You studied on ${studyDays} of 7 days. ${studyDays >= 4 ? "Consistency compounds." : "Aim for one more day next week."}` });
 
     // 5) training trend
     const vDelta = pctDelta(vol(inCur), vol(inPrev));
     if (vDelta != null && Math.abs(vDelta) >= 8)
-      insights.push({ emoji: vDelta > 0 ? "📈" : "📉", good: vDelta > 0,
+      insights.push({ emoji: vDelta > 0 ? "up" : "down", good: vDelta > 0,
         text: vDelta > 0 ? `Training volume up ${vDelta}% on last week — progressive overload is working.` : `Volume down ${Math.abs(vDelta)}% vs last week. A deload is fine if intended — otherwise push.` });
 
     if (insights.length === 0)
-      insights.push({ emoji: "🌱", good: true, text: "Log a few more days and Zenith will start surfacing patterns across your sleep, food and lifts." });
+      insights.push({ emoji: "seed", good: true, text: "Log a few more days and Zenith will start surfacing patterns across your sleep, food and lifts." });
 
     return { stats, insights, proteinTarget };
   }, [proteinDefault, waterGoal, sleepTarget]);

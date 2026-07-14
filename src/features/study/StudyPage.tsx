@@ -2,9 +2,7 @@ import { useState } from "react";
 import {
   Card, Button, Collapse, Progress, Input, Modal, Tag, App, Segmented,
 } from "antd";
-import {
-  PlusOutlined, DeleteOutlined, FileTextOutlined, YoutubeFilled, ClockCircleOutlined,
-} from "@ant-design/icons";
+import { TbBook2, TbBrandYoutube, TbClock, TbFileText, TbPlus, TbTrash } from "react-icons/tb";
 import { BarChart, Bar, XAxis, ResponsiveContainer } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
@@ -34,11 +32,11 @@ export function StudyPage() {
   return (
     <PageTransition>
       <SectionTitle eyebrow="Productivity" title="Study"
-        right={<Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>Path</Button>} />
+        right={<Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>Path</Button>} />
 
       <Card size="small" style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontWeight: 700 }}><ClockCircleOutlined /> {totalMin} min this week</span>
+          <span style={{ fontWeight: 700 }}><TbClock /> {totalMin} min this week</span>
           <span style={{ color: "var(--ink-soft)" }}>{doneAll} topics done</span>
         </div>
         <div style={{ width: "100%", height: 70 }}>
@@ -53,10 +51,10 @@ export function StudyPage() {
 
       {paths.length === 0 ? (
         <div style={{ textAlign: "center", padding: 32 }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>📚</div>
+          <div style={{ marginBottom: 8 }}><TbBook2 size={48} style={{ color: "var(--accent)" }} /></div>
           <div style={{ fontWeight: 700, marginBottom: 4 }}>No learning paths yet</div>
           <div style={{ color: "var(--ink-soft)", fontSize: 13, marginBottom: 16 }}>Add a YouTube playlist, course, or book — then break it into topics and track your way through.</div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>Create your first path</Button>
+          <Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>Create your first path</Button>
         </div>
       ) : (
         paths.map((p) => <PathCard key={p.id} path={p} />)
@@ -81,13 +79,13 @@ function PathCard({ path }: { path: StudyPathDto }) {
         <div style={{ flex: 1 }}>
           <div className="display" style={{ fontWeight: 800, fontSize: 18 }}>{path.title}</div>
           <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
-            {path.sourceType === "youtube" && <YoutubeFilled style={{ color: "#ff0000", marginRight: 4 }} />}
+            {path.sourceType === "youtube" && <TbBrandYoutube style={{ color: "#ff0000", marginRight: 4 }} />}
             {path.sourceUrl ? (
               <a href={path.sourceUrl} target="_blank" rel="noreferrer">{sourceLabel(path)}</a>
             ) : sourceLabel(path)}
           </div>
         </div>
-        <Button type="text" danger size="small" icon={<DeleteOutlined />}
+        <Button type="text" danger size="small" icon={<TbTrash />}
           onClick={() => path.id && deletePath(path.id)} aria-label="Delete path" />
       </div>
 
@@ -112,14 +110,14 @@ function PathCard({ path }: { path: StudyPathDto }) {
                 <Tag color={STATUS_META[it.status].color} style={{ cursor: "pointer", borderRadius: 8, minWidth: 74, textAlign: "center" }}
                   onClick={() => cycleStatus(it)}>{STATUS_META[it.status].label}</Tag>
                 <span style={{ flex: 1, textDecoration: it.status === "done" ? "line-through" : "none", color: it.status === "done" ? "var(--ink-soft)" : "var(--ink)" }}>{it.title}</span>
-                <Button type="text" size="small" icon={<FileTextOutlined style={{ color: it.notes ? GOLD : undefined }} />} onClick={() => setNoteItem(it)} aria-label="Notes" />
-                <Button type="text" size="small" icon={<DeleteOutlined />} onClick={() => it.id && deleteItem(it.id)} aria-label="Delete topic" />
+                <Button type="text" size="small" icon={<TbFileText style={{ color: it.notes ? GOLD : undefined }} />} onClick={() => setNoteItem(it)} aria-label="Notes" />
+                <Button type="text" size="small" icon={<TbTrash />} onClick={() => it.id && deleteItem(it.id)} aria-label="Delete topic" />
               </div>
             ))}
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <Input placeholder="Add topic" value={newTopic} onChange={(e) => setNewTopic(e.target.value)}
                 onPressEnter={() => { if (newTopic.trim() && path.id) { addItem(path.id, newTopic.trim()); setNewTopic(""); } }} />
-              <Button icon={<PlusOutlined />} onClick={() => { if (newTopic.trim() && path.id) { addItem(path.id, newTopic.trim()); setNewTopic(""); } }} />
+              <Button icon={<TbPlus />} onClick={() => { if (newTopic.trim() && path.id) { addItem(path.id, newTopic.trim()); setNewTopic(""); } }} />
             </div>
           </>
         ),
@@ -127,7 +125,7 @@ function PathCard({ path }: { path: StudyPathDto }) {
 
       <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
         {[25, 45].map((m) => (
-          <Button key={m} size="small" icon={<ClockCircleOutlined />}
+          <Button key={m} size="small" icon={<TbClock />}
             onClick={() => { if (path.id) { logStudyMinutes(path.id, m); message.success(`+${m} min studied`); } }}>
             +{m}m
           </Button>

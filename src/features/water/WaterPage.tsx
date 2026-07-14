@@ -1,5 +1,5 @@
 import { Card, Button, Progress, Alert, InputNumber, App } from "antd";
-import { PlusOutlined, UndoOutlined } from "@ant-design/icons";
+import { TbPlus, TbArrowBackUp } from "react-icons/tb";
 import { useState } from "react";
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
@@ -59,7 +59,7 @@ export function WaterPage() {
 
       <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
         {QUICK.map((ml) => (
-          <Button key={ml} size="large" block icon={<PlusOutlined />} onClick={() => log(ml)} style={{ fontWeight: 700 }}>
+          <Button key={ml} size="large" block icon={<TbPlus />} onClick={() => log(ml)} style={{ fontWeight: 700 }}>
             {ml}
           </Button>
         ))}
@@ -67,7 +67,7 @@ export function WaterPage() {
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <InputNumber placeholder="custom ml" value={custom} onChange={(v) => setCustom(v ?? undefined)} min={1} style={{ flex: 1 }} controls={false} />
         <Button type="primary" onClick={() => { if (custom) { log(custom); setCustom(undefined); } }}>Add</Button>
-        <Button icon={<UndoOutlined />} onClick={undoLastWater} aria-label="Undo last" />
+        <Button icon={<TbArrowBackUp />} onClick={undoLastWater} aria-label="Undo last" />
       </div>
 
       <Card title="Last 7 days" size="small">

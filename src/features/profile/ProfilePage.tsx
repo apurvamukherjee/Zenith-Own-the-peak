@@ -1,9 +1,11 @@
+import { Link } from "react-router-dom";
 import { useRef } from "react";
 import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty, Segmented, Slider } from "antd";
 import {
-  ThunderboltFilled, ReadFilled, MoonFilled, TrophyFilled, RiseOutlined,
-  DownloadOutlined, UploadOutlined, FireFilled, BgColorsOutlined, PictureOutlined, UserOutlined, BulbOutlined,
-} from "@ant-design/icons";
+  TbBolt, TbBook2, TbBulb, TbClipboardList, TbDownload, TbDroplet,
+  TbFlame, TbGasStation, TbMoon, TbPalette, TbPhoto, TbTrendingUp,
+  TbTrophy, TbUpload, TbUser,
+} from "react-icons/tb";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
@@ -98,7 +100,7 @@ export function ProfilePage() {
 
       {/* Bodyweight */}
       <Card size="small" style={{ marginBottom: 16 }}
-        title={<span><RiseOutlined /> Bodyweight</span>}
+        title={<span><TbTrendingUp /> Bodyweight</span>}
         extra={<Button size="small" type="primary" onClick={logBw}>Log</Button>}>
         <Row gutter={12} style={{ marginBottom: 8 }}>
           <Col span={12}><Statistic title="Current" value={bodyweight.latest || "–"} suffix="kg" valueStyle={{ color: VIOLET, fontWeight: 800 }} /></Col>
@@ -124,19 +126,19 @@ export function ProfilePage() {
       <SectionTitle title="Everything, measured" />
 
       {/* Gym */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span style={{ color: VIOLET }}><ThunderboltFilled /> Gym</span>}>
+      <Card size="small" style={{ marginBottom: 12 }} title={<span style={{ color: VIOLET }}><TbBolt /> Gym</span>}>
         <Row gutter={[12, 12]}>
           <Col span={8}><Statistic title="Sessions" value={gym.sessions} /></Col>
           <Col span={8}><Statistic title="Total sets" value={gym.totalSets} /></Col>
-          <Col span={8}><Statistic title="Streak" value={gym.streak} suffix="d" valueStyle={{ color: GOLD }} prefix={<FireFilled />} /></Col>
+          <Col span={8}><Statistic title="Streak" value={gym.streak} suffix="d" valueStyle={{ color: GOLD }} prefix={<TbFlame />} /></Col>
           <Col span={8}><Statistic title="Volume" value={gym.volume} suffix="kg" /></Col>
-          <Col span={8}><Statistic title="PRs" value={gym.prs} valueStyle={{ color: GOLD }} prefix={<TrophyFilled />} /></Col>
+          <Col span={8}><Statistic title="PRs" value={gym.prs} valueStyle={{ color: GOLD }} prefix={<TbTrophy />} /></Col>
           <Col span={8}><Statistic title="Best e1RM" value={gym.bestE1rm} suffix="kg" valueStyle={{ color: VIOLET }} /></Col>
         </Row>
       </Card>
 
       {/* Study */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span style={{ color: VIOLET }}><ReadFilled /> Study</span>}>
+      <Card size="small" style={{ marginBottom: 12 }} title={<span style={{ color: VIOLET }}><TbBook2 /> Study</span>}>
         <Progress percent={study.pct} strokeColor={t.accent} />
         <Row gutter={12} style={{ marginTop: 8 }}>
           <Col span={8}><Statistic title="Topics" value={`${study.topicsDone}/${study.topicsTotal}`} /></Col>
@@ -148,7 +150,7 @@ export function ProfilePage() {
       {/* Sleep + Water */}
       <Row gutter={12} style={{ marginBottom: 12 }}>
         <Col span={12}>
-          <Card size="small" title={<span style={{ color: VIOLET }}><MoonFilled /> Sleep</span>}>
+          <Card size="small" title={<span style={{ color: VIOLET }}><TbMoon /> Sleep</span>}>
             <Statistic title="7-day avg" value={sleep.avgMin ? fmtDuration(sleep.avgMin) : "–"} valueStyle={{ fontSize: 18, fontWeight: 800, color: VIOLET }} />
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
               Quality {sleep.avgQuality || "–"}/5 · debt {fmtDuration(sleep.debtMin)}
@@ -156,7 +158,7 @@ export function ProfilePage() {
           </Card>
         </Col>
         <Col span={12}>
-          <Card size="small" title={<span style={{ color: TEAL }}>💧 Water</span>}>
+          <Card size="small" title={<span style={{ color: TEAL }}><TbDroplet style={{ verticalAlign: "-2px" }} /> Water</span>}>
             <Statistic title="Today" value={water.todayPct} suffix="%" valueStyle={{ fontSize: 18, fontWeight: 800, color: TEAL }} />
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
               7-day {water.adherence}% · streak {water.streak}d
@@ -166,7 +168,7 @@ export function ProfilePage() {
       </Row>
 
       {/* Fuel */}
-      <Card size="small" style={{ marginBottom: 20 }} title={<span style={{ color: VIOLET }}>🏍️ Bike fuel</span>}>
+      <Card size="small" style={{ marginBottom: 20 }} title={<span style={{ color: VIOLET }}><TbGasStation style={{ verticalAlign: "-2px" }} /> Bike fuel</span>}>
         <Row gutter={12}>
           <Col span={6}><Statistic title="Avg" value={fuel.avgMileage} suffix="km/L" valueStyle={{ fontSize: 16 }} /></Col>
           <Col span={6}><Statistic title="₹/km" value={fuel.costPerKm} valueStyle={{ fontSize: 16 }} /></Col>
@@ -175,9 +177,22 @@ export function ProfilePage() {
         </Row>
       </Card>
 
+      {/* Workout planner */}
+      <Link to="/planner">
+        <Card size="small" style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <TbClipboardList size={20} style={{ color: "var(--accent)" }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700 }}>Workout planner</div>
+              <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Edit exercises, days & weekly schedule</div>
+            </div>
+          </div>
+        </Card>
+      </Link>
+
       {/* Appearance */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span><BgColorsOutlined /> Appearance</span>}>
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6 }}><BulbOutlined /> Theme</div>
+      <Card size="small" style={{ marginBottom: 12 }} title={<span><TbPalette /> Appearance</span>}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6 }}><TbBulb /> Theme</div>
         <Segmented
           block value={themeMode}
           onChange={(v) => setSetting("themeMode", v as string)}
@@ -185,16 +200,16 @@ export function ProfilePage() {
           style={{ marginBottom: 16 }}
         />
 
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><UserOutlined /> Profile picture</div>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><TbUser /> Profile picture</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <Avatar size={48} src={profilePic || undefined} className="avatar-grad">{String(name).charAt(0)}</Avatar>
-          <Button icon={<PictureOutlined />} onClick={() => picRef.current?.click()}>Choose</Button>
+          <Button icon={<TbPhoto />} onClick={() => picRef.current?.click()}>Choose</Button>
           {profilePic && <Button danger type="text" onClick={() => setSetting("profilePic", "")}>Remove</Button>}
         </div>
 
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><PictureOutlined /> Background image</div>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><TbPhoto /> Background image</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Button icon={<PictureOutlined />} onClick={() => bgRef.current?.click()}>{bgImage ? "Replace" : "Choose"}</Button>
+          <Button icon={<TbPhoto />} onClick={() => bgRef.current?.click()}>{bgImage ? "Replace" : "Choose"}</Button>
           {bgImage && <Button danger type="text" onClick={() => setSetting("bgImage", "")}>Remove</Button>}
         </div>
         {bgImage && (
@@ -220,8 +235,8 @@ export function ProfilePage() {
           Everything is stored only on this device. Export regularly so you never lose it.
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <Button block icon={<DownloadOutlined />} onClick={handleExport}>Export</Button>
-          <Button block icon={<UploadOutlined />} onClick={() => fileRef.current?.click()}>Import</Button>
+          <Button block icon={<TbDownload />} onClick={handleExport}>Export</Button>
+          <Button block icon={<TbUpload />} onClick={() => fileRef.current?.click()}>Import</Button>
         </div>
         <input ref={fileRef} type="file" accept="application/json" hidden
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ""; }} />

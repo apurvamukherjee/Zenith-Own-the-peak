@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Card, Button, Modal, Input, Select, InputNumber, Tag, App, Segmented } from "antd";
-import { TbPlus, TbTrash, TbCopy, TbEdit } from "react-icons/tb";
+import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
-import { MUSCLE_LABELS, MUSCLE_EMOJI } from "../../config/exerciseLibrary";
+import { MUSCLE_LABELS, MuscleIcon } from "../../config/exerciseLibrary";
 import type { MuscleGroup, ExerciseDto, DayExerciseDto } from "../../db/types";
 import {
   useWorkoutDays, useExerciseLibrary, useDayExercises, useWeekSchedule,
@@ -35,7 +35,7 @@ function DayCard({ dayId }: { dayId: number }) {
 
   return (
     <Card size="small" style={{ marginBottom: 14 }}
-      title={<span style={{ fontWeight: 700 }}>{day.muscles.map((m) => MUSCLE_EMOJI[m]).join("")} {day.name}</span>}
+      title={<span style={{ fontWeight: 700 }}><>{day.muscles.map((m,i) => <MuscleIcon key={i} muscle={m} size={14} color="var(--accent)" />)}</> {day.name}</span>}
       extra={<div style={{ display: "flex", gap: 6 }}>
         <Button size="small" icon={<TbCopy />} onClick={() => {
           const name = prompt("Clone name", `${day.name} copy`);
@@ -52,7 +52,7 @@ function DayCard({ dayId }: { dayId: number }) {
           const ex = library.find((e) => e.id === de.exerciseId);
           return (
             <div key={de.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--border)" }}>
-              <span style={{ fontSize: 14 }}>{MUSCLE_EMOJI[ex?.primaryMuscle as MuscleGroup] ?? "💪"}</span>
+              <MuscleIcon muscle={ex?.primaryMuscle as MuscleGroup} size={16} color="var(--accent)" />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{ex?.name ?? "?"}</div>
                 <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
@@ -73,14 +73,14 @@ function DayCard({ dayId }: { dayId: number }) {
           <Segmented size="small"
             value={filter}
             onChange={(v) => setFilter(v as MuscleGroup | "all")}
-            options={[{ label: "All", value: "all" }, ...ALL_MUSCLES.map((m) => ({ label: MUSCLE_EMOJI[m] + " " + MUSCLE_LABELS[m], value: m }))]}
+            options={[{ label: "All", value: "all" }, ...ALL_MUSCLES.map((m) => ({ label: MUSCLE_LABELS[m], value: m }))]}
             style={{ overflowX: "auto", display: "flex" }} />
         </div>
         <div style={{ maxHeight: 350, overflow: "auto" }}>
           {filtered.map((ex) => (
             <div key={ex.id} onClick={() => handleAddEx(ex)}
               style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 4px", cursor: "pointer", borderBottom: "1px solid var(--border)" }}>
-              <span style={{ fontSize: 16 }}>{MUSCLE_EMOJI[ex.primaryMuscle]}</span>
+              <MuscleIcon muscle={ex.primaryMuscle} size={16} color="var(--accent)" />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{ex.name}</div>
                 <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
@@ -144,7 +144,7 @@ export function WorkoutPlanner() {
               <Select size="small" style={{ flex: 1 }}
                 value={entry?.dayId ?? 0}
                 onChange={(v) => setWeekday(wd, v)}
-                options={[{ label: "Rest", value: 0 }, ...days.map((d) => ({ label: `${d.muscles.map((m) => MUSCLE_EMOJI[m]).join("")} ${d.name}`, value: d.id! }))]} />
+                options={[{ label: "Rest", value: 0 }, ...days.map((d) => ({ label: d.name, value: d.id! }))]} />
             </div>
           );
         })}
@@ -152,7 +152,7 @@ export function WorkoutPlanner() {
 
       {days.length === 0 ? (
         <div style={{ textAlign: "center", padding: 32 }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>📋</div>
+          <div style={{ marginBottom: 8 }}><TbBarbell size={48} style={{ color: "var(--accent)" }} /></div>
           <div style={{ fontWeight: 700, marginBottom: 12 }}>No workout days yet</div>
           <Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>Create your first day</Button>
         </div>
@@ -166,10 +166,10 @@ export function WorkoutPlanner() {
           <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Target muscles (tap to toggle)</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {ALL_MUSCLES.map((m) => (
-              <Tag key={m} style={{ cursor: "pointer", borderRadius: 8 }}
+              <Tag key={m} icon={<MuscleIcon muscle={m} size={12} />} style={{ cursor: "pointer", borderRadius: 8 }}
                 color={newMuscles.includes(m) ? "var(--accent)" : "default"}
                 onClick={() => setNewMuscles((prev) => prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m])}>
-                {MUSCLE_EMOJI[m]} {MUSCLE_LABELS[m]}
+                {MUSCLE_LABELS[m]}
               </Tag>
             ))}
           </div>

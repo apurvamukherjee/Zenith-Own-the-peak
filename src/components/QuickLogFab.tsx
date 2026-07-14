@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { Modal, Button, InputNumber, App } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
-import { TbPlus, TbDroplet, TbMeat, TbBarbell, TbMoon, TbGasStation } from "react-icons/tb";
+import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbGasStation, TbBolt } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { addWater } from "../features/water/useWater";
 import { hapticLight } from "../lib/haptics";
 
 const actions = [
-  { key: "water", label: "Water", icon: TbDroplet, color: "#12b3a1" },
-  { key: "meal", label: "Meal", icon: TbMeat, color: "#ff6b3d" },
-  { key: "workout", label: "Set", icon: TbBarbell, color: "#ff2740" },
-  { key: "sleep", label: "Sleep", icon: TbMoon, color: "#7c5cfc" },
-  { key: "fuel", label: "Fuel", icon: TbGasStation, color: "#f6b93b" },
+  { key: "water", label: "Water", icon: TbDroplet, color: "var(--teal)" },
+  { key: "meal", label: "Meal", icon: TbMeat, color: "var(--teal)" },
+  { key: "workout", label: "Set", icon: TbBarbell, color: "var(--accent)" },
+  { key: "sleep", label: "Sleep", icon: TbMoon, color: "var(--accent)" },
+  { key: "fuel", label: "Fuel", icon: TbGasStation, color: "var(--gold)" },
 ];
 
 export function QuickLogFab() {
@@ -31,7 +31,7 @@ export function QuickLogFab() {
   async function logWater() {
     await addWater(ml);
     hapticLight();
-    message.success(`+${ml}ml logged 💧`);
+    message.success(`+${ml}ml logged`);
     setWaterOpen(false);
   }
 
@@ -51,7 +51,7 @@ export function QuickLogFab() {
         }}
         aria-label="Quick log"
       >
-        <TbPlus />
+        <TbBolt />
       </motion.button>
 
       {/* Action sheet */}

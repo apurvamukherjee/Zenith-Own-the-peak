@@ -51,7 +51,7 @@ export function slotStatus(time: string, done: boolean, graceMin = 30): SlotStat
 }
 
 export const KIND_META: Record<ScheduleKind, { label: string; icon: string; color: string }> = {
-  med: { label: "Medicine", icon: "💊", color: "#ff5c7a" },
-  supplement: { label: "Supplement", icon: "🧪", color: "#7c5cfc" },
-  meal: { label: "Meal", icon: "🍽️", color: "#12b3a1" },
+  med: { label: "Medicine", icon: "med", color: "#ff5c7a" },
+  supplement: { label: "Supplement", icon: "supplement", color: "#7c5cfc" },
+  meal: { label: "Meal", icon: "meal", color: "#12b3a1" },
 };

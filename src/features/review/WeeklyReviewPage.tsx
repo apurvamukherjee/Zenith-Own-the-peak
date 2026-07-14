@@ -1,6 +1,6 @@
 import { Card, Empty } from "antd";
 import { motion } from "framer-motion";
-import { TbTrendingUp, TbTrendingDown, TbBulb, TbFlame } from "react-icons/tb";
+import { TbTrendingUp, TbTrendingDown, TbBulb, TbFlame, TbMoon, TbBook2, TbBarbell, TbMeat, TbQuestionMark, TbSeedling} from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { useWeeklyReview, type ReviewStat } from "./useWeeklyReview";
@@ -36,6 +36,16 @@ function StatTile({ s, i }: { s: ReviewStat; i: number }) {
   );
 }
 
+const INSIGHT_ICONS: Record<string, React.ReactNode> = {
+  sleep: <TbMoon size={20} />, think: <TbQuestionMark size={20} />,
+  muscle: <TbBarbell size={20} />, protein: <TbMeat size={20} />,
+  moon: <TbMoon size={20} />, book: <TbBook2 size={20} />,
+  up: <TbTrendingUp size={20} />, down: <TbTrendingDown size={20} />,
+  seed: <TbSeedling size={20} />,
+};
+function InsightIcon({ name }: { name: string }) {
+  return <span style={{ display: "flex", alignItems: "center" }}>{INSIGHT_ICONS[name] ?? <TbBulb size={20} />}</span>;
+}
 export function WeeklyReviewPage() {
   const t = useTokens();
   const review = useWeeklyReview();
@@ -74,7 +84,7 @@ export function WeeklyReviewPage() {
               <Card size="small" style={{ marginBottom: 10, borderLeft: `3px solid ${ins.good ? t.teal : "#ff5c7a"}` }}
                 styles={{ body: { padding: 14 } }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                  <span style={{ fontSize: 22, lineHeight: 1 }}>{ins.emoji}</span>
+                  <InsightIcon name={ins.emoji} />
                   <span style={{ fontSize: 14, lineHeight: 1.4 }}>{ins.text}</span>
                 </div>
               </Card>
@@ -82,7 +92,7 @@ export function WeeklyReviewPage() {
           ))}
 
           <div style={{ textAlign: "center", color: "var(--ink-soft)", fontSize: 13, margin: "18px 0 4px" }}>
-            New week, new peak. Keep stacking days. ⛰️
+            New week, new peak. Keep stacking days.
           </div>
         </>
       )}

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, App, Progress, Tag, Segmented } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbMinus, TbPlus, TbTrophy, TbFlame } from "react-icons/tb";
+import { TbCheck, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { useTokens } from "../../hooks/useTokens";
-import { MUSCLE_EMOJI } from "../../config/exerciseLibrary";
+import { MuscleIcon, MUSCLE_LABELS } from "../../config/exerciseLibrary";
 import type { DayExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types";
 import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
@@ -80,7 +80,7 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
         border: allDone ? `1px solid var(--teal)` : "1px solid var(--border)",
         opacity: allDone ? 0.75 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <span style={{ fontSize: 18 }}>{MUSCLE_EMOJI[ex.primaryMuscle as MuscleGroup] ?? "💪"}</span>
+        <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={20} color="var(--accent)" />
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 14 }}>{ex.name}</div>
           {ex.cues && <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{ex.cues}</div>}
@@ -146,7 +146,7 @@ export function SessionLogger() {
           <div style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
             {dayPlan.muscles.map((m) => (
               <Tag key={m} style={{ borderRadius: 8, background: "var(--accent)", color: "#fff", border: "none", fontWeight: 600 }}>
-                {MUSCLE_EMOJI[m]} {m}
+                {MUSCLE_LABELS[m]}
               </Tag>
             ))}
           </div>
@@ -170,7 +170,7 @@ export function SessionLogger() {
 
       {isRest ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--ink-soft)" }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>😴</div>
+          <div style={{ marginBottom: 8 }}><TbMoon size={48} style={{ color: "var(--accent)" }} /></div>
           <div style={{ fontWeight: 600 }}>Recovery day — muscle grows now, not in the gym.</div>
         </div>
       ) : (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, Button, Progress, App } from "antd";
-import { TbFlame, TbChevronRight, TbReportAnalytics, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings } from "react-icons/tb";
+import { TbFlame, TbChevronRight, TbReportAnalytics, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbMeat, TbClipboardList } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import { motion } from "framer-motion";
 import { PageTransition } from "../../components/PageTransition";
@@ -56,7 +56,7 @@ export function DashboardPage() {
   async function quickWater(ml: number) {
     await addWater(ml);
     hapticLight();
-    message.success(`+${ml}ml 💧`);
+    message.success(`+${ml}ml logged`);
   }
 
   return (
@@ -83,7 +83,7 @@ export function DashboardPage() {
           <Pill done={score.waterPct >= 100} label="Water" icon={<TbDroplet />} />
           <Pill done={score.sessionDone} label="Train" icon={<TbBarbell />} />
           <Pill done={score.sleepLogged} label="Sleep" icon={<TbMoon />} />
-          <Pill done={score.proteinPct >= 100} label="Protein" icon={<span>🍗</span>} />
+          <Pill done={score.proteinPct >= 100} label="Protein" icon={<TbMeat />} />
         </div>
       </motion.div>
 
@@ -112,7 +112,7 @@ export function DashboardPage() {
           <Progress type="circle" percent={score.waterPct} size={48} strokeColor={score.waterPct >= 100 ? t.teal : t.accent}
             format={() => <span style={{ fontSize: 10, fontWeight: 700 }}>{score.waterPct}%</span>} />
           <Link to="/water" style={{ flex: 1, color: "inherit" }}>
-            <div style={{ fontWeight: 700 }}>💧 Water <TbChevronRight style={{ fontSize: 12, color: "var(--ink-soft)" }} /></div>
+            <div style={{ fontWeight: 700 }}><TbDroplet style={{ verticalAlign: "-2px" }} /> Water <TbChevronRight style={{ fontSize: 12, color: "var(--ink-soft)" }} /></div>
             <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{(waterMl / 1000).toFixed(1)}L of {(waterGoal / 1000).toFixed(1)}L</div>
           </Link>
           <Button size="small" icon={<TbPlus />} onClick={() => quickWater(250)}>250</Button>
@@ -158,7 +158,7 @@ export function DashboardPage() {
       <Link to="/planner" style={{ color: "inherit" }}>
         <Card size="small">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>📋</span>
+            <TbClipboardList size={20} style={{ color: "var(--accent)" }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700 }}>Workout planner</div>
               <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Edit your program, exercises & schedule</div>
