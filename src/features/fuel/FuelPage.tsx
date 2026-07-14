@@ -76,7 +76,7 @@ export function FuelPage() {
       <Card title="History" size="small">
         {rows.length === 0 ? <Empty description="No fill-ups yet." /> : (
           [...rows].reverse().map((r) => (
-            <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #f2f1f7" }}>
+            <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>{r.odometer.toLocaleString()} km</div>
                 <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{prettyDate(r.date)} · {r.litres} L · ₹{r.cost}</div>

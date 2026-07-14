@@ -12,6 +12,8 @@ import { useSetting, setSetting } from "../../hooks/useSettings";
 import { exportAll, importAll } from "../../db/db";
 import { fmtDuration } from "../../lib/date.utils";
 import { fileToDataURL } from "../../lib/image.utils";
+import { SyncCard } from "../sync/SyncCard";
+import { RemindersCard } from "../reminders/RemindersCard";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 
@@ -72,7 +74,7 @@ export function ProfilePage() {
       content: (
         <input type="number" defaultValue={cur} step="0.1"
           onChange={(e) => (val = parseFloat(e.target.value))}
-          style={{ width: "100%", padding: 8, fontSize: 16, borderRadius: 8, border: "1px solid #d9d9d9", marginTop: 8 }} />
+          style={{ width: "100%", padding: 8, fontSize: 16, borderRadius: 8, border: "1px solid var(--border)", marginTop: 8 }} />
       ),
       okText: "Save",
       onOk: async () => { if (val > 0) { await logBodyweight(val); message.success(`Logged ${val} kg`); } },
@@ -208,6 +210,9 @@ export function ProfilePage() {
         <input ref={bgRef} type="file" accept="image/*" hidden
           onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f, "bgImage"); e.target.value = ""; }} />
       </Card>
+
+      <RemindersCard />
+      <SyncCard />
 
       {/* Backup */}
       <Card size="small" title="Data backup">

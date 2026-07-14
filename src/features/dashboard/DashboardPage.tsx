@@ -15,6 +15,7 @@ import { useSetting } from "../../hooks/useSettings";
 import { consecutiveStreak, fmtDuration, todayKey } from "../../lib/date.utils";
 import { VIOLET, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
+import { TbReportAnalytics, TbChevronRight } from "react-icons/tb";
 
 function greeting() {
   const h = new Date().getHours();
@@ -80,6 +81,20 @@ export function DashboardPage() {
         <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginBottom: 16 }}>{plan ? plan.focus : "Eat, sleep, grow."}</div>
         <Link to="/workout"><Button size="large" icon={<ThunderboltFilled />} style={{ fontWeight: 700 }}>{setsToday > 0 ? `Continue (${setsToday} sets)` : "Start session"}</Button></Link>
       </Card>
+
+      {/* Weekly review */}
+      <Link to="/review" style={{ color: "inherit" }}>
+        <Card size="small" style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <TbReportAnalytics style={{ fontSize: 22, color: t.gold }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700 }}>Weekly review</div>
+              <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>See how your week stacked up</div>
+            </div>
+            <TbChevronRight style={{ color: "var(--ink-soft)" }} />
+          </div>
+        </Card>
+      </Link>
 
       {/* Nutrition */}
       <Link to="/nutrition" style={{ color: "inherit" }}>

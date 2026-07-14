@@ -45,6 +45,14 @@ class ZenithDB extends Dexie {
 
 export const db = new ZenithDB();
 
+// Notify the mutation bus on any write so cloud auto-backup can debounce a push.
+import { bumpMutation, suppressMutations } from "../lib/mutations";
+for (const table of db.tables) {
+  table.hook("creating", () => { bumpMutation(); });
+  table.hook("updating", () => { bumpMutation(); });
+  table.hook("deleting", () => { bumpMutation(); });
+}
+
 export async function exportAll(): Promise<string> {
   const data: Record<string, unknown> = { version: 1, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
@@ -53,10 +61,15 @@ export async function exportAll(): Promise<string> {
 
 export async function importAll(json: string): Promise<void> {
   const d = JSON.parse(json);
-  await db.transaction("rw", db.tables, async () => {
-    for (const t of db.tables) {
-      await t.clear();
-      if (Array.isArray(d[t.name])) await t.bulkAdd(d[t.name]);
-    }
-  });
+  suppressMutations(true);
+  try {
+    await db.transaction("rw", db.tables, async () => {
+      for (const t of db.tables) {
+        await t.clear();
+        if (Array.isArray(d[t.name])) await t.bulkAdd(d[t.name]);
+      }
+    });
+  } finally {
+    suppressMutations(false);
+  }
 }

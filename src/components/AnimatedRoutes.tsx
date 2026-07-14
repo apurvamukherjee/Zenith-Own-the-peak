@@ -14,6 +14,7 @@ const StudyPage = lazy(() => import("../features/study/StudyPage").then((m) => (
 const FuelPage = lazy(() => import("../features/fuel/FuelPage").then((m) => ({ default: m.FuelPage })));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then((m) => ({ default: m.ProfilePage })));
 const NutritionPage = lazy(() => import("../features/nutrition/NutritionPage").then((m) => ({ default: m.NutritionPage })));
+const WeeklyReviewPage = lazy(() => import("../features/review/WeeklyReviewPage").then((m) => ({ default: m.WeeklyReviewPage })));
 
 const variants = {
   enter: (d: number) => ({ x: d > 0 ? 36 : d < 0 ? -36 : 0, opacity: 0 }),
@@ -50,6 +51,7 @@ export function AnimatedRoutes() {
             <Route path="fuel" element={<FuelPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="nutrition" element={<NutritionPage />} />
+            <Route path="review" element={<WeeklyReviewPage />} />
           </Routes>
         </Suspense>
       </motion.div>

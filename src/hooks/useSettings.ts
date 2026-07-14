@@ -15,6 +15,16 @@ export const DEFAULTS = {
   bgImage: "",             // dataURL
   bgBlur: 10,              // px
   bgOpacity: 35,           // 0-100
+  // Cloud
+  autoBackup: 0,           // 1 = push to cloud on change
+  // Reminders (times are HH:mm)
+  remWater: 1,
+  remWaterEveryH: 2,
+  remBedtime: 1,
+  remBedtimeAt: "23:30",
+  remSupps: 1,
+  remSession: 1,
+  remSessionAt: "18:00",
 };
 export type SettingKey = keyof typeof DEFAULTS;
 

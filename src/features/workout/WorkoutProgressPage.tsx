@@ -79,7 +79,7 @@ export function WorkoutProgressPage() {
           <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>No PRs yet — your first logged set of each lift counts.</div>
         ) : (
           prs.map((p) => (
-            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #f2f1f7" }}>
+            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
               <TrophyFilled style={{ color: GOLD }} />
               <span style={{ flex: 1, fontWeight: 600 }}>{p.exercise}</span>
               <span>{p.weightKg} × {p.reps}</span>

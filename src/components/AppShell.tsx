@@ -2,8 +2,10 @@ import { AppBar } from "./AppBar";
 import { BottomNav } from "./BottomNav";
 import { AnimatedRoutes } from "./AnimatedRoutes";
 import { useSetting } from "../hooks/useSettings";
+import { useReminderEngine } from "../features/reminders/useReminderEngine";
 
 export function AppShell() {
+  useReminderEngine();
   const bgImage = useSetting("bgImage");
   const bgBlur = useSetting("bgBlur");
   const bgOpacity = useSetting("bgOpacity");
