@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, InputNumber, DatePicker, Button, Statistic, Row, Col, Empty, App, Alert } from "antd";
+import { Card, InputNumber, DatePicker, Button, Statistic, Row, Col, App, Alert } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -74,9 +74,13 @@ export function FuelPage() {
       )}
 
       <Card title="History" size="small">
-        {rows.length === 0 ? <Empty description="No fill-ups yet." /> : (
+        {rows.length === 0 ? <div style={{ textAlign: "center", padding: 24 }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🏍️</div>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>No fill-ups logged</div>
+            <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>Log your first full-tank fill above. Mileage starts from the second fill.</div>
+          </div> : (
           [...rows].reverse().map((r) => (
-            <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #f2f1f7" }}>
+            <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>{r.odometer.toLocaleString()} km</div>
                 <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{prettyDate(r.date)} · {r.litres} L · ₹{r.cost}</div>

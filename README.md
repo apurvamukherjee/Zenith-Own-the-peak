@@ -43,6 +43,68 @@ A local-first personal tracker that puts your **training, nutrition, study, slee
 | 🏍️ | **Fuel** | Full-to-full mileage (km/L), ₹ monthly spend, cost per km, mileage trend |
 | 📈 | **Stats** | Every metric across all modules + bodyweight trend, backup & appearance settings |
 
+## 🎨 Experience
+
+Built to feel fast and alive: an animated splash, directional page transitions, PR celebration flashes, and progress rings — all themed. The **entire palette flows through CSS variables** (`:root` = light, `[data-theme="dark"]` = gothic), so switching modes recolors accents, charts, rings, and gradients in one shot.
+
+## 🛠 Tech stack
+
+**React 19** · **TypeScript (strict)** · **Vite** · **Ant Design 5** · **Dexie (IndexedDB)** · **Framer Motion** · **Recharts** · **React Router** · **dayjs**
+
+## 🚀 Quick start
+
+```bash
+npm install
+npm run dev        # prints a Local URL and a Network URL
+```
+
+## 📱 Run on your phone
+
+`npm run dev` exposes the app on your network. On your phone (same Wi-Fi), open the **Network** URL it prints — e.g. `http://192.168.x.x:5173`. `localhost` only works on the computer itself.
+
+## ☁️ Deploy (Vercel)
+
+```bash
+npm run build      # → /dist   (vercel.json handles SPA routing)
+```
+
+Import the repo on Vercel → framework preset **Vite** → deploy. Opening the deployed URL is the most reliable way to test on mobile.
+
+## 📲 Native app (Capacitor)
+
+The build is a static SPA, so it wraps with no rewrite:
+
+```bash
+npm i @capacitor/core @capacitor/cli
+npx cap init Zenith com.apurva.zenith --web-dir=dist
+npx cap add ios        # and/or android
+npm run build && npx cap sync
+```
+
+In-app reminders become real OS notifications via `@capacitor/local-notifications`.
+
+## 🧱 Architecture
+
+```
+UI (features/*/*.tsx)        ← presentational, never touches storage directly
+  └─ data hooks (use*.ts)    ← the ONLY place Dexie is read/written
+       └─ db (src/db/db.ts)  ← typed tables + export/import
+```
+
+Reads are `useLiveQuery`, writes are exported async functions — one clean seam that makes adding a backend (Supabase or Node + Express) cheap without touching the UI. Full write-up in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+
+## 🔒 Data & privacy
+
+100% on-device. No analytics, no account, no network calls for your data. Because it's local-only, **export a backup regularly** (Stats → Export) — clearing browser data wipes it.
+
+## 🗺 Roadmap
+
+- [ ] Capacitor local-notification reminders
+- [ ] Optional cloud sync (Supabase) for multi-device
+- [ ] Home-screen widgets
+
+## 📄 License
+
 MIT — see [`LICENSE`](./LICENSE).
 
 <div align="center"><sub>Built with discipline · by Apurva</sub></div>

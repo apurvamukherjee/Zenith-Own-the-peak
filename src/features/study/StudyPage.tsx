@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Card, Button, Collapse, Progress, Input, Modal, Tag, App, Empty, Segmented,
+  Card, Button, Collapse, Progress, Input, Modal, Tag, App, Segmented,
 } from "antd";
 import {
   PlusOutlined, DeleteOutlined, FileTextOutlined, YoutubeFilled, ClockCircleOutlined,
@@ -52,7 +52,12 @@ export function StudyPage() {
       </Card>
 
       {paths.length === 0 ? (
-        <Empty description="Add a learning path — e.g. Learn React from YouTube." />
+        <div style={{ textAlign: "center", padding: 32 }}>
+          <div style={{ fontSize: 48, marginBottom: 8 }}>📚</div>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>No learning paths yet</div>
+          <div style={{ color: "var(--ink-soft)", fontSize: 13, marginBottom: 16 }}>Add a YouTube playlist, course, or book — then break it into topics and track your way through.</div>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>Create your first path</Button>
+        </div>
       ) : (
         paths.map((p) => <PathCard key={p.id} path={p} />)
       )}

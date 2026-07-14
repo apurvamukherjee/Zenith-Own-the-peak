@@ -70,9 +70,14 @@ export function NutritionPage() {
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={16} align="middle">
           <Col span={10} style={{ textAlign: "center" }}>
-            <Progress type="circle" size={110} percent={Math.min(100, Math.round((protein / proteinTarget) * 100))}
+            <Progress type="circle" size={116} percent={Math.min(100, Math.round((protein / proteinTarget) * 100))}
               strokeColor={t.accent}
-              format={() => <div><div className="display" style={{ fontSize: 22, fontWeight: 800 }}>{protein}g</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>of {proteinTarget}g</div></div>} />
+              format={() => (
+                <div style={{ lineHeight: 1.05, whiteSpace: "nowrap" }}>
+                  <div className="display" style={{ fontSize: 20, fontWeight: 800 }}>{protein}<span style={{ fontSize: 12 }}>g</span></div>
+                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>of {proteinTarget}g</div>
+                </div>
+              )} />
             <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>Protein</div>
           </Col>
           <Col span={14}>
@@ -136,9 +141,12 @@ export function NutritionPage() {
       {/* Meals today */}
       <SectionTitle title="Meals today" right={<Button type="primary" icon={<PlusOutlined />} onClick={() => setMealOpen(true)}>Meal</Button>} />
       <Card size="small">
-        {meals.length === 0 ? <Empty description="No meals logged yet." /> : (
+        {meals.length === 0 ? <div style={{ textAlign: "center", padding: 16 }}>
+            <div style={{ fontSize: 36, marginBottom: 6 }}>🍽️</div>
+            <div style={{ fontWeight: 600, color: "var(--ink-soft)", fontSize: 13 }}>Log your first meal above to start tracking protein and calories.</div>
+          </div> : (
           meals.sort((a, b) => a.time.localeCompare(b.time)).map((m) => (
-            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #f2f1f7" }}>
+            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>{m.name} <Tag style={{ borderRadius: 6 }}>{m.mealType}</Tag></div>
                 <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{m.time} · {m.protein}g P · {m.calories} kcal</div>
