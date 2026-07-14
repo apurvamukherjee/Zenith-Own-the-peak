@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Card, Select, Empty, Statistic, Row, Col } from "antd";
-import { TrophyFilled } from "@ant-design/icons";
+import { Card, Select, Statistic, Row, Col } from "antd";
+import { TbTrophy, TbChartLine } from "react-icons/tb";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
@@ -9,7 +9,7 @@ import { SectionTitle } from "../../components/SectionTitle";
 import { useExerciseHistory, useLoggedExercises, useRecentPRs } from "../../hooks/useWorkout";
 import { progressionByDate, volumeLoad } from "../../lib/workout.utils";
 import { prettyDate } from "../../lib/date.utils";
-import { GOLD, VIOLET, TEAL } from "../../theme";
+import { VIOLET, TEAL } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 
 export function WorkoutProgressPage() {
@@ -30,7 +30,11 @@ export function WorkoutProgressPage() {
       <SectionTitle eyebrow="Progress" title="Getting stronger" />
 
       {exercises.length === 0 ? (
-        <Empty description="Log a few sessions and your strength curves show up here." />
+        <div style={{ textAlign: "center", padding: 32 }}>
+          <div style={{ marginBottom: 8 }}><TbChartLine size={48} style={{ color: "var(--accent)" }} /></div>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>No sessions logged yet</div>
+          <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>Hit Train, log a few sets, and your strength curves will appear here automatically.</div>
+        </div>
       ) : (
         <>
           <Select
@@ -79,9 +83,9 @@ export function WorkoutProgressPage() {
           <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>No PRs yet — your first logged set of each lift counts.</div>
         ) : (
           prs.map((p) => (
-            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #f2f1f7" }}>
-              <TrophyFilled style={{ color: GOLD }} />
-              <span style={{ flex: 1, fontWeight: 600 }}>{p.exercise}</span>
+            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
+              <TbTrophy style={{ color: t.gold }} />
+              <span style={{ flex: 1, fontWeight: 600 }}>{p.exerciseName}</span>
               <span>{p.weightKg} × {p.reps}</span>
               <span style={{ fontSize: 12, color: "var(--ink-soft)", width: 78, textAlign: "right" }}>{prettyDate(p.date)}</span>
             </div>

@@ -3,9 +3,7 @@ import {
   Card, Progress, Button, Modal, Input, InputNumber, TimePicker, Segmented,
   Tag, App, Empty, Row, Col, Switch,
 } from "antd";
-import {
-  PlusOutlined, DeleteOutlined, CheckCircleFilled, BellOutlined, ClockCircleOutlined,
-} from "@ant-design/icons";
+import { TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbToolsKitchen2 } from "react-icons/tb";
 import dayjs from "dayjs";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PageTransition } from "../../components/PageTransition";
@@ -64,15 +62,20 @@ export function NutritionPage() {
   return (
     <PageTransition>
       <SectionTitle eyebrow="Fuel your body" title="Nutrition"
-        right={<Button icon={<PlusOutlined />} onClick={() => setManageOpen(true)}>Schedule</Button>} />
+        right={<Button icon={<TbPlus />} onClick={() => setManageOpen(true)}>Schedule</Button>} />
 
       {/* Macros */}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={16} align="middle">
           <Col span={10} style={{ textAlign: "center" }}>
-            <Progress type="circle" size={110} percent={Math.min(100, Math.round((protein / proteinTarget) * 100))}
+            <Progress type="circle" size={116} percent={Math.min(100, Math.round((protein / proteinTarget) * 100))}
               strokeColor={t.accent}
-              format={() => <div><div className="display" style={{ fontSize: 22, fontWeight: 800 }}>{protein}g</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>of {proteinTarget}g</div></div>} />
+              format={() => (
+                <div style={{ lineHeight: 1.05, whiteSpace: "nowrap" }}>
+                  <div className="display" style={{ fontSize: 20, fontWeight: 800 }}>{protein}<span style={{ fontSize: 12 }}>g</span></div>
+                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>of {proteinTarget}g</div>
+                </div>
+              )} />
             <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>Protein</div>
           </Col>
           <Col span={14}>
@@ -80,7 +83,7 @@ export function NutritionPage() {
             <div className="display" style={{ fontSize: 24, fontWeight: 800, color: GOLD }}>{calories}<span style={{ fontSize: 13, color: "var(--ink-soft)", fontWeight: 600 }}> / {calorieTarget}</span></div>
             <Progress percent={Math.min(100, Math.round((calories / calorieTarget) * 100))} strokeColor={t.gold} showInfo={false} />
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 8 }}>
-              {calories < calorieTarget ? `${calorieTarget - calories} kcal to your surplus goal — keep eating.` : "Surplus hit. Growth fuel in. 💪"}
+              {calories < calorieTarget ? `${calorieTarget - calories} kcal to your surplus goal — keep eating.` : "Surplus hit. Growth fuel locked in."}
             </div>
           </Col>
         </Row>
@@ -89,7 +92,7 @@ export function NutritionPage() {
       {/* Reminder toggle + next up */}
       <Card size="small" style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <BellOutlined style={{ color: VIOLET, fontSize: 18 }} />
+          <TbBell style={{ color: VIOLET, fontSize: 18 }} />
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700 }}>Reminders</div>
             <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
@@ -117,14 +120,14 @@ export function NutritionPage() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, textDecoration: done ? "line-through" : "none" }}>{s.label}</div>
                     <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                      <ClockCircleOutlined /> {s.time}{s.dose ? ` · ${s.dose}` : ""}
+                      <TbClock /> {s.time}{s.dose ? ` · ${s.dose}` : ""}
                     </div>
                   </div>
                   <Tag color={STATUS_TAG[status].color} style={{ borderRadius: 8, margin: 0 }}>{STATUS_TAG[status].label}</Tag>
                   <Button type={done ? "default" : "primary"} shape="circle"
-                    icon={<CheckCircleFilled />} aria-label="Mark done"
+                    icon={<TbCircleCheck />} aria-label="Mark done"
                     onClick={() => s.id && markDone(s.id, !done)} />
-                  <Button type="text" size="small" danger icon={<DeleteOutlined />}
+                  <Button type="text" size="small" danger icon={<TbTrash />}
                     onClick={() => s.id && deleteSchedule(s.id)} aria-label="Delete" />
                 </div>
               </Card>
@@ -134,16 +137,19 @@ export function NutritionPage() {
       )}
 
       {/* Meals today */}
-      <SectionTitle title="Meals today" right={<Button type="primary" icon={<PlusOutlined />} onClick={() => setMealOpen(true)}>Meal</Button>} />
+      <SectionTitle title="Meals today" right={<Button type="primary" icon={<TbPlus />} onClick={() => setMealOpen(true)}>Meal</Button>} />
       <Card size="small">
-        {meals.length === 0 ? <Empty description="No meals logged yet." /> : (
+        {meals.length === 0 ? <div style={{ textAlign: "center", padding: 16 }}>
+            <div style={{ marginBottom: 6 }}><TbToolsKitchen2 size={36} style={{ color: "var(--accent)" }} /></div>
+            <div style={{ fontWeight: 600, color: "var(--ink-soft)", fontSize: 13 }}>Log your first meal above to start tracking protein and calories.</div>
+          </div> : (
           meals.sort((a, b) => a.time.localeCompare(b.time)).map((m) => (
-            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #f2f1f7" }}>
+            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>{m.name} <Tag style={{ borderRadius: 6 }}>{m.mealType}</Tag></div>
                 <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{m.time} · {m.protein}g P · {m.calories} kcal</div>
               </div>
-              <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => m.id && deleteMeal(m.id)} aria-label="Delete meal" />
+              <Button type="text" size="small" danger icon={<TbTrash />} onClick={() => m.id && deleteMeal(m.id)} aria-label="Delete meal" />
             </div>
           ))
         )}
@@ -172,11 +178,11 @@ function ManageScheduleModal({ open, onClose }: { open: boolean; onClose: () => 
     ]}>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
         <Segmented block value={kind} onChange={(v) => setKind(v as ScheduleKind)}
-          options={[{ label: "💊 Med", value: "med" }, { label: "🧪 Supplement", value: "supplement" }, { label: "🍽️ Meal", value: "meal" }]} />
+          options={[{ label: "Med", value: "med" }, { label: "Supplement", value: "supplement" }, { label: "Meal", value: "meal" }]} />
         <Input placeholder="Name (e.g. Creatine, Breakfast)" value={label} onChange={(e) => setLabel(e.target.value)} />
         <div style={{ display: "flex", gap: 10 }}>
           <Input placeholder="Dose / note (optional)" value={dose} onChange={(e) => setDose(e.target.value)} style={{ flex: 1 }} />
-          <TimePicker value={time} onChange={(v) => v && setTime(v)} format="HH:mm" allowClear={false} needConfirm={false} />
+          <TimePicker inputReadOnly value={time} onChange={(v) => v && setTime(v)} format="HH:mm" allowClear={false} needConfirm={false} />
         </div>
       </div>
     </Modal>

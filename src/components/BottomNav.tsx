@@ -1,12 +1,14 @@
 import { NavLink } from "react-router-dom";
-import { HomeFilled, ThunderboltFilled, ReadFilled, DashboardFilled } from "@ant-design/icons";
+import { motion } from "framer-motion";
+import { TbHome2, TbBarbell, TbApple, TbBook2, TbChartHistogram } from "react-icons/tb";
+import type { IconType } from "react-icons";
 
-const items = [
-  { to: "/", label: "Home", icon: <HomeFilled /> },
-  { to: "/workout", label: "Train", icon: <ThunderboltFilled /> },
-  { to: "/nutrition", label: "Fuel", icon: <span style={{ fontSize: 18 }}>🍽️</span> },
-  { to: "/study", label: "Learn", icon: <ReadFilled /> },
-  { to: "/profile", label: "Stats", icon: <DashboardFilled /> },
+const items: { to: string; label: string; Icon: IconType }[] = [
+  { to: "/", label: "Home", Icon: TbHome2 },
+  { to: "/workout", label: "Train", Icon: TbBarbell },
+  { to: "/nutrition", label: "Nutrition", Icon: TbApple },
+  { to: "/study", label: "Learn", Icon: TbBook2 },
+  { to: "/profile", label: "Stats", Icon: TbChartHistogram },
 ];
 
 export function BottomNav() {
@@ -16,25 +18,41 @@ export function BottomNav() {
         position: "sticky", bottom: 0, zIndex: 10,
         display: "flex", justifyContent: "space-around",
         background: "var(--nav-bg)",
-        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+        backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
         borderTop: "1px solid var(--border)",
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      {items.map((it) => (
-        <NavLink
-          key={it.to}
-          to={it.to}
-          end={it.to === "/"}
-          style={({ isActive }) => ({
-            flex: 1, textAlign: "center", padding: "10px 0 12px",
-            color: isActive ? "var(--accent)" : "var(--ink-soft)",
-            fontSize: 11, fontWeight: 600, textDecoration: "none",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-          })}
-        >
-          <span style={{ fontSize: 20, lineHeight: 1 }}>{it.icon}</span>
-          {it.label}
+      {items.map(({ to, label, Icon }) => (
+        <NavLink key={to} to={to} end={to === "/"}
+          style={{ position: "relative", flex: 1, textAlign: "center", padding: "9px 0 11px", textDecoration: "none" }}>
+          {({ isActive }) => (
+            <>
+              {isActive && (
+                <motion.span
+                  layoutId="nav-pill"
+                  style={{
+                    position: "absolute", top: 4, left: "50%", marginLeft: -24,
+                    width: 48, height: 30, borderRadius: 11,
+                    background: "var(--accent)", opacity: 0.16, zIndex: 0,
+                  }}
+                  transition={{ type: "spring", stiffness: 500, damping: 34 }}
+                />
+              )}
+              <motion.span
+                animate={{ scale: isActive ? 1.06 : 1 }}
+                style={{
+                  position: "relative", zIndex: 1,
+                  color: isActive ? "var(--accent)" : "var(--ink-soft)",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                  fontSize: 11, fontWeight: 600,
+                }}
+              >
+                <Icon size={22} />
+                {label}
+              </motion.span>
+            </>
+          )}
         </NavLink>
       ))}
     </nav>
