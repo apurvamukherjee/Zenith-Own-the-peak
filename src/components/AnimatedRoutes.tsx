@@ -13,7 +13,6 @@ const SleepPage = lazy(() => import("../features/sleep/SleepPage").then((m) => (
 const StudyPage = lazy(() => import("../features/study/StudyPage").then((m) => ({ default: m.StudyPage })));
 const FuelPage = lazy(() => import("../features/fuel/FuelPage").then((m) => ({ default: m.FuelPage })));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then((m) => ({ default: m.ProfilePage })));
-const WeeklyReviewPage = lazy(() => import("../features/review/WeeklyReviewPage").then((m) => ({ default: m.WeeklyReviewPage })));
 
 const Fallback = <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><Spin /></div>;
 
@@ -36,7 +35,6 @@ export function AnimatedRoutes() {
             <Route path="study" element={<StudyPage />} />
             <Route path="fuel" element={<FuelPage />} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="review" element={<WeeklyReviewPage />} />
           </Routes>
         </Suspense>
       </motion.div>

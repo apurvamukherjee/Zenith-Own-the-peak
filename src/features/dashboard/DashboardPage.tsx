@@ -95,7 +95,15 @@ export function DashboardPage() {
           <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>day streak</div>
         </Card>
         <Link to="/workout" style={{ flex: 2, color: "inherit" }}>
-          <Card className="hero-grad" size="small" style={{ border: "none", height: "100%" }} styles={{ body: { padding: 14 } }}>
+          <Card className="hero-grad" size="small" style={{ border: "none", height: "100%", overflow: "hidden", position: "relative" }} styles={{ body: { padding: 14, position: "relative", zIndex: 1 } }}>
+            {/* Faded dumbbell SVG background */}
+            <svg viewBox="0 0 120 120" width="100" height="100" style={{ position: "absolute", right: -8, bottom: -12, opacity: 0.12 }}>
+              <rect x="10" y="42" width="20" height="36" rx="4" fill="#fff"/>
+              <rect x="90" y="42" width="20" height="36" rx="4" fill="#fff"/>
+              <rect x="22" y="48" width="12" height="24" rx="3" fill="#fff"/>
+              <rect x="86" y="48" width="12" height="24" rx="3" fill="#fff"/>
+              <rect x="34" y="54" width="52" height="12" rx="3" fill="#fff"/>
+            </svg>
             <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 600 }}>
               {todayDay ? "Today's training" : "Rest day"}
             </div>
@@ -141,7 +149,7 @@ export function DashboardPage() {
       </div>
 
       {/* Weekly review */}
-      <Link to="/review" style={{ color: "inherit" }}>
+      <Link to="/profile" style={{ color: "inherit" }}>
         <Card size="small" style={{ marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <TbReportAnalytics style={{ fontSize: 20, color: t.gold }} />

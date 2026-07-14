@@ -1,12 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { TbDroplet, TbMoon, TbGasStation, TbChartLine, TbReportAnalytics } from "react-icons/tb";
+import { TbDroplet, TbMoon, TbGasStation, TbChartLine } from "react-icons/tb";
 
 const chips = [
   { to: "/water", label: "Water", icon: TbDroplet },
   { to: "/sleep", label: "Sleep", icon: TbMoon },
   { to: "/fuel", label: "Fuel", icon: TbGasStation },
   { to: "/progress", label: "Progress", icon: TbChartLine },
-  { to: "/review", label: "Review", icon: TbReportAnalytics },
 ];
 
 export function NavStrip() {

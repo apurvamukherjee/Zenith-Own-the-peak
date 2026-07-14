@@ -1,9 +1,8 @@
-import type { ExerciseDto, MuscleGroup } from "../db/types";
+import type { MuscleGroup } from "../db/types";
 
-type Seed = Omit<ExerciseDto, "id" | "isCustom">;
+type Seed = { name: string; primaryMuscle: MuscleGroup; secondaryMuscles: MuscleGroup[]; equipment: string; cues?: string };
 
 export const EXERCISE_LIBRARY: Seed[] = [
-  // Chest
   { name: "Flat Barbell Bench Press", primaryMuscle: "chest", secondaryMuscles: ["triceps", "shoulders"], equipment: "barbell", cues: "Arch back, retract scapulae" },
   { name: "Incline Dumbbell Press", primaryMuscle: "chest", secondaryMuscles: ["shoulders", "triceps"], equipment: "dumbbell", cues: "30° incline, squeeze at top" },
   { name: "Flat Dumbbell Press", primaryMuscle: "chest", secondaryMuscles: ["triceps", "shoulders"], equipment: "dumbbell" },
@@ -11,7 +10,6 @@ export const EXERCISE_LIBRARY: Seed[] = [
   { name: "Cable Fly", primaryMuscle: "chest", secondaryMuscles: [], equipment: "cable", cues: "Slight elbow bend, squeeze" },
   { name: "Pec Deck", primaryMuscle: "chest", secondaryMuscles: [], equipment: "machine" },
   { name: "Dips (Chest)", primaryMuscle: "chest", secondaryMuscles: ["triceps", "shoulders"], equipment: "bodyweight", cues: "Lean forward for chest emphasis" },
-  // Back
   { name: "Pull-Up", primaryMuscle: "back", secondaryMuscles: ["biceps"], equipment: "bodyweight" },
   { name: "Lat Pulldown", primaryMuscle: "back", secondaryMuscles: ["biceps"], equipment: "cable" },
   { name: "Close-Grip Lat Pulldown", primaryMuscle: "back", secondaryMuscles: ["biceps"], equipment: "cable" },
@@ -21,7 +19,6 @@ export const EXERCISE_LIBRARY: Seed[] = [
   { name: "Machine Row", primaryMuscle: "back", secondaryMuscles: ["biceps"], equipment: "machine" },
   { name: "Straight-Arm Pulldown", primaryMuscle: "back", secondaryMuscles: [], equipment: "cable", cues: "Feel the lats stretch" },
   { name: "T-Bar Row", primaryMuscle: "back", secondaryMuscles: ["biceps", "traps"], equipment: "barbell" },
-  // Shoulders
   { name: "Overhead Press", primaryMuscle: "shoulders", secondaryMuscles: ["triceps"], equipment: "barbell" },
   { name: "Seated Dumbbell Shoulder Press", primaryMuscle: "shoulders", secondaryMuscles: ["triceps"], equipment: "dumbbell" },
   { name: "Lateral Raise", primaryMuscle: "shoulders", secondaryMuscles: [], equipment: "dumbbell", cues: "Slight forward lean" },
@@ -29,7 +26,6 @@ export const EXERCISE_LIBRARY: Seed[] = [
   { name: "Rear-Delt Fly", primaryMuscle: "shoulders", secondaryMuscles: ["traps"], equipment: "dumbbell" },
   { name: "Reverse Pec Deck", primaryMuscle: "shoulders", secondaryMuscles: ["traps"], equipment: "machine" },
   { name: "Face Pull", primaryMuscle: "shoulders", secondaryMuscles: ["traps"], equipment: "cable", cues: "External rotate at top" },
-  // Biceps
   { name: "Barbell Curl", primaryMuscle: "biceps", secondaryMuscles: ["forearms"], equipment: "barbell" },
   { name: "Dumbbell Curl", primaryMuscle: "biceps", secondaryMuscles: ["forearms"], equipment: "dumbbell" },
   { name: "Incline Dumbbell Curl", primaryMuscle: "biceps", secondaryMuscles: [], equipment: "dumbbell", cues: "Full stretch at bottom" },
@@ -37,36 +33,29 @@ export const EXERCISE_LIBRARY: Seed[] = [
   { name: "Cable Curl", primaryMuscle: "biceps", secondaryMuscles: [], equipment: "cable" },
   { name: "Spider Curl", primaryMuscle: "biceps", secondaryMuscles: [], equipment: "dumbbell" },
   { name: "Preacher Curl", primaryMuscle: "biceps", secondaryMuscles: [], equipment: "machine" },
-  // Triceps
   { name: "Triceps Pushdown", primaryMuscle: "triceps", secondaryMuscles: [], equipment: "cable" },
   { name: "Cable Triceps Pushdown", primaryMuscle: "triceps", secondaryMuscles: [], equipment: "cable" },
   { name: "Overhead Triceps Extension", primaryMuscle: "triceps", secondaryMuscles: [], equipment: "dumbbell" },
   { name: "Overhead Cable Extension", primaryMuscle: "triceps", secondaryMuscles: [], equipment: "cable" },
   { name: "Skull Crusher", primaryMuscle: "triceps", secondaryMuscles: [], equipment: "barbell" },
   { name: "Close-Grip Bench Press", primaryMuscle: "triceps", secondaryMuscles: ["chest"], equipment: "barbell" },
-  // Quads
   { name: "Barbell Squat", primaryMuscle: "quads", secondaryMuscles: ["glutes", "hamstrings"], equipment: "barbell", cues: "Brace core, break at hips" },
   { name: "Leg Press", primaryMuscle: "quads", secondaryMuscles: ["glutes"], equipment: "machine" },
   { name: "Leg Extension", primaryMuscle: "quads", secondaryMuscles: [], equipment: "machine" },
   { name: "Bulgarian Split Squat", primaryMuscle: "quads", secondaryMuscles: ["glutes"], equipment: "dumbbell" },
   { name: "Hack Squat", primaryMuscle: "quads", secondaryMuscles: ["glutes"], equipment: "machine" },
-  // Hamstrings
   { name: "Romanian Deadlift", primaryMuscle: "hamstrings", secondaryMuscles: ["glutes", "back"], equipment: "barbell", cues: "Hinge at hips, soft knees" },
   { name: "Lying Leg Curl", primaryMuscle: "hamstrings", secondaryMuscles: [], equipment: "machine" },
   { name: "Seated Leg Curl", primaryMuscle: "hamstrings", secondaryMuscles: [], equipment: "machine" },
   { name: "Stiff-Leg Deadlift", primaryMuscle: "hamstrings", secondaryMuscles: ["glutes", "back"], equipment: "barbell" },
-  // Glutes
   { name: "Hip Thrust", primaryMuscle: "glutes", secondaryMuscles: ["hamstrings"], equipment: "barbell", cues: "Squeeze at top, chin tucked" },
   { name: "Cable Pull-Through", primaryMuscle: "glutes", secondaryMuscles: ["hamstrings"], equipment: "cable" },
   { name: "Glute Kickback", primaryMuscle: "glutes", secondaryMuscles: [], equipment: "cable" },
-  // Calves
   { name: "Standing Calf Raise", primaryMuscle: "calves", secondaryMuscles: [], equipment: "machine" },
   { name: "Seated Calf Raise", primaryMuscle: "calves", secondaryMuscles: [], equipment: "machine" },
-  // Abs
   { name: "Hanging Leg Raise", primaryMuscle: "abs", secondaryMuscles: [], equipment: "bodyweight" },
   { name: "Cable Crunch", primaryMuscle: "abs", secondaryMuscles: [], equipment: "cable" },
   { name: "Ab Wheel Rollout", primaryMuscle: "abs", secondaryMuscles: [], equipment: "bodyweight" },
-  // Traps
   { name: "Barbell Shrug", primaryMuscle: "traps", secondaryMuscles: [], equipment: "barbell" },
   { name: "Dumbbell Shrug", primaryMuscle: "traps", secondaryMuscles: [], equipment: "dumbbell" },
   { name: "Farmer's Walk", primaryMuscle: "traps", secondaryMuscles: ["forearms", "abs"], equipment: "dumbbell" },
@@ -76,10 +65,4 @@ export const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   chest: "Chest", back: "Back", shoulders: "Shoulders", biceps: "Biceps",
   triceps: "Triceps", quads: "Quads", hamstrings: "Hamstrings", glutes: "Glutes",
   calves: "Calves", abs: "Abs", forearms: "Forearms", traps: "Traps",
-};
-
-export const MUSCLE_EMOJI: Record<MuscleGroup, string> = {
-  chest: "🫁", back: "🔙", shoulders: "🏔️", biceps: "💪", triceps: "💪",
-  quads: "🦵", hamstrings: "🦵", glutes: "🍑", calves: "🦶",
-  abs: "🎯", forearms: "🤜", traps: "🪤",
 };

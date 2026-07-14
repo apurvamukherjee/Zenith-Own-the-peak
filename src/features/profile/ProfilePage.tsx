@@ -3,11 +3,12 @@ import { useRef } from "react";
 import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty, Segmented, Slider } from "antd";
 import {
   TbBolt, TbBook2, TbBulb, TbClipboardList, TbDownload, TbDroplet,
-  TbFlame, TbGasStation, TbMoon, TbPalette, TbPhoto, TbTrendingUp,
+  TbFlame, TbGasStation, TbMoon, TbPalette, TbPhoto, TbTrendingUp, TbTrendingDown,
   TbTrophy, TbUpload, TbUser,
 } from "react-icons/tb";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
+import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SectionTitle } from "../../components/SectionTitle";
 import { useProfileStats, logBodyweight } from "./useProfile";
 import { useSetting, setSetting } from "../../hooks/useSettings";
@@ -15,6 +16,7 @@ import { exportAll, importAll } from "../../db/db";
 import { fmtDuration } from "../../lib/date.utils";
 import { fileToDataURL } from "../../lib/image.utils";
 import { SyncCard } from "../sync/SyncCard";
+import { useWeeklyReview } from "../review/useWeeklyReview";
 import { RemindersCard } from "../reminders/RemindersCard";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
@@ -23,6 +25,7 @@ export function ProfilePage() {
   const t = useTokens();
   const { message, modal } = App.useApp();
   const stats = useProfileStats();
+  const review = useWeeklyReview();
   const name = useSetting("name");
   const fileRef = useRef<HTMLInputElement>(null);
   const themeMode = useSetting("themeMode");
@@ -122,6 +125,38 @@ export function ProfilePage() {
           </div>
         )}
       </Card>
+
+      {/* Weekly Review */}
+      {review && (
+        <Card size="small" style={{ marginBottom: 16 }}
+          title={<span><TbTrendingUp /> This week</span>}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+            {review.stats.slice(0, 6).map((s) => (
+              <div key={s.key} style={{ padding: "8px 10px", background: "var(--bg)", borderRadius: 10 }}>
+                <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{s.label}</div>
+                <div className="display" style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.2 }}>
+                  {s.prefix}<AnimatedNumber value={s.value} decimals={s.decimals} />{s.suffix}
+                  {s.deltaPct != null && (
+                    <span style={{ fontSize: 11, marginLeft: 4, color: s.deltaPct >= 0 ? "var(--teal)" : "#ff5c7a" }}>
+                      {s.deltaPct >= 0 ? <TbTrendingUp style={{ verticalAlign: "-2px" }} /> : <TbTrendingDown style={{ verticalAlign: "-2px" }} />}{Math.abs(s.deltaPct)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {review.insights.length > 0 && (
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}><TbBulb /> Insights</div>
+              {review.insights.slice(0, 3).map((ins, i) => (
+                <div key={i} style={{ fontSize: 13, color: "var(--ink)", marginBottom: 6, paddingLeft: 8, borderLeft: `2px solid ${ins.good ? "var(--teal)" : "#ff5c7a"}` }}>
+                  {ins.text}
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
 
       <SectionTitle title="Everything, measured" />
 

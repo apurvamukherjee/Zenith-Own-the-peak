@@ -4,107 +4,95 @@
 
 ### *Own the peak.*
 
-A local-first personal tracker that puts your **training, nutrition, study, sleep, water & bike fuel** in one gothic, offline dashboard — no account, no server, your data never leaves your device.
+A local-first personal tracker — **training, nutrition, study, sleep, water & bike fuel** — in one gothic, offline dashboard. No account, no server, your data never leaves your device.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
 ![Ant Design](https://img.shields.io/badge/Ant%20Design-5-0170FE?logo=antdesign&logoColor=white)
 ![Dexie](https://img.shields.io/badge/Dexie-IndexedDB-EE6E73)
+![Tabler Icons](https://img.shields.io/badge/Tabler-Icons-000000)
 ![PWA](https://img.shields.io/badge/Offline-first-000000)
 ![License](https://img.shields.io/badge/license-MIT-informational)
+
+**Phase 1 — Live**
 
 </div>
 
 ---
 
-> **Local-first by design.** Every metric lives in your browser via IndexedDB (Dexie). It runs fully offline, deploys as a static site to Vercel, and wraps into a native iOS/Android app with Capacitor — from a single codebase.
-
 ## ✨ Highlights
 
-- 🏋️ **Real training engine** — your 6-day Push/Pull/Legs split with *ghost numbers to beat*, automatic PR detection, and a rest timer
-- 📈 **Progress that means something** — estimated-1RM curves that rise when you add weight **or** reps
+- 🏋️ **Two-screen gym engine** — a minimal Session Logger for the gym (progress bar, +/− weight/reps, tap to complete) and a full Workout Planner for the couch (56-exercise library, custom days, weekly schedule)
+- 📊 **Discipline score** — one ring on Home that tells you if today is on track (water + training + sleep + protein, averaged)
 - 🖤 **Gothic dark mode** — black + aggressive red by default, with a one-tap Light toggle
-- 🎨 **Make it yours** — custom profile picture and a wallpaper with your own blur & opacity
-- 📴 **Works anywhere** — offline, installable, phone-ready, zero backend
+- ⚡ **Quick-Log FAB** — floating action button on every screen, one tap to log water, meals, or jump to any tracker
+- 🎨 **Make it yours** — custom profile picture, wallpaper with blur & opacity controls
+- ☁️ **Optional cloud sync** — Supabase backup with email-code login, auto-push on change
+- 🔔 **Smart reminders** — adaptive copy ("you're 700ml behind"), native push via Capacitor
+- 📴 **Works anywhere** — offline, installable, phone-ready, zero backend required
 - 💾 **You own the data** — one-tap JSON backup & restore
 
 ## 📦 Modules
 
 | | Module | What it tracks |
 |---|---|---|
-| 🏠 | **Home** | A universal daily snapshot — training, water, sleep, streaks, study "up next" |
-| ⚡ | **Train** | PPL logging, ghost numbers, PR flashes, rest timer, week-over-week overload |
+| 🏠 | **Home** | Discipline ring, unified streak, training card, water quick-add, sleep, study up-next |
+| ⚡ | **Train** | Session Logger — execute today's workout with minimal taps |
+| 📋 | **Planner** | Workout Planner — create days, pick exercises, set weights, assign schedule |
 | 📊 | **Progress** | Per-exercise e1RM trend, volume, % gain, PR log |
-| 🍽️ | **Nutrition** | Meals & macros, calorie/protein targets, timed supplement & meal reminders |
-| 📚 | **Study** | Learning paths (YouTube/course/book), topic backlog, auto "up next", notes, time logging |
-| 💧 | **Water** | Pace-aware hydration — warns when you fall behind, celebrates when you hit goal, auto-bumps on gym days |
-| 😴 | **Sleep** | Bed/wake logging, duration, quality, weekly sleep-debt, trend chart |
-| 🏍️ | **Fuel** | Full-to-full mileage (km/L), ₹ monthly spend, cost per km, mileage trend |
-| 📈 | **Stats** | Every metric across all modules + bodyweight trend, backup & appearance settings |
-
-## 🎨 Experience
-
-Built to feel fast and alive: an animated splash, directional page transitions, PR celebration flashes, and progress rings — all themed. The **entire palette flows through CSS variables** (`:root` = light, `[data-theme="dark"]` = gothic), so switching modes recolors accents, charts, rings, and gradients in one shot.
+| 🍽️ | **Nutrition** | Meals & macros, calorie/protein targets, supplement schedule |
+| 📚 | **Study** | Learning paths, topic backlog, auto "up next", notes, time logging |
+| 💧 | **Water** | Pace-aware hydration with warnings, quick-add, 7-day chart |
+| 😴 | **Sleep** | Bed/wake logging, duration, quality, weekly sleep-debt |
+| ⛽ | **Fuel** | Full-to-full bike mileage (km/L), monthly spend, cost per km |
+| 📈 | **Stats** | All-module metrics, weekly review + insights, bodyweight, appearance, reminders, cloud sync, backup |
 
 ## 🛠 Tech stack
 
-**React 19** · **TypeScript (strict)** · **Vite** · **Ant Design 5** · **Dexie (IndexedDB)** · **Framer Motion** · **Recharts** · **React Router** · **dayjs**
+**React 19** · **TypeScript (strict)** · **Vite 5** · **Ant Design 5** · **Dexie (IndexedDB)** · **Framer Motion** · **Recharts** · **react-icons (Tabler)** · **React Router 6** · **dayjs** · optional **Supabase**
 
 ## 🚀 Quick start
 
 ```bash
 npm install
-npm run dev        # prints a Local URL and a Network URL
+npm run dev        # prints Local + Network URL
 ```
 
-## 📱 Run on your phone
+On your phone (same Wi-Fi), open the **Network** URL.
 
-`npm run dev` exposes the app on your network. On your phone (same Wi-Fi), open the **Network** URL it prints — e.g. `http://192.168.x.x:5173`. `localhost` only works on the computer itself.
-
-## ☁️ Deploy (Vercel)
+## ☁️ Deploy
 
 ```bash
-npm run build      # → /dist   (vercel.json handles SPA routing)
+npm run build      # → /dist
 ```
 
-Import the repo on Vercel → framework preset **Vite** → deploy. Opening the deployed URL is the most reliable way to test on mobile.
+Import on **Vercel** → framework **Vite** → deploy. Full Supabase + Vercel setup in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 ## 📲 Native app (Capacitor)
-
-The build is a static SPA, so it wraps with no rewrite:
 
 ```bash
 npm i @capacitor/core @capacitor/cli
 npx cap init Zenith com.apurva.zenith --web-dir=dist
-npx cap add ios        # and/or android
-npm run build && npx cap sync
+npx cap add ios && npm run build && npx cap sync
 ```
-
-In-app reminders become real OS notifications via `@capacitor/local-notifications`.
 
 ## 🧱 Architecture
 
 ```
-UI (features/*/*.tsx)        ← presentational, never touches storage directly
+UI (features/*/*.tsx)        ← presentational only
   └─ data hooks (use*.ts)    ← the ONLY place Dexie is read/written
        └─ db (src/db/db.ts)  ← typed tables + export/import
 ```
 
-Reads are `useLiveQuery`, writes are exported async functions — one clean seam that makes adding a backend (Supabase or Node + Express) cheap without touching the UI. Full write-up in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+Full context for contributors: [`CLAUDE.md`](./CLAUDE.md)
 
-## 🔒 Data & privacy
+## 🔒 Privacy
 
-100% on-device. No analytics, no account, no network calls for your data. Because it's local-only, **export a backup regularly** (Stats → Export) — clearing browser data wipes it.
-
-## 🗺 Roadmap
-
-- [ ] Capacitor local-notification reminders
-- [ ] Optional cloud sync (Supabase) for multi-device
-- [ ] Home-screen widgets
+100% on-device. No analytics, no account required. Cloud sync is optional and encrypted per-user via Supabase RLS.
 
 ## 📄 License
 
-MIT — see [`LICENSE`](./LICENSE).
+MIT
 
 <div align="center"><sub>Built with discipline · by Apurva</sub></div>

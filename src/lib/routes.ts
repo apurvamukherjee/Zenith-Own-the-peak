@@ -8,7 +8,6 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/study":     { title: "Learn",       rank: 0, tab: true },
   "/profile":   { title: "Stats",       rank: 0, tab: true },
   "/progress":  { title: "Progress",    rank: 1, tab: false },
-  "/review":    { title: "Weekly review", rank: 1, tab: false },
   "/water":     { title: "Water",       rank: 1, tab: false },
   "/sleep":     { title: "Sleep",       rank: 1, tab: false },
   "/fuel":      { title: "Fuel",        rank: 1, tab: false },

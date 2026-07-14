@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { TbCheck, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { useTokens } from "../../hooks/useTokens";
-import { MuscleIcon, MUSCLE_LABELS } from "../../config/exerciseLibrary";
+import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
+import { MuscleIcon } from "../../components/MuscleIcon";
 import type { DayExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types";
 import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
