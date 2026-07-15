@@ -78,3 +78,17 @@ export async function onThisDayComparisons(date: string, waterGoal: number, prot
   }
   return results;
 }
+
+// Auto-detect deload weeks: if this week's training volume dropped 30%+ vs
+// last week, we tag it a deload instead of penalizing it.
+export async function detectDeloadWeek(weekDates: string[], prevWeekDates: string[]): Promise<boolean> {
+  const [thisWeek, prevWeek] = await Promise.all([
+    db.workoutSets.where("date").anyOf(weekDates).toArray(),
+    db.workoutSets.where("date").anyOf(prevWeekDates).toArray(),
+  ]);
+  const vol = (arr: typeof thisWeek) => arr.reduce((s, x) => s + x.weightKg * x.reps, 0);
+  const cur = vol(thisWeek);
+  const prev = vol(prevWeek);
+  if (prev < 500) return false; // not enough prior data
+  return cur < prev * 0.7;
+}

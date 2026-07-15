@@ -120,3 +120,19 @@ export interface DayPlan {
 export interface GoalDayDto { id?: number; date: string; title: string; createdAt: number; }
 export interface DayPhotoDto { id?: number; date: string; dataUrl: string; }
 export interface StreakFreezeDto { id?: number; date: string; weekKey: string; }
+
+// ---- Phase 1 close-out ----
+export type BodyMetric = "waist" | "chest" | "arm" | "thigh" | "hip";
+export interface BodyMeasurementDto { id?: number; date: string; metric: BodyMetric; cm: number; }
+
+export interface MealTemplateDto {
+  id?: number; name: string; mealType: MealType; protein: number; calories: number; createdAt: number;
+}
+
+export type RestDayKind = "full" | "active" | "cardio";
+export interface RestDayLogDto { id?: number; date: string; kind: RestDayKind; notes?: string; }
+
+export interface HabitChainDto {
+  id?: number; triggerTable: string; triggerKey?: string;
+  action: "notify"; delayMin: number; message: string; active: number; createdAt: number;
+}

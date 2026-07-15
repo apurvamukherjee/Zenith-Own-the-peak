@@ -4,7 +4,7 @@
 
 ### *Own the peak.*
 
-A local-first personal tracker — **training, nutrition, study, sleep, water, bike fuel, calendar & motivation** — in one gothic, offline dashboard. No account, no server, your data never leaves your device.
+A local-first personal tracker — **training, nutrition, study, sleep, water, bike fuel, calendar, motivation A local-first personal tracker — **training, nutrition, study, sleep, water, bike fuel, calendar & motivation** at-a-glance sharing** — in one gothic, offline dashboard. No account, no server, your data never leaves your device.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)

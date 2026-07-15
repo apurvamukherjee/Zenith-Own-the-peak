@@ -134,6 +134,33 @@ export function CalendarPage() {
         <Button type="text" icon={<TbChevronRight />} onClick={nextMonth} aria-label="Next month" />
       </div>
 
+      {/* Weekly strip — this week zoomed */}
+      <div style={{ background: "var(--surface)", borderRadius: 10, padding: "8px 12px", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>This week</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+          {(() => {
+            const today = new Date();
+            const dow = today.getDay();
+            const weekStart = new Date(today); weekStart.setDate(today.getDate() - dow);
+            const week = Array.from({ length: 7 }, (_, i) => {
+              const d = new Date(weekStart); d.setDate(weekStart.getDate() + i);
+              return d.toISOString().slice(0, 10);
+            });
+            return week.map((iso) => {
+              const cell = rawCells.find((c) => c.date === iso);
+              const pct = cell ? filteredValue(cell, filter) : 0;
+              const bg = cell?.hasAny ? colorFor(pct, cell.hasAny, t) : "var(--border)";
+              return (
+                <div key={iso} style={{
+                  aspectRatio: "1", borderRadius: 6, background: bg, opacity: cell?.isFuture ? 0.25 : 1,
+                  border: cell?.isToday ? `2px solid ${t.accent}` : "none",
+                }} />
+              );
+            });
+          })()}
+        </div>
+      </div>
+
       <Segmented block size="small" value={filter} onChange={(v) => setFilter(v as ScoreFilter)}
         options={FILTERS} style={{ marginBottom: 10 }} />
 

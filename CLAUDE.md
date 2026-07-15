@@ -243,3 +243,38 @@ button between Favorite and Delete in the swipe deck; tapping it opens
 `EditQuoteModal`, which pre-fills text/author/category from the current quote
 via `useEffect(() => { ... }, [quote])`. `updateQuote` only writes the fields
 present in the patch, so unrelated fields (isFavorite, createdAt) stay intact.
+
+## Phase 1 close-out — final feature drop
+
+Schema bumped to **v4** with 4 new tables:
+- `bodyMeasurements` (waist/chest/arm/thigh/hip over time)
+- `mealTemplates` (saved "usual breakfast" macros)
+- `restDayLogs` (typed rest days — full/active/cardio; data model in place, UI can be added later)
+- `habitChains` (trigger→action reminder chains; data model only for now)
+
+### New pages
+- `/glance` — screenshot-friendly share card (discipline ring + streak + brand
+  gradient). Meant as the base layout for a native widget later.
+
+### New components (all reusable)
+- `components/RestTimer.tsx` — circular countdown, pause/skip, haptic on zero.
+  Mounted inside SessionLogger's ExerciseBlock; auto-starts on set completion
+  via a `doneCountRef` change detector.
+- `components/PwaInstallPrompt.tsx` — listens for `beforeinstallprompt`,
+  shows a subtle install nudge; dismissal remembered in localStorage.
+
+### Existing pages, extended
+- `/workout` — RestTimer in each exercise card
+- `/` — streak-in-danger banner appears at 21:00+ when today's score is 0
+- `/nutrition` — meal templates chip row + "save this meal as template" button
+- `/sleep` — SleepDebtCard shows accumulated shortfall + recovery projection
+- `/fuel` — EfficiencyCard shows km/L trend (early vs recent halves)
+- `/calendar` — weekly heatmap strip above the month grid
+- `/profile` — PhotoTimeline, EfficiencyCard (₹/session, ₹/km, min/topic),
+  BodyComposition, encrypted export button
+
+### New utilities
+- `lib/encryptedExport.ts` — Web Crypto AES-GCM wrapper (PBKDF2 100k rounds).
+  Currently wired to a "Encrypted export" button in Stats → Data backup.
+- `lib/dayScore.ts` `detectDeloadWeek()` — 30%+ volume-drop → "deload" label
+  (calendar UI can consume this to relabel low-scoring workout weeks).

@@ -44,6 +44,8 @@ export function FuelPage() {
         <Col span={12}><Card size="small"><Statistic title="Cost / km" value={stats.costPerKm} prefix="₹" valueStyle={{ fontWeight: 800 }} /></Card></Col>
       </Row>
 
+      <EfficiencyCard rows={rows} />
+
       <Card title="Log a fill-up" size="small" style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <DatePicker inputReadOnly value={date} onChange={(v) => v && setDate(v)} style={{ width: "100%" }} format="DD MMM YYYY" allowClear={false} />
@@ -99,3 +101,31 @@ export function FuelPage() {
   );
 }
 
+
+function EfficiencyCard({ rows }: { rows: { date: string; mileage: number | null }[] }) {
+  const withMileage = rows.filter((r) => r.mileage !== null).slice(-6);
+  if (withMileage.length < 3) return null;
+  const half = Math.floor(withMileage.length / 2);
+  const earlyAvg = withMileage.slice(0, half).reduce((s, r) => s + (r.mileage ?? 0), 0) / half;
+  const recentAvg = withMileage.slice(half).reduce((s, r) => s + (r.mileage ?? 0), 0) / (withMileage.length - half);
+  const delta = Math.round(((recentAvg - earlyAvg) / earlyAvg) * 100);
+  const improving = delta >= 0;
+  return (
+    <Card size="small" style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Efficiency trend</div>
+          <div className="display" style={{ fontSize: 20, fontWeight: 800, marginTop: 2 }}>
+            {recentAvg.toFixed(1)} km/L
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ color: improving ? "var(--teal)" : "#ff5c7a", fontWeight: 700, fontSize: 14 }}>
+            {improving ? "▲" : "▼"} {Math.abs(delta)}%
+          </div>
+          <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>vs earlier fills</div>
+        </div>
+      </div>
+    </Card>
+  );
+}

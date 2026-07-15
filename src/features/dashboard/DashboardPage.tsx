@@ -10,10 +10,10 @@ import { useTokens } from "../../hooks/useTokens";
 import { useSetting } from "../../hooks/useSettings";
 import { useTodayWater, useWorkoutToday, addWater } from "../water/useWater";
 import { useRecentSleep } from "../sleep/useSleep";
-import { computeUnifiedStreak } from "../../lib/streak.utils";
+import { computeUnifiedStreak, isFreezeAvailable, useStreakFreeze as useFreezeAction } from "../../lib/streak.utils";
 import { computeTodayScore } from "../../lib/todayScore";
 import { useMonthScores } from "../calendar/useCalendar";
-import { fmtDuration } from "../../lib/date.utils";
+import { fmtDuration, todayKey } from "../../lib/date.utils";
 import { hapticLight } from "../../lib/haptics";
 
 // Time-aware greeting: text, icon, tagline, and a gradient accent that
@@ -63,9 +63,25 @@ export function DashboardPage() {
 
   const [streak, setStreak] = useState(0);
   const [score, setScore] = useState({ score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 });
+  const [freezeAvailable, setFreezeAvailable] = useState(false);
 
   useEffect(() => { computeUnifiedStreak().then(setStreak); }, [waterMl, trained]);
   useEffect(() => { computeTodayScore(waterGoal, proteinTarget).then(setScore); }, [waterMl, waterGoal, proteinTarget]);
+  useEffect(() => { isFreezeAvailable(todayKey()).then(setFreezeAvailable); }, [waterMl, trained]);
+
+  const hour = new Date().getHours();
+  const streakInDanger = hour >= 21 && score.score === 0 && streak > 0;
+
+  async function protectStreak() {
+    await addWater(500);
+    hapticLight();
+    message.success("Streak protected — 500ml logged");
+  }
+  async function protectWithFreeze() {
+    const ok = await useFreezeAction(todayKey());
+    if (ok) { message.success("Streak freeze used for today"); setFreezeAvailable(false); }
+    else message.info("Freeze already used this week");
+  }
 
   const todayDay = useLiveQuery(async () => {
     const wd = new Date().getDay();
@@ -131,6 +147,27 @@ export function DashboardPage() {
           <Link to="/profile"><Button type="text" size="small" icon={<TbSettings size={18} />} aria-label="Settings" /></Link>
         </div>
       </div>
+
+      {/* Streak-in-danger banner */}
+      {streakInDanger && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          style={{ background: "linear-gradient(135deg, #ff2740, #6e0f1c)", borderRadius: 12,
+            padding: "10px 12px", color: "#fff" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+            <TbFlame /> Streak at risk — protect it now
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <Button size="small" onClick={protectStreak} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", flex: 1 }}>
+              +500ml water
+            </Button>
+            {freezeAvailable && (
+              <Button size="small" onClick={protectWithFreeze} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", flex: 1 }}>
+                Use freeze
+              </Button>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* Center: discipline ring */}
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}

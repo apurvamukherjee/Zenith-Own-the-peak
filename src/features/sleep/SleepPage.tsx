@@ -92,7 +92,34 @@ export function SleepPage() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      <SleepDebtCard />
     </PageTransition>
+  );
+}
+
+function SleepDebtCard() {
+  const target = useSetting("sleepTargetMin");
+  const recent = useRecentSleep(7);
+  if (!recent || recent.length < 3) return null;
+  const totalDebt = recent.reduce((sum, s) => sum + Math.max(0, target - (s?.durationMin ?? target)), 0);
+  if (totalDebt === 0) return (
+    <Card size="small" style={{ marginTop: 12 }}>
+      <div style={{ fontWeight: 700, color: "var(--teal)" }}>You're caught up on sleep — nice.</div>
+    </Card>
+  );
+  const nightsToRecover = Math.ceil(totalDebt / 30);
+  const recoverPerNight = Math.round((target + totalDebt / nightsToRecover) / 60 * 10) / 10;
+  return (
+    <Card size="small" style={{ marginTop: 12 }}>
+      <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Sleep debt (last 7 nights)</div>
+      <div className="display" style={{ fontSize: 20, fontWeight: 800, color: "var(--accent)", marginTop: 2 }}>
+        {Math.floor(totalDebt / 60)}h {totalDebt % 60}m
+      </div>
+      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 4 }}>
+        Get {recoverPerNight}h for {nightsToRecover} nights to zero it out.
+      </div>
+    </Card>
   );
 }
 

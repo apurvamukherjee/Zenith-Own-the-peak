@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useRef } from "react";
 import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty, Segmented, Slider } from "antd";
 import {
-  TbBolt, TbBook2, TbBulb, TbClipboardList, TbDownload, TbDroplet,
+  TbBolt, TbBook2, TbBulb, TbClipboardList, TbDownload, TbDroplet, TbLock,
   TbFlame, TbGasStation, TbMoon, TbPalette, TbPhoto, TbTrendingUp, TbTrendingDown,
   TbTrophy, TbUpload, TbUser, TbMoonStars, TbSun,
 } from "react-icons/tb";
@@ -12,8 +12,12 @@ import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SectionTitle } from "../../components/SectionTitle";
 import { useProfileStats, logBodyweight } from "./useProfile";
 import { YearHeatmap } from "./YearHeatmap";
+import { PhotoTimeline } from "./PhotoTimeline";
+import { EfficiencyCard } from "./EfficiencyCard";
+import { BodyComposition } from "./BodyComposition";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { exportAll, importAll } from "../../db/db";
+import { encryptString } from "../../lib/encryptedExport";
 import { fmtDuration } from "../../lib/date.utils";
 import { fileToDataURL } from "../../lib/image.utils";
 import { SyncCard } from "../sync/SyncCard";
@@ -104,6 +108,9 @@ export function ProfilePage() {
 
       {/* Year heatmap */}
       <YearHeatmap />
+      <PhotoTimeline />
+      <EfficiencyCard />
+      <BodyComposition />
 
       {/* Bodyweight */}
       <Card size="small" style={{ marginBottom: 16 }}
@@ -280,6 +287,18 @@ export function ProfilePage() {
           <Button block icon={<TbDownload />} onClick={handleExport}>Export</Button>
           <Button block icon={<TbUpload />} onClick={() => fileRef.current?.click()}>Import</Button>
         </div>
+        <Button block icon={<TbLock />} style={{ marginTop: 8 }} onClick={async () => {
+          const pw = prompt("Password to encrypt with (remember this!):");
+          if (!pw) return;
+          const json = await exportAll();
+          const blob = await encryptString(json, pw);
+          const dl = new Blob([blob], { type: "text/plain" });
+          const url = URL.createObjectURL(dl);
+          const a = document.createElement("a");
+          a.href = url; a.download = `zenith-encrypted-${new Date().toISOString().slice(0, 10)}.txt`;
+          a.click(); URL.revokeObjectURL(url);
+          message.success("Encrypted backup downloaded");
+        }}>Encrypted export</Button>
         <input ref={fileRef} type="file" accept="application/json" hidden
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ""; }} />
         <Button type="link" size="small" style={{ marginTop: 8, padding: 0 }}

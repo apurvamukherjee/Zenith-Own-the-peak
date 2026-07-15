@@ -3,6 +3,7 @@ import { BottomNav } from "./BottomNav";
 import { AnimatedRoutes } from "./AnimatedRoutes";
 import { NavStrip } from "./NavStrip";
 import { QuickLogFab } from "./QuickLogFab";
+import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { useSetting } from "../hooks/useSettings";
 import { useReminderEngine } from "../features/reminders/useReminderEngine";
 
@@ -29,6 +30,7 @@ export function AppShell() {
           <AnimatedRoutes />
         </main>
         <QuickLogFab />
+        <PwaInstallPrompt />
         <BottomNav />
       </div>
     </div>

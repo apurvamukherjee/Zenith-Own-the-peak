@@ -3,7 +3,7 @@ import {
   Card, Progress, Button, Modal, Input, InputNumber, TimePicker, Segmented,
   Tag, App, Empty, Row, Col, Switch,
 } from "antd";
-import { TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbToolsKitchen2 } from "react-icons/tb";
+import { TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbToolsKitchen2, TbBookmark } from "react-icons/tb";
 import dayjs from "dayjs";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PageTransition } from "../../components/PageTransition";
@@ -18,6 +18,7 @@ import { useReminders, requestReminderPermission } from "../../hooks/useReminder
 import { useSetting } from "../../hooks/useSettings";
 import { VIOLET, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
+import { useMealTemplates, logFromTemplate, saveMealAsTemplate } from "./useMealTemplates";
 
 const STATUS_TAG = {
   done: { color: "green", label: "Done" },
@@ -136,6 +137,9 @@ export function NutritionPage() {
         </div>
       )}
 
+      {/* Meal templates quick-log */}
+      <TemplateChips />
+
       {/* Meals today */}
       <SectionTitle title="Meals today" right={<Button type="primary" icon={<TbPlus />} onClick={() => setMealOpen(true)}>Meal</Button>} />
       <Card size="small">
@@ -149,6 +153,10 @@ export function NutritionPage() {
                 <div style={{ fontWeight: 600 }}>{m.name} <Tag style={{ borderRadius: 6 }}>{m.mealType}</Tag></div>
                 <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{m.time} · {m.protein}g P · {m.calories} kcal</div>
               </div>
+              <Button type="text" size="small" icon={<TbBookmark />} onClick={async () => {
+                const name = prompt("Save this meal as a template. Name:", m.name);
+                if (name?.trim()) { await saveMealAsTemplate(m, name); message.success("Template saved"); }
+              }} aria-label="Save as template" />
               <Button type="text" size="small" danger icon={<TbTrash />} onClick={() => m.id && deleteMeal(m.id)} aria-label="Delete meal" />
             </div>
           ))
@@ -216,3 +224,23 @@ function AddMealModal({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
+
+function TemplateChips() {
+  const templates = useMealTemplates();
+  const { message } = App.useApp();
+  if (templates.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>Quick log</div>
+      <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
+        {templates.map((tpl) => (
+          <button key={tpl.id} onClick={async () => { await logFromTemplate(tpl); message.success(`Logged ${tpl.name}`); }}
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10,
+              padding: "6px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer", color: "var(--ink)" }}>
+            {tpl.name} · {tpl.protein}p / {tpl.calories}kcal
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

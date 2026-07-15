@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { RestTimer } from "../../components/RestTimer";
 import { Link } from "react-router-dom";
 import { Button, App, Progress, Tag, Segmented } from "antd";
 import { motion } from "framer-motion";
@@ -69,12 +70,21 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
 }) {
   const ex = useExercise(plan.exerciseId);
   const ghosts = useGhostSets(dayId, plan.exerciseId);
+  const t = useTokens();
+  const [restRunning, setRestRunning] = useState(false);
+  const doneCountRef = useRef(0);
   if (!ex) return null;
   const done = sets.filter((s) => s.exerciseId === plan.exerciseId);
   const totalSets = plan.sets;
   const doneCount = done.length;
   const allDone = doneCount >= totalSets;
   const rows = Array.from({ length: totalSets }, (_, i) => i + 1);
+
+  // Trigger rest timer when a set is newly completed (doneCount increased)
+  useEffect(() => {
+    if (doneCount > doneCountRef.current && !allDone) setRestRunning(true);
+    doneCountRef.current = doneCount;
+  }, [doneCount, allDone]);
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -94,6 +104,10 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
       <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 6 }}>
         {plan.sets}×{plan.repLow}–{plan.repHigh} · rest {plan.restSec}s · {plan.weightKg}kg planned
       </div>
+      {restRunning && !allDone && (
+        <RestTimer seconds={plan.restSec} color={t.accent}
+          onDone={() => setRestRunning(false)} onSkip={() => setRestRunning(false)} />
+      )}
       {rows.map((si) => (
         <SetRow key={si} plan={plan} exerciseName={ex.name} exerciseId={plan.exerciseId}
           setIndex={si}

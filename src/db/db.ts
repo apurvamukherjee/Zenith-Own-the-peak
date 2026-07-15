@@ -4,7 +4,7 @@ import type {
   WorkoutSessionDto, WorkoutSetDto, BodyweightDto, WaterDto, SleepDto,
   StudyPathDto, StudyItemDto, StudySessionDto, FuelDto, SettingDto,
   ScheduleDto, ScheduleLogDto, MealDto, GoalDayDto, DayPhotoDto, StreakFreezeDto,
-  QuoteDto,
+  QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -29,6 +29,10 @@ class ZenithDB extends Dexie {
   dayPhotos!: Table<DayPhotoDto, number>;
   streakFreezes!: Table<StreakFreezeDto, number>;
   quotes!: Table<QuoteDto, number>;
+  bodyMeasurements!: Table<BodyMeasurementDto, number>;
+  mealTemplates!: Table<MealTemplateDto, number>;
+  restDayLogs!: Table<RestDayLogDto, number>;
+  habitChains!: Table<HabitChainDto, number>;
 
   constructor() {
     super("zenith");
@@ -61,6 +65,12 @@ class ZenithDB extends Dexie {
       streakFreezes: "++id, &date, weekKey",
       quotes: "++id, category, isFavorite, createdAt",
     });
+    this.version(4).stores({
+      bodyMeasurements: "++id, date, metric, [metric+date]",
+      mealTemplates: "++id, name, createdAt",
+      restDayLogs: "++id, &date, kind",
+      habitChains: "++id, triggerTable, active",
+    });
   }
 }
 
@@ -74,7 +84,7 @@ for (const table of db.tables) {
 }
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 3, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 4, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }
