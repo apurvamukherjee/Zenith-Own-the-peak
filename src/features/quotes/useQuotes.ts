@@ -14,6 +14,14 @@ export async function addQuote(text: string, author: string | undefined, categor
   return db.quotes.add({ text: text.trim(), author: author?.trim() || undefined, category, isFavorite: 0, createdAt: Date.now() });
 }
 
+export async function updateQuote(id: number, patch: Partial<Pick<QuoteDto, "text" | "author" | "category">>) {
+  const clean: Partial<QuoteDto> = {};
+  if (patch.text !== undefined) clean.text = patch.text.trim();
+  if (patch.author !== undefined) clean.author = patch.author.trim() || undefined;
+  if (patch.category !== undefined) clean.category = patch.category;
+  await db.quotes.update(id, clean);
+}
+
 export async function deleteQuote(id: number) {
   await db.quotes.delete(id);
 }

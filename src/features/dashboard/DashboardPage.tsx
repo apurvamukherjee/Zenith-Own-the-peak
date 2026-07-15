@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Progress, Button, App } from "antd";
-import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbMeat, TbGasStation, TbCalendar } from "react-icons/tb";
+import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import { motion } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
@@ -16,11 +16,38 @@ import { useMonthScores } from "../calendar/useCalendar";
 import { fmtDuration } from "../../lib/date.utils";
 import { hapticLight } from "../../lib/haptics";
 
+// Time-aware greeting: text, icon, tagline, and a gradient accent that
+// evolves through the day — dawn amber, day peak violet, dusk red, night indigo.
 function greeting() {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
+  if (h >= 5 && h < 8) return {
+    text: "Rise & shine", icon: TbSunrise, tagline: "Fresh day, fresh peak",
+    grad: "linear-gradient(135deg, #f6b93b, #ff6b3d)",
+  };
+  if (h >= 8 && h < 12) return {
+    text: "Good morning", icon: TbCoffee, tagline: "Fuel up, own the day",
+    grad: "linear-gradient(135deg, #ff6b3d, #ff2740)",
+  };
+  if (h >= 12 && h < 15) return {
+    text: "Good afternoon", icon: TbSun, tagline: "Push through the middle",
+    grad: "linear-gradient(135deg, #ff2740, #d81f34)",
+  };
+  if (h >= 15 && h < 18) return {
+    text: "Steady on", icon: TbSun, tagline: "Second wind time",
+    grad: "linear-gradient(135deg, #d81f34, #7c5cfc)",
+  };
+  if (h >= 18 && h < 21) return {
+    text: "Good evening", icon: TbSunset, tagline: "Finish strong",
+    grad: "linear-gradient(135deg, #7c5cfc, #6e0f1c)",
+  };
+  if (h >= 21 && h < 24) return {
+    text: "Wind down", icon: TbMoon, tagline: "Recovery is where growth happens",
+    grad: "linear-gradient(135deg, #6e0f1c, #1a0509)",
+  };
+  return {
+    text: "Late night", icon: TbMoonStars, tagline: "Sleep is your edge",
+    grad: "linear-gradient(135deg, #1a0509, #08060a)",
+  };
 }
 
 export function DashboardPage() {
@@ -58,6 +85,9 @@ export function DashboardPage() {
     message.success(`+${ml}ml`);
   }
 
+  const g = greeting();
+  const GIcon = g.icon;
+
   return (
     <div style={{
       display: "flex", flexDirection: "column", gap: 10,
@@ -65,12 +95,33 @@ export function DashboardPage() {
       overflow: "hidden",
     }}>
       {/* Header row: greeting + streak + settings */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>{greeting()}</div>
-          <h2 className="display" style={{ margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1.1 }}>{name}</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <motion.div
+            key={g.text}
+            initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+            style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              width: 22, height: 22, borderRadius: 7,
+              background: g.grad, color: "#fff",
+            }}>
+              <GIcon size={13} />
+            </span>
+            <span style={{
+              fontSize: 12, fontWeight: 700, letterSpacing: 0.3,
+              background: g.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>{g.text}</span>
+          </motion.div>
+          <h2 className="display" style={{ margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1.05 }}>
+            {name}
+          </h2>
+          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 2, fontStyle: "italic" }}>
+            {g.tagline}
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ textAlign: "center" }}>
             <div className="display" style={{ fontSize: 20, fontWeight: 800, color: t.gold, lineHeight: 1 }}>
               <TbFlame style={{ verticalAlign: "-2px" }} /><AnimatedNumber value={streak} />

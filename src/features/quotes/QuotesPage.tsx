@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Input, Segmented, Button, App, Popconfirm } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  TbQuote, TbPlus, TbStarFilled, TbStar, TbTrash, TbChevronLeft, TbChevronRight,
+  TbQuote, TbPlus, TbStarFilled, TbStar, TbTrash, TbChevronLeft, TbChevronRight, TbPencil,
   TbArrowsShuffle, TbBarbell, TbBook2, TbSparkles,
 } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
-import type { QuoteCategory } from "../../db/types";
-import { useQuotes, addQuote, deleteQuote, toggleFavorite, pickRandomIndex } from "./useQuotes";
+import type { QuoteCategory, QuoteDto } from "../../db/types";
+import { useQuotes, addQuote, updateQuote, deleteQuote, toggleFavorite, pickRandomIndex } from "./useQuotes";
 import { hapticLight } from "../../lib/haptics";
 
 const CATEGORY_META: Record<QuoteCategory, { label: string; icon: typeof TbBarbell; color: string }> = {
@@ -23,6 +23,7 @@ export function QuotesPage() {
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<QuoteDto | null>(null);
 
   const safeIndex = quotes.length ? index % quotes.length : 0;
   const current = quotes[safeIndex];
@@ -131,11 +132,13 @@ export function QuotesPage() {
                     </div>
                   )}
 
-                  {/* Favorite + delete */}
+                  {/* Favorite + edit + delete */}
                   <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 6, zIndex: 1 }}>
                     <Button type="text" shape="circle"
                       icon={current.isFavorite ? <TbStarFilled style={{ color: "var(--gold)" }} /> : <TbStar />}
                       onClick={() => toggleFavorite(current)} aria-label="Favorite" />
+                    <Button type="text" shape="circle" icon={<TbPencil />}
+                      onClick={() => setEditing(current)} aria-label="Edit" />
                     <Popconfirm title="Delete this quote?" okButtonProps={{ danger: true }}
                       onConfirm={() => { deleteQuote(current.id!); message.success("Deleted"); setIndex(0); }}>
                       <Button type="text" shape="circle" icon={<TbTrash />} aria-label="Delete" />
@@ -160,6 +163,7 @@ export function QuotesPage() {
       )}
 
       <AddQuoteModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <EditQuoteModal quote={editing} onClose={() => setEditing(null)} />
     </PageTransition>
   );
 }
@@ -183,6 +187,44 @@ function AddQuoteModal({ open, onClose }: { open: boolean; onClose: () => void }
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
         <Input.TextArea rows={4} placeholder="What keeps you going?" value={text}
           onChange={(e) => setText(e.target.value)} maxLength={280} showCount autoFocus />
+        <Input placeholder="Author (optional)" value={author} onChange={(e) => setAuthor(e.target.value)} />
+        <Segmented block value={category} onChange={(v) => setCategory(v as QuoteCategory)}
+          options={[
+            { label: "Gym", value: "gym", icon: <TbBarbell /> },
+            { label: "Study", value: "study", icon: <TbBook2 /> },
+            { label: "Life", value: "life", icon: <TbSparkles /> },
+          ]} />
+      </div>
+    </Modal>
+  );
+}
+
+function EditQuoteModal({ quote, onClose }: { quote: QuoteDto | null; onClose: () => void }) {
+  const { message } = App.useApp();
+  const [text, setText] = useState("");
+  const [author, setAuthor] = useState("");
+  const [category, setCategory] = useState<QuoteCategory>("gym");
+
+  // Sync form when a new quote is opened for editing
+  useEffect(() => {
+    if (quote) {
+      setText(quote.text);
+      setAuthor(quote.author ?? "");
+      setCategory(quote.category);
+    }
+  }, [quote]);
+
+  async function save() {
+    if (!quote?.id || !text.trim()) return;
+    await updateQuote(quote.id, { text, author, category });
+    message.success("Updated");
+    onClose();
+  }
+
+  return (
+    <Modal open={!!quote} onCancel={onClose} title="Edit quote" onOk={save} okText="Save changes">
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+        <Input.TextArea rows={4} value={text} onChange={(e) => setText(e.target.value)} maxLength={280} showCount autoFocus />
         <Input placeholder="Author (optional)" value={author} onChange={(e) => setAuthor(e.target.value)} />
         <Segmented block value={category} onChange={(v) => setCategory(v as QuoteCategory)}
           options={[
