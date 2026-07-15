@@ -34,7 +34,7 @@ UI (features/*/*.tsx)        ← never touches Dexie directly
 Mutation bus (`lib/mutations.ts`) fires on every Dexie write → cloud auto-backup
 debounces a push. Adding a new table auto-inherits this.
 
-## Routes (10 total)
+## Routes (12 total)
 
 | Path | Page | Tab? |
 |------|------|------|
@@ -48,8 +48,10 @@ debounces a push. Adding a new table auto-inherits this.
 | `/water` | WaterPage | no |
 | `/sleep` | SleepPage | no |
 | `/fuel` | FuelPage | no |
+| `/calendar` | CalendarPage | no |
+| `/quotes` | QuotesPage (Motivation) | no |
 
-BottomNav = 5 tabs. NavStrip = 4 secondary chips (Water, Sleep, Fuel, Progress).
+BottomNav = 5 tabs. NavStrip = 5 secondary chips (Water, Sleep, Fuel, Progress, Calendar).
 Weekly Review is **inlined into ProfilePage**, not a separate route.
 
 ## Directory map
@@ -221,3 +223,23 @@ is a full sync: delete the project's tracked files and replace wholesale with
 the last verified zip, then `git add -A && git commit && git push --force`
 (safe on a single-contributor repo). Patching symptoms one error at a time on a
 drifted tree tends to surface a new mismatched file every build.
+
+## Phase 1.3 — greeting + editable quotes
+
+### Time-aware greeting (Home)
+The dashboard's `greeting()` helper (in `features/dashboard/DashboardPage.tsx`)
+now returns `{ text, icon, tagline, grad }` for 7 time slots (5–8 dawn, 8–12
+morning, 12–15 midday, 15–18 afternoon, 18–21 evening, 21–24 wind-down, 0–5
+late night). The icon renders in a small gradient chip, the greeting text uses
+`WebkitBackgroundClip: "text"` for a gradient fill, and an italic tagline sits
+under the name. The wrapper is a `motion.div` keyed on `g.text`, so crossing an
+hour boundary animates the transition. Gradients shift the palette through the
+day (amber → red → violet → indigo).
+
+### Editable quotes (`/quotes`)
+`features/quotes/useQuotes.ts` now exports `updateQuote(id, patch)` alongside
+`addQuote`/`deleteQuote`/`toggleFavorite`. `QuotesPage.tsx` adds a pencil-icon
+button between Favorite and Delete in the swipe deck; tapping it opens
+`EditQuoteModal`, which pre-fills text/author/category from the current quote
+via `useEffect(() => { ... }, [quote])`. `updateQuote` only writes the fields
+present in the patch, so unrelated fields (isFavorite, createdAt) stay intact.

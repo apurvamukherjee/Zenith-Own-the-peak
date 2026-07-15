@@ -4,7 +4,7 @@
 
 ### *Own the peak.*
 
-A local-first personal tracker — **training, nutrition, study, sleep, water & bike fuel** — in one gothic, offline dashboard. No account, no server, your data never leaves your device.
+A local-first personal tracker — **training, nutrition, study, sleep, water, bike fuel, calendar & motivation** — in one gothic, offline dashboard. No account, no server, your data never leaves your device.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
@@ -25,6 +25,9 @@ A local-first personal tracker — **training, nutrition, study, sleep, water & 
 
 - 🏋️ **Two-screen gym engine** — a minimal Session Logger for the gym (progress bar, +/− weight/reps, tap to complete) and a full Workout Planner for the couch (56-exercise library, custom days, weekly schedule)
 - 📊 **Discipline score** — one ring on Home that tells you if today is on track (water + training + sleep + protein, averaged)
+- 📅 **Discipline calendar** — month grid colored by daily score with per-metric filters, streak freeze, workout backfill, on-this-day comparisons, goal countdowns, photo pins, range stats, and a GitHub-style year heatmap
+- 🌅 **Time-aware greeting** — 7 time-of-day slots with matching icons, taglines, and evolving gradients from dawn to late night
+- 💬 **Motivation deck** — swipeable quote cards you can add/edit/favorite by category (gym / study / life)
 - 🖤 **Gothic dark mode** — black + aggressive red by default, with a one-tap Light toggle
 - ⚡ **Quick-Log FAB** — floating action button on every screen, one tap to log water, meals, or jump to any tracker
 - 🎨 **Make it yours** — custom profile picture, wallpaper with blur & opacity controls
@@ -47,6 +50,7 @@ A local-first personal tracker — **training, nutrition, study, sleep, water & 
 | 😴 | **Sleep** | Bed/wake logging, duration, quality, weekly sleep-debt |
 | ⛽ | **Fuel** | Full-to-full bike mileage (km/L), monthly spend, cost per km |
 | 📅 | **Calendar** | Month grid colored by discipline score, filters, goal countdowns, photo pins, range stats, streak freeze, backfill, year heatmap |
+| 💬 | **Motivation** | Swipeable quote deck by category (gym / study / life) — add, edit, favorite, delete |
 | 📈 | **Stats** | All-module metrics, weekly review + insights, bodyweight, appearance, reminders, cloud sync, backup |
 
 ## 🛠 Tech stack
