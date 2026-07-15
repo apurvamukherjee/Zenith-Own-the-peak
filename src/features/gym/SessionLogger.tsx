@@ -73,18 +73,21 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
   const t = useTokens();
   const [restRunning, setRestRunning] = useState(false);
   const doneCountRef = useRef(0);
-  if (!ex) return null;
+
   const done = sets.filter((s) => s.exerciseId === plan.exerciseId);
   const totalSets = plan.sets;
   const doneCount = done.length;
   const allDone = doneCount >= totalSets;
   const rows = Array.from({ length: totalSets }, (_, i) => i + 1);
 
-  // Trigger rest timer when a set is newly completed (doneCount increased)
+  // Trigger rest timer when a set is newly completed (doneCount increased).
+  // MUST run before any early return so hook count stays constant across renders.
   useEffect(() => {
     if (doneCount > doneCountRef.current && !allDone) setRestRunning(true);
     doneCountRef.current = doneCount;
   }, [doneCount, allDone]);
+
+  if (!ex) return null;
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
