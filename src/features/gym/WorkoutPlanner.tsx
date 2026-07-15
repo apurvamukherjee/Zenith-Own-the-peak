@@ -3,7 +3,8 @@ import { Card, Button, Modal, Input, Select, InputNumber, Tag, App, Segmented } 
 import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
-import { MUSCLE_LABELS, MuscleIcon } from "../../config/exerciseLibrary";
+import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
+import { MuscleIcon } from "../../components/MuscleIcon";
 import type { MuscleGroup, ExerciseDto, DayExerciseDto } from "../../db/types";
 import {
   useWorkoutDays, useExerciseLibrary, useDayExercises, useWeekSchedule,

@@ -16,8 +16,17 @@ const components = {
 export type Mode = "light" | "dark";
 
 export function getTheme(mode: Mode): ThemeConfig {
+  const base: ThemeConfig = {
+    // CSS-variable mode: AntD writes tokens as real CSS custom properties instead
+    // of baking hex values into per-theme class hashes. Combined with the CSS
+    // transition rule in index.css, this is what makes dark/light actually
+    // *animate* instead of instantly swapping ("blinking").
+    cssVar: { key: "zenith" },
+    hashed: false,
+  };
   if (mode === "dark") {
     return {
+      ...base,
       algorithm: antdTheme.darkAlgorithm,
       token: {
         ...shared,
@@ -36,6 +45,7 @@ export function getTheme(mode: Mode): ThemeConfig {
     };
   }
   return {
+    ...base,
     token: {
       ...shared,
       colorPrimary: "#7c5cfc",

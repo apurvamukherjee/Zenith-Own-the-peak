@@ -3,7 +3,7 @@ import type {
   ExerciseDto, WorkoutDayDto, DayExerciseDto, WeekScheduleDto,
   WorkoutSessionDto, WorkoutSetDto, BodyweightDto, WaterDto, SleepDto,
   StudyPathDto, StudyItemDto, StudySessionDto, FuelDto, SettingDto,
-  ScheduleDto, ScheduleLogDto, MealDto,
+  ScheduleDto, ScheduleLogDto, MealDto, QuoteDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -24,6 +24,7 @@ class ZenithDB extends Dexie {
   schedules!: Table<ScheduleDto, number>;
   scheduleLogs!: Table<ScheduleLogDto, number>;
   meals!: Table<MealDto, number>;
+  quotes!: Table<QuoteDto, number>;
 
   constructor() {
     super("zenith");
@@ -49,6 +50,9 @@ class ZenithDB extends Dexie {
       weekSchedule: "++id, &weekday, dayId",
       workoutSessions: "++id, date, weekKey, dayId",
       workoutSets: "++id, sessionId, date, exerciseId, exerciseName, [exerciseName+date]",
+    });
+    this.version(3).stores({
+      quotes: "++id, category, isFavorite, createdAt",
     });
   }
 }

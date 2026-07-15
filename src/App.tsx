@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
-import { ConfigProvider, App as AntApp } from "antd";
+import { ConfigProvider, App as AntApp, Spin } from "antd";
 import { AnimatePresence } from "framer-motion";
 import { getTheme, type Mode } from "./theme";
 import { useSetting } from "./hooks/useSettings";
@@ -23,10 +23,16 @@ export default function App() {
     if (meta) meta.setAttribute("content", resolved === "dark" ? "#08080a" : "#7c5cfc");
   }, [resolved]);
 
-  // Seed exercise library + default PPL on first launch
-  useEffect(() => { seedIfEmpty().then(() => setSeeded(true)); }, []);
+  // Enable theme-transition CSS only after first paint, so initial load never fades in.
+  useEffect(() => {
+    const t = requestAnimationFrame(() => document.documentElement.classList.add("theme-ready"));
+    return () => cancelAnimationFrame(t);
+  }, []);
 
-  // Show onboarding after splash if not yet onboarded
+  // Seed exercise library + default PPL on first launch — MUST complete before rendering
+  useEffect(() => { seedIfEmpty().then(() => setSeeded(true)).catch(() => setSeeded(true)); }, []);
+
+  // Show onboarding after splash+seed if not yet onboarded
   useEffect(() => {
     if (ready && seeded && Number(onboarded) !== 1) setShowOnboarding(true);
   }, [ready, seeded, onboarded]);
@@ -38,9 +44,16 @@ export default function App() {
           {!ready && <SplashScreen key="splash" onDone={() => setReady(true)} />}
         </AnimatePresence>
         {showOnboarding && <OnboardingFlow onDone={() => setShowOnboarding(false)} />}
-        <BrowserRouter>
-          <AppShell />
-        </BrowserRouter>
+        {/* Gate routing behind seed completion so hooks don't query empty tables */}
+        {seeded ? (
+          <BrowserRouter>
+            <AppShell />
+          </BrowserRouter>
+        ) : (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh" }}>
+            <Spin size="large" />
+          </div>
+        )}
       </AntApp>
     </ConfigProvider>
   );

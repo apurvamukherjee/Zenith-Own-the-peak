@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Button, App, Progress, Tag, Segmented } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon } from "react-icons/tb";
+import { TbCheck, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { useTokens } from "../../hooks/useTokens";
-import { MuscleIcon, MUSCLE_LABELS } from "../../config/exerciseLibrary";
+import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
+import { MuscleIcon } from "../../components/MuscleIcon";
 import type { DayExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types";
 import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
@@ -137,7 +139,10 @@ export function SessionLogger() {
   return (
     <PageTransition>
       {/* Muscle heatmap + progress */}
-      <div style={{ textAlign: "center", marginBottom: 12 }}>
+      <div style={{ textAlign: "center", marginBottom: 12, position: "relative" }}>
+        <Link to="/quotes" style={{ position: "absolute", top: -2, right: 0 }}>
+          <Button type="text" shape="circle" icon={<TbQuote size={20} />} aria-label="Motivation quotes" />
+        </Link>
         <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>{prettyDate(todayKey())}</div>
         <div className="display" style={{ fontSize: 26, fontWeight: 800, margin: "4px 0" }}>
           {isRest ? "Rest Day" : dayPlan?.name ?? "Session"}

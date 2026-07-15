@@ -96,6 +96,17 @@ export interface MealDto {
 // ---- Settings ----
 export interface SettingDto { key: string; value: number | string; }
 
+// ---- Quotes (self-motivation) ----
+export type QuoteCategory = "gym" | "study" | "life";
+export interface QuoteDto {
+  id?: number;
+  text: string;
+  author?: string;
+  category: QuoteCategory;
+  isFavorite: number; // 0 | 1
+  createdAt: number;
+}
+
 // Legacy compat
 export type DayType = string;
 export interface ExercisePlan {

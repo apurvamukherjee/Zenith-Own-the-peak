@@ -25,7 +25,7 @@ export function AppShell() {
         minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
         <AppBar />
         <NavStrip />
-        <main style={{ flex: 1 }}>
+        <main style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
           <AnimatedRoutes />
         </main>
         <QuickLogFab />

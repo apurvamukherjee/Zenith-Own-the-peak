@@ -27,8 +27,8 @@ export function useWeeklyWater() {
   }, [dates.join()]) ?? [];
 }
 
-export async function addWater(amountMl: number) {
-  await db.water.add({ date: todayKey(), amountMl, timestamp: Date.now() });
+export async function addWater(amountMl: number, date: string = todayKey()) {
+  await db.water.add({ date, amountMl, timestamp: Date.now() });
 }
 export async function undoLastWater() {
   const last = await db.water.where({ date: todayKey() }).last();

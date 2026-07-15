@@ -7,13 +7,14 @@ import { DashboardPage } from "../features/dashboard/DashboardPage";
 const SessionLogger = lazy(() => import("../features/gym/SessionLogger").then((m) => ({ default: m.SessionLogger })));
 const WorkoutPlanner = lazy(() => import("../features/gym/WorkoutPlanner").then((m) => ({ default: m.WorkoutPlanner })));
 const WorkoutProgressPage = lazy(() => import("../features/workout/WorkoutProgressPage").then((m) => ({ default: m.WorkoutProgressPage })));
+const QuotesPage = lazy(() => import("../features/quotes/QuotesPage").then((m) => ({ default: m.QuotesPage })));
 const NutritionPage = lazy(() => import("../features/nutrition/NutritionPage").then((m) => ({ default: m.NutritionPage })));
 const WaterPage = lazy(() => import("../features/water/WaterPage").then((m) => ({ default: m.WaterPage })));
 const SleepPage = lazy(() => import("../features/sleep/SleepPage").then((m) => ({ default: m.SleepPage })));
 const StudyPage = lazy(() => import("../features/study/StudyPage").then((m) => ({ default: m.StudyPage })));
 const FuelPage = lazy(() => import("../features/fuel/FuelPage").then((m) => ({ default: m.FuelPage })));
+const CalendarPage = lazy(() => import("../features/calendar/CalendarPage").then((m) => ({ default: m.CalendarPage })));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then((m) => ({ default: m.ProfilePage })));
-const WeeklyReviewPage = lazy(() => import("../features/review/WeeklyReviewPage").then((m) => ({ default: m.WeeklyReviewPage })));
 
 const Fallback = <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><Spin /></div>;
 
@@ -30,13 +31,14 @@ export function AnimatedRoutes() {
             <Route path="workout" element={<SessionLogger />} />
             <Route path="planner" element={<WorkoutPlanner />} />
             <Route path="progress" element={<WorkoutProgressPage />} />
+            <Route path="quotes" element={<QuotesPage />} />
             <Route path="nutrition" element={<NutritionPage />} />
             <Route path="water" element={<WaterPage />} />
             <Route path="sleep" element={<SleepPage />} />
             <Route path="study" element={<StudyPage />} />
             <Route path="fuel" element={<FuelPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="review" element={<WeeklyReviewPage />} />
           </Routes>
         </Suspense>
       </motion.div>
