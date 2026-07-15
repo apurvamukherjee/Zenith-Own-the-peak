@@ -1,6 +1,7 @@
+import { TbGasStation } from "react-icons/tb";
 import { useState } from "react";
-import { Card, InputNumber, DatePicker, Button, Statistic, Row, Col, Empty, App, Alert } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Card, InputNumber, DatePicker, Button, Statistic, Row, Col, App, Alert } from "antd";
+import { TbPlus, TbTrash } from "react-icons/tb";
 import dayjs from "dayjs";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
@@ -51,7 +52,7 @@ export function FuelPage() {
             <InputNumber value={litres} onChange={(v) => setLitres(v ?? undefined)} placeholder="Litres" style={{ flex: 1 }} controls={false} min={0} />
             <InputNumber value={cost} onChange={(v) => setCost(v ?? undefined)} placeholder="Cost ₹" style={{ flex: 1 }} controls={false} min={0} />
           </div>
-          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={submit} style={{ fontWeight: 700 }}>Add fill-up</Button>
+          <Button type="primary" size="large" icon={<TbPlus />} onClick={submit} style={{ fontWeight: 700 }}>Add fill-up</Button>
         </div>
         <Alert type="info" showIcon style={{ marginTop: 12, borderRadius: 10 }}
           message="Fill to full each time — that's how mileage stays accurate. The first fill has no mileage (no prior reading)." />
@@ -74,7 +75,11 @@ export function FuelPage() {
       )}
 
       <Card title="History" size="small">
-        {rows.length === 0 ? <Empty description="No fill-ups yet." /> : (
+        {rows.length === 0 ? <div style={{ textAlign: "center", padding: 24 }}>
+            <div style={{ marginBottom: 8 }}><TbGasStation size={40} style={{ color: "var(--accent)" }} /></div>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>No fill-ups logged</div>
+            <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>Log your first full-tank fill above. Mileage starts from the second fill.</div>
+          </div> : (
           [...rows].reverse().map((r) => (
             <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
               <div style={{ flex: 1 }}>
@@ -85,7 +90,7 @@ export function FuelPage() {
                 <div style={{ fontWeight: 700, color: r.mileage ? VIOLET : "var(--ink-soft)" }}>{r.mileage ? `${r.mileage} km/L` : "—"}</div>
                 {r.distanceKm !== null && <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{r.distanceKm} km</div>}
               </div>
-              <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => r.id && deleteFuel(r.id)} aria-label="Delete" />
+              <Button type="text" danger size="small" icon={<TbTrash />} onClick={() => r.id && deleteFuel(r.id)} aria-label="Delete" />
             </div>
           ))
         )}

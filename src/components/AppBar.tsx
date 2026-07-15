@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LeftOutlined } from "@ant-design/icons";
+import { TbChevronLeft } from "react-icons/tb";
 import { metaFor } from "../lib/routes";
 
 // Slim persistent top bar. Back button appears only on secondary (non-tab) pages.
@@ -35,7 +35,7 @@ export function AppBar() {
               color: "var(--violet)", fontSize: 15, fontWeight: 600, padding: "6px 8px",
             }}
           >
-            <LeftOutlined /> {meta.title}
+            <TbChevronLeft /> {meta.title}
           </motion.button>
         )}
       </AnimatePresence>

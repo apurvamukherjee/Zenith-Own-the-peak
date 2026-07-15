@@ -1,21 +1,20 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Card, Button, Progress } from "antd";
-import {
-  ThunderboltFilled, FireFilled, MoonFilled, ReadFilled, RightOutlined, PlusOutlined,
-} from "@ant-design/icons";
+import { Progress, Button, App } from "antd";
+import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbMeat, TbGasStation, TbCalendar } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
-import { PageTransition } from "../../components/PageTransition";
-import { SectionTitle } from "../../components/SectionTitle";
+import { motion } from "framer-motion";
+import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { db } from "../../db/db";
-import { PPL_PROGRAM, dayTypeForDate } from "../../config/pplProgram";
+import { useTokens } from "../../hooks/useTokens";
+import { useSetting } from "../../hooks/useSettings";
 import { useTodayWater, useWorkoutToday, addWater } from "../water/useWater";
 import { useRecentSleep } from "../sleep/useSleep";
-import { useSchedules, useTodayLogs, useTodayMeals, slotStatus } from "../nutrition/useNutrition";
-import { useSetting } from "../../hooks/useSettings";
-import { consecutiveStreak, fmtDuration, todayKey } from "../../lib/date.utils";
-import { VIOLET, GOLD } from "../../theme";
-import { useTokens } from "../../hooks/useTokens";
-import { TbReportAnalytics, TbChevronRight } from "react-icons/tb";
+import { computeUnifiedStreak } from "../../lib/streak.utils";
+import { computeTodayScore } from "../../lib/todayScore";
+import { useMonthScores } from "../calendar/useCalendar";
+import { fmtDuration } from "../../lib/date.utils";
+import { hapticLight } from "../../lib/haptics";
 
 function greeting() {
   const h = new Date().getHours();
@@ -25,148 +24,221 @@ function greeting() {
 }
 
 export function DashboardPage() {
+  const { message } = App.useApp();
   const t = useTokens();
   const name = useSetting("name");
-  const autoDay = dayTypeForDate(new Date());
-  const plan = autoDay !== "Rest" ? PPL_PROGRAM[autoDay] : null;
-
-  const { total: water } = useTodayWater();
+  const waterGoal = useSetting("waterGoalMl");
+  const proteinTarget = useSetting("proteinTargetG");
+  const { total: waterMl } = useTodayWater();
   const trained = useWorkoutToday();
-  const base = useSetting("waterGoalMl");
-  const bump = useSetting("workoutBumpMl");
-  const goal = base + (trained ? bump : 0);
-  const waterPct = Math.min(100, Math.round((water / goal) * 100));
-
-  const setsToday = useLiveQuery(() => db.workoutSets.where("date").equals(todayKey()).count(), []) ?? 0;
-  const workoutDates = useLiveQuery(async () => (await db.workoutSets.orderBy("date").uniqueKeys()) as string[], []) ?? [];
-  const streak = consecutiveStreak(workoutDates);
-
   const sleep = useRecentSleep(2);
   const lastSleep = [...sleep].reverse().find(Boolean);
+
+  const [streak, setStreak] = useState(0);
+  const [score, setScore] = useState({ score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 });
+
+  useEffect(() => { computeUnifiedStreak().then(setStreak); }, [waterMl, trained]);
+  useEffect(() => { computeTodayScore(waterGoal, proteinTarget).then(setScore); }, [waterMl, waterGoal, proteinTarget]);
+
+  const todayDay = useLiveQuery(async () => {
+    const wd = new Date().getDay();
+    const entry = await db.weekSchedule.where({ weekday: wd }).first();
+    if (!entry?.dayId) return null;
+    return db.workoutDays.get(entry.dayId);
+  }, []);
 
   const upNext = useLiveQuery(async () => {
     const items = await db.studyItems.where("status").notEqual("done").sortBy("order");
     return items[0]?.title ?? null;
   }, []);
 
-  // Nutrition
-  const meals = useTodayMeals();
-  const schedules = useSchedules();
-  const logs = useTodayLogs();
-  const proteinDefault = useSetting("proteinTargetG");
-  const latestBw = useLiveQuery(async () => (await db.bodyweight.orderBy("date").last())?.kg, []);
-  const proteinTarget = latestBw ? Math.round(latestBw * 1.8) : proteinDefault;
-  const protein = meals.reduce((s, m) => s + m.protein, 0);
-  const doneIds = new Set(logs.map((l) => l.scheduleId));
-  const nextDose = schedules.find((s) => s.id && !doneIds.has(s.id) && slotStatus(s.time, false) !== "upcoming")
-    ?? schedules.find((s) => s.id && !doneIds.has(s.id));
-
-  // Fuel
-  const latestMileage = useLiveQuery(async () => {
-    const fills = await db.fuel.orderBy("odometer").toArray();
-    if (fills.length < 2) return 0;
-    const last = fills[fills.length - 1];
-    const prev = fills[fills.length - 2];
-    return last.litres > 0 ? +((last.odometer - prev.odometer) / last.litres).toFixed(1) : 0;
-  }, []) ?? 0;
+  async function quickWater(ml: number) {
+    await addWater(ml);
+    hapticLight();
+    message.success(`+${ml}ml`);
+  }
 
   return (
-    <PageTransition>
-      <SectionTitle eyebrow={greeting()} title={String(name)} />
-
-      <Card className="hero-grad" style={{ marginBottom: 16, border: "none" }}
-        styles={{ body: { padding: 20 } }}>
-        <div style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600, fontSize: 13 }}>{plan ? "Today's training" : "Recovery day"}</div>
-        <div className="display" style={{ color: "#fff", fontSize: 30, fontWeight: 800, margin: "4px 0 2px" }}>{plan ? plan.label : "Rest"}</div>
-        <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginBottom: 16 }}>{plan ? plan.focus : "Eat, sleep, grow."}</div>
-        <Link to="/workout"><Button size="large" icon={<ThunderboltFilled />} style={{ fontWeight: 700 }}>{setsToday > 0 ? `Continue (${setsToday} sets)` : "Start session"}</Button></Link>
-      </Card>
-
-      {/* Weekly review */}
-      <Link to="/review" style={{ color: "inherit" }}>
-        <Card size="small" style={{ marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <TbReportAnalytics style={{ fontSize: 22, color: t.gold }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700 }}>Weekly review</div>
-              <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>See how your week stacked up</div>
-            </div>
-            <TbChevronRight style={{ color: "var(--ink-soft)" }} />
-          </div>
-        </Card>
-      </Link>
-
-      {/* Nutrition */}
-      <Link to="/nutrition" style={{ color: "inherit" }}>
-        <Card size="small" style={{ marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <Progress type="circle" percent={Math.min(100, Math.round((protein / proteinTarget) * 100))} size={56} strokeColor={t.accent}
-              format={() => <span style={{ fontSize: 11, fontWeight: 700 }}>{protein}g</span>} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700 }}>🍽️ Nutrition <RightOutlined style={{ fontSize: 10, color: "var(--ink-soft)" }} /></div>
-              <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                {protein}g / {proteinTarget}g protein{nextDose ? ` · next: ${nextDose.label} ${nextDose.time}` : ""}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </Link>
-
-      {/* Water */}
-      <Card size="small" style={{ marginBottom: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Progress type="circle" percent={waterPct} size={56} strokeColor={waterPct >= 100 ? t.teal : t.accent}
-            format={() => <span style={{ fontSize: 11, fontWeight: 700 }}>{waterPct}%</span>} />
-          <div style={{ flex: 1 }}>
-            <Link to="/water" style={{ color: "inherit" }}><div style={{ fontWeight: 700 }}>💧 Water <RightOutlined style={{ fontSize: 10, color: "var(--ink-soft)" }} /></div></Link>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{(water / 1000).toFixed(2)}L of {(goal / 1000).toFixed(1)}L</div>
-          </div>
-          <Button size="small" icon={<PlusOutlined />} onClick={() => addWater(250)}>250</Button>
-          <Button size="small" icon={<PlusOutlined />} onClick={() => addWater(500)}>500</Button>
+    <div style={{
+      display: "flex", flexDirection: "column", gap: 10,
+      padding: "12px 16px 8px", minHeight: "calc(100dvh - 100px)", maxHeight: "calc(100dvh - 100px)",
+      overflow: "hidden",
+    }}>
+      {/* Header row: greeting + streak + settings */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>{greeting()}</div>
+          <h2 className="display" style={{ margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1.1 }}>{name}</h2>
         </div>
-      </Card>
-
-      {/* Sleep + streak */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-        <Link to="/sleep" style={{ flex: 1, color: "inherit" }}>
-          <Card size="small" styles={{ body: { padding: 14 } }}>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}><MoonFilled /> Last sleep</div>
-            <div className="display" style={{ fontSize: 22, fontWeight: 800, color: VIOLET, marginTop: 4 }}>{lastSleep ? fmtDuration(lastSleep.durationMin) : "–"}</div>
-          </Card>
-        </Link>
-        <Card size="small" style={{ flex: 1 }} styles={{ body: { padding: 14 } }}>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}><FireFilled style={{ color: GOLD }} /> Gym streak</div>
-          <div className="display" style={{ fontSize: 22, fontWeight: 800, color: GOLD, marginTop: 4 }}>{streak}d</div>
-        </Card>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ textAlign: "center" }}>
+            <div className="display" style={{ fontSize: 20, fontWeight: 800, color: t.gold, lineHeight: 1 }}>
+              <TbFlame style={{ verticalAlign: "-2px" }} /><AnimatedNumber value={streak} />
+            </div>
+            <div style={{ fontSize: 9, color: "var(--ink-soft)" }}>streak</div>
+          </div>
+          <Link to="/profile"><Button type="text" size="small" icon={<TbSettings size={18} />} aria-label="Settings" /></Link>
+        </div>
       </div>
 
-      {/* Study */}
-      <Link to="/study" style={{ color: "inherit" }}>
-        <Card size="small" style={{ marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <ReadFilled style={{ color: VIOLET, fontSize: 18 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700 }}>Study up next</div>
-              <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{upNext ?? "Add a learning path to begin"}</div>
+      {/* Center: discipline ring */}
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        style={{ textAlign: "center", flex: "0 0 auto", padding: "8px 0" }}>
+        <Progress type="dashboard" percent={score.score} size={120} strokeColor={t.accent} strokeWidth={8}
+          format={() => (
+            <div>
+              <div className="display" style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}><AnimatedNumber value={score.score} />%</div>
+              <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
             </div>
-            <RightOutlined style={{ color: "var(--ink-soft)" }} />
+          )} />
+        <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 6 }}>
+          <Pill done={score.waterPct >= 100} label="Water" icon={<TbDroplet size={12} />} />
+          <Pill done={score.sessionDone} label="Train" icon={<TbBarbell size={12} />} />
+          <Pill done={score.sleepLogged} label="Sleep" icon={<TbMoon size={12} />} />
+          <Pill done={score.proteinPct >= 100} label="Protein" icon={<TbMeat size={12} />} />
+        </div>
+      </motion.div>
+
+      {/* Mini calendar streak strip — last 7 days */}
+      <MiniWeekStrip />
+
+      {/* Training hero card */}
+      <Link to="/workout" style={{ color: "inherit", display: "block", flex: "0 0 auto" }}>
+        <div className="hero-grad" style={{
+          borderRadius: 16, padding: "12px 16px", position: "relative", overflow: "hidden",
+        }}>
+          <svg viewBox="0 0 120 120" width="80" height="80" style={{ position: "absolute", right: -4, bottom: -10, opacity: 0.1 }}>
+            <rect x="10" y="42" width="20" height="36" rx="4" fill="#fff"/>
+            <rect x="90" y="42" width="20" height="36" rx="4" fill="#fff"/>
+            <rect x="22" y="48" width="12" height="24" rx="3" fill="#fff"/>
+            <rect x="86" y="48" width="12" height="24" rx="3" fill="#fff"/>
+            <rect x="34" y="54" width="52" height="12" rx="3" fill="#fff"/>
+          </svg>
+          <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, fontWeight: 600 }}>
+                {todayDay ? "Today's training" : "Rest day"}
+              </div>
+              <div className="display" style={{ color: "#fff", fontSize: 20, fontWeight: 800 }}>
+                {todayDay?.name ?? "Recovery"}
+              </div>
+            </div>
+            <TbChevronRight size={20} style={{ color: "rgba(255,255,255,0.7)" }} />
           </div>
-        </Card>
+        </div>
       </Link>
 
-      {/* Fuel */}
-      <Link to="/fuel" style={{ color: "inherit" }}>
-        <Card size="small">
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 18 }}>🏍️</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700 }}>Bike mileage</div>
-              <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{latestMileage ? `${latestMileage} km/L last tank` : "Log a fill-up to start"}</div>
-            </div>
-            <RightOutlined style={{ color: "var(--ink-soft)" }} />
+      {/* 2x2 compact grid: water, sleep, study, protein */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, flex: "0 0 auto", marginTop: 8 }}>
+        {/* Water */}
+        <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+          <Progress type="circle" percent={score.waterPct} size={38} strokeColor={score.waterPct >= 100 ? t.teal : t.accent} strokeWidth={10}
+            format={() => <span style={{ fontSize: 8, fontWeight: 700 }}>{score.waterPct}%</span>} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Link to="/water" style={{ color: "inherit" }}>
+              <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
+                <TbDroplet size={13} /> Water
+              </div>
+            </Link>
+            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{(waterMl / 1000).toFixed(1)}L</div>
           </div>
-        </Card>
-      </Link>
-    </PageTransition>
+          <Button size="small" type="text" icon={<TbPlus size={14} />} onClick={() => quickWater(500)} style={{ padding: "0 6px" }} />
+        </div>
+
+        {/* Sleep */}
+        <Link to="/sleep" style={{ color: "inherit" }}>
+          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", height: "100%" }}>
+            <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
+              <TbMoon size={13} /> Sleep
+            </div>
+            <div className="display" style={{ fontSize: 18, fontWeight: 800, color: "var(--accent)", marginTop: 2 }}>
+              {lastSleep ? fmtDuration(lastSleep.durationMin) : "–"}
+            </div>
+          </div>
+        </Link>
+
+        {/* Study */}
+        <Link to="/study" style={{ color: "inherit" }}>
+          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px" }}>
+            <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
+              <TbBook2 size={13} /> Study
+            </div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {upNext ?? "Add a path"}
+            </div>
+          </div>
+        </Link>
+
+        {/* Nutrition */}
+        <Link to="/nutrition" style={{ color: "inherit" }}>
+          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px" }}>
+            <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
+              <TbMeat size={13} /> Nutrition
+            </div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
+              {score.proteinPct >= 100 ? "On target" : `${score.proteinPct}% protein`}
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Fuel + Calendar quick links */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <Link to="/fuel" style={{ color: "inherit" }}>
+          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+            <TbGasStation size={16} style={{ color: "var(--accent)" }} />
+            <span style={{ fontWeight: 700, fontSize: 13 }}>Fuel</span>
+          </div>
+        </Link>
+        <Link to="/calendar" style={{ color: "inherit" }}>
+          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+            <TbCalendar size={16} style={{ color: "var(--accent)" }} />
+            <span style={{ fontWeight: 700, fontSize: 13 }}>Calendar</span>
+          </div>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// Last 7 days as small dots, colored by discipline score — a glanceable
+// streak strip that links to the full calendar for detail/edit.
+function MiniWeekStrip() {
+  const t = useTokens();
+  const waterGoal = useSetting("waterGoalMl");
+  const proteinTarget = useSetting("proteinTargetG");
+  const now = new Date();
+  const cells = useMonthScores(now.getFullYear(), now.getMonth(), waterGoal, proteinTarget);
+  const todayNum = now.getDate();
+  const last7 = cells.filter((c) => {
+    const n = Number(c.date.slice(-2));
+    return n <= todayNum && n > todayNum - 7;
+  });
+
+  return (
+    <Link to="/calendar" style={{ color: "inherit" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface)", borderRadius: 12, padding: "8px 12px" }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Last 7 days</span>
+        <div style={{ display: "flex", gap: 5 }}>
+          {last7.map((c) => (
+            <div key={c.date} title={c.date} style={{
+              width: 16, height: 16, borderRadius: 5,
+              background: c.hasAny ? (c.score >= 75 ? t.teal : c.score >= 40 ? t.gold : "#ff5c7a") : "var(--border)",
+              border: c.isToday ? `2px solid ${t.accent}` : "none",
+            }} />
+          ))}
+        </div>
+        <TbChevronRight size={14} style={{ color: "var(--ink-soft)" }} />
+      </div>
+    </Link>
+  );
+}
+
+function Pill({ done, label, icon }: { done: boolean; label: string; icon: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 600,
+      color: done ? "var(--teal)" : "var(--ink-soft)", opacity: done ? 1 : 0.6 }}>
+      {icon} {label} {done && "✓"}
+    </div>
   );
 }

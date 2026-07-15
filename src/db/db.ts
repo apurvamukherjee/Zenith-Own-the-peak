@@ -1,14 +1,17 @@
 import Dexie, { type Table } from "dexie";
 import type {
+  ExerciseDto, WorkoutDayDto, DayExerciseDto, WeekScheduleDto,
   WorkoutSessionDto, WorkoutSetDto, BodyweightDto, WaterDto, SleepDto,
   StudyPathDto, StudyItemDto, StudySessionDto, FuelDto, SettingDto,
-  ScheduleDto, ScheduleLogDto, MealDto,
+  ScheduleDto, ScheduleLogDto, MealDto, GoalDayDto, DayPhotoDto, StreakFreezeDto,
+  QuoteDto,
 } from "./types";
 
-// Local-first store (IndexedDB via Dexie). No backend today, but every write
-// goes through the hooks/*.ts data layer, so a remote sync adapter can slot in
-// later without touching UI. See ARCHITECTURE.md.
 class ZenithDB extends Dexie {
+  exercises!: Table<ExerciseDto, number>;
+  workoutDays!: Table<WorkoutDayDto, number>;
+  dayExercises!: Table<DayExerciseDto, number>;
+  weekSchedule!: Table<WeekScheduleDto, number>;
   workoutSessions!: Table<WorkoutSessionDto, number>;
   workoutSets!: Table<WorkoutSetDto, number>;
   bodyweight!: Table<BodyweightDto, number>;
@@ -22,6 +25,10 @@ class ZenithDB extends Dexie {
   schedules!: Table<ScheduleDto, number>;
   scheduleLogs!: Table<ScheduleLogDto, number>;
   meals!: Table<MealDto, number>;
+  goalDays!: Table<GoalDayDto, number>;
+  dayPhotos!: Table<DayPhotoDto, number>;
+  streakFreezes!: Table<StreakFreezeDto, number>;
+  quotes!: Table<QuoteDto, number>;
 
   constructor() {
     super("zenith");
@@ -40,12 +47,25 @@ class ZenithDB extends Dexie {
       scheduleLogs: "++id, scheduleId, date, [scheduleId+date]",
       meals: "++id, date",
     });
+    this.version(2).stores({
+      exercises: "++id, name, primaryMuscle, isCustom",
+      workoutDays: "++id, order",
+      dayExercises: "++id, dayId, exerciseId, order",
+      weekSchedule: "++id, &weekday, dayId",
+      workoutSessions: "++id, date, weekKey, dayId",
+      workoutSets: "++id, sessionId, date, exerciseId, exerciseName, [exerciseName+date]",
+    });
+    this.version(3).stores({
+      goalDays: "++id, date",
+      dayPhotos: "++id, &date",
+      streakFreezes: "++id, &date, weekKey",
+      quotes: "++id, category, isFavorite, createdAt",
+    });
   }
 }
 
 export const db = new ZenithDB();
 
-// Notify the mutation bus on any write so cloud auto-backup can debounce a push.
 import { bumpMutation, suppressMutations } from "../lib/mutations";
 for (const table of db.tables) {
   table.hook("creating", () => { bumpMutation(); });
@@ -54,7 +74,7 @@ for (const table of db.tables) {
 }
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 1, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 3, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

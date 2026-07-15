@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Card, Switch, TimePicker, InputNumber, Button, App, Divider } from "antd";
+import { Card, Switch, InputNumber, Button, App, Divider } from "antd";
+import { TimeSelect } from "../../components/TimeSelect";
 import { TbBell, TbBellRinging } from "react-icons/tb";
-import dayjs from "dayjs";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { requestNotificationPermission, isNativeNotifications } from "../../lib/notifications";
 
@@ -59,13 +59,11 @@ export function RemindersCard() {
       <Divider style={{ margin: "4px 0" }} />
       <Row label="Session reminder" hint="Nudge to train"
         checked={remSession} onChange={(v) => setSetting("remSession", v ? 1 : 0)}
-        control={<TimePicker inputReadOnly size="small" value={dayjs(remSessionAt, "HH:mm")} format="HH:mm"
-          needConfirm={false} allowClear={false} onChange={(v) => v && setSetting("remSessionAt", v.format("HH:mm"))} />} />
+        control={<TimeSelect size="small" value={remSessionAt} onChange={(v) => setSetting("remSessionAt", v)} />} />
       <Divider style={{ margin: "4px 0" }} />
       <Row label="Bedtime wind-down" hint="Protect your sleep"
         checked={remBedtime} onChange={(v) => setSetting("remBedtime", v ? 1 : 0)}
-        control={<TimePicker inputReadOnly size="small" value={dayjs(remBedtimeAt, "HH:mm")} format="HH:mm"
-          needConfirm={false} allowClear={false} onChange={(v) => v && setSetting("remBedtimeAt", v.format("HH:mm"))} />} />
+        control={<TimeSelect size="small" value={remBedtimeAt} onChange={(v) => setSetting("remBedtimeAt", v)} />} />
       <Divider style={{ margin: "4px 0" }} />
       <Row label="Supplement / med times" hint="From your Nutrition schedule"
         checked={remSupps} onChange={(v) => setSetting("remSupps", v ? 1 : 0)} />

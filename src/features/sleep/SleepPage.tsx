@@ -1,6 +1,6 @@
-import { Card, TimePicker, Rate, Input, Button, Statistic, Row, Col, App } from "antd";
+import { Card, Rate, Input, Button, Statistic, Row, Col, App } from "antd";
+import { TimeSelect } from "../../components/TimeSelect";
 import { useState } from "react";
-import dayjs from "dayjs";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
@@ -15,8 +15,8 @@ export function SleepPage() {
   const { message } = App.useApp();
   const recent = useRecentSleep(14);
   const target = useSetting("sleepTargetMin");
-  const [sleepAt, setSleepAt] = useState(dayjs("23:30", "HH:mm"));
-  const [wakeAt, setWakeAt] = useState(dayjs("07:00", "HH:mm"));
+  const [sleepAt, setSleepAt] = useState("23:30");
+  const [wakeAt, setWakeAt] = useState("07:00");
   const [quality, setQuality] = useState(3);
   const [notes, setNotes] = useState("");
 
@@ -27,7 +27,7 @@ export function SleepPage() {
   const avgQual = avg7.length ? (avg7.reduce((s, e) => s + e.quality, 0) / avg7.length).toFixed(1) : "–";
   const debtMin = avg7.reduce((s, e) => s + (target - e.durationMin), 0);
 
-  const preview = sleepDurationMin(sleepAt.format("HH:mm"), wakeAt.format("HH:mm"));
+  const preview = sleepDurationMin(sleepAt, wakeAt);
   const chart = recent.map((e, i) => ({
     label: e ? e.date.slice(5) : lastLabel(i),
     hours: e ? +(e.durationMin / 60).toFixed(1) : null,
@@ -36,8 +36,8 @@ export function SleepPage() {
   async function save() {
     await upsertSleep({
       date: todayKey(),
-      sleepAt: sleepAt.format("HH:mm"),
-      wakeAt: wakeAt.format("HH:mm"),
+      sleepAt,
+      wakeAt,
       quality, notes,
     });
     message.success(`Logged ${fmtDuration(preview)}`);
@@ -65,11 +65,11 @@ export function SleepPage() {
         <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Slept at</div>
-            <TimePicker inputReadOnly value={sleepAt} onChange={(v) => v && setSleepAt(v)} format="HH:mm" style={{ width: "100%" }} needConfirm={false} />
+            <TimeSelect value={sleepAt} onChange={setSleepAt} />
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Woke at</div>
-            <TimePicker inputReadOnly value={wakeAt} onChange={(v) => v && setWakeAt(v)} format="HH:mm" style={{ width: "100%" }} needConfirm={false} />
+            <TimeSelect value={wakeAt} onChange={setWakeAt} />
           </div>
         </div>
         <div style={{ textAlign: "center", marginBottom: 12, fontWeight: 700, color: VIOLET }}>{fmtDuration(preview)}</div>

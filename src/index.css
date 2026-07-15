@@ -42,7 +42,14 @@ body {
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Smooth dark/light switch: animate color-family properties on theme change
+   instead of an instant token swap. Scoped to `.theme-ready` (added after first
+   paint in App.tsx) so the very first render doesn't fade in from nothing. */
+html.theme-ready *, html.theme-ready *::before, html.theme-ready *::after {
+  transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease,
+    fill 0.35s ease, stroke 0.35s ease, box-shadow 0.35s ease;
 }
 
 h1, h2, h3, h4, .display { font-family: "Plus Jakarta Sans", Inter, sans-serif; }
@@ -55,6 +62,17 @@ h1, h2, h3, h4, .display { font-family: "Plus Jakarta Sans", Inter, sans-serif; 
 
 .hero-grad { background: var(--hero) !important; }
 .avatar-grad { background: var(--hero) !important; }
+
+/* Deterministic "fits one screen" height for no-scroll pages (Home).
+   AppBar is a fixed 48px + its own safe-area-top padding; BottomNav content is
+   ~62px + its own safe-area-bottom padding. Computed directly so it doesn't
+   depend on ancestor flex/percentage cascades resolving correctly. */
+.tight-page {
+  height: calc(100vh - 48px - 62px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  height: calc(100dvh - 48px - 62px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 /* ghost placeholder styling for "beat last week" numbers */
 .ghost input::placeholder { color: var(--ink-soft); opacity: 0.7; font-weight: 500; }
