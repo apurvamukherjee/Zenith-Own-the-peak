@@ -31,7 +31,7 @@ export function SyncCard() {
     const res = await s.sendCode(email.trim());
     setBusy(false);
     if (res?.error) message.error(res.error.message);
-    else { setCodeSent(true); message.success("Check your email for a 6-digit code"); }
+    else { setCodeSent(true); message.success("Check your email — tap the link OR paste the code"); }
   }
   async function verify() {
     setBusy(true);
@@ -64,7 +64,12 @@ export function SyncCard() {
           <Input prefix={<TbMail />} placeholder="you@email.com" value={email}
             onChange={(e) => setEmail(e.target.value)} disabled={codeSent} inputMode="email" />
           {codeSent && (
-            <Input placeholder="6-digit code" value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" />
+            <>
+              <div style={{ fontSize: 12, color: "var(--ink-soft)", padding: "4px 0" }}>
+                We emailed you a sign-in link and a 6-digit code. Tap the link on this device, or paste the code below.
+              </div>
+              <Input placeholder="6-digit code from email" value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" />
+            </>
           )}
           {!codeSent
             ? <Button type="primary" loading={busy} onClick={send}>Send code</Button>
