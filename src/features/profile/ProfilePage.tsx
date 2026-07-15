@@ -4,7 +4,7 @@ import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty, Segmen
 import {
   TbBolt, TbBook2, TbBulb, TbClipboardList, TbDownload, TbDroplet,
   TbFlame, TbGasStation, TbMoon, TbPalette, TbPhoto, TbTrendingUp, TbTrendingDown,
-  TbTrophy, TbUpload, TbUser, TbMoonStars, TbSun,
+  TbTrophy, TbUpload, TbUser,
 } from "react-icons/tb";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 import { PageTransition } from "../../components/PageTransition";

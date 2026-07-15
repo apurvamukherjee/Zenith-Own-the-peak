@@ -99,29 +99,28 @@ export function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* Mini calendar streak strip — last 7 days */}
-      <MiniWeekStrip />
-
-      {/* Training hero card */}
-      <Link to="/workout" style={{ color: "inherit", display: "block", flex: "0 0 auto" }}>
-        <div className="hero-grad" style={{
-          borderRadius: 16, padding: "12px 16px", position: "relative", overflow: "hidden",
-        }}>
-          <svg viewBox="0 0 120 120" width="80" height="80" style={{ position: "absolute", right: -4, bottom: -10, opacity: 0.1 }}>
-            <rect x="10" y="42" width="20" height="36" rx="4" fill="#fff"/>
-            <rect x="90" y="42" width="20" height="36" rx="4" fill="#fff"/>
-            <rect x="22" y="48" width="12" height="24" rx="3" fill="#fff"/>
-            <rect x="86" y="48" width="12" height="24" rx="3" fill="#fff"/>
-            <rect x="34" y="54" width="52" height="12" rx="3" fill="#fff"/>
-          </svg>
-          <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, fontWeight: 600 }}>
-                {todayDay ? "Today's training" : "Rest day"}
-              </div>
-              <div className="display" style={{ color: "#fff", fontSize: 20, fontWeight: 800 }}>
-                {todayDay?.name ?? "Recovery"}
-              </div>
+      {/* Streak + session card */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+        <Card size="small" style={{ flex: 1 }} styles={{ body: { padding: 14, textAlign: "center" } }}>
+          <TbFlame style={{ color: t.gold, fontSize: 22 }} />
+          <div className="display" style={{ fontSize: 24, fontWeight: 800, color: t.gold }}><AnimatedNumber value={streak} /></div>
+          <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>day streak</div>
+        </Card>
+        <Link to="/workout" style={{ flex: 2, color: "inherit" }}>
+          <Card className="hero-grad" size="small" style={{ border: "none", height: "100%", overflow: "hidden", position: "relative" }} styles={{ body: { padding: 14, position: "relative", zIndex: 1 } }}>
+            {/* Faded dumbbell SVG background */}
+            <svg viewBox="0 0 120 120" width="100" height="100" style={{ position: "absolute", right: -8, bottom: -12, opacity: 0.12 }}>
+              <rect x="10" y="42" width="20" height="36" rx="4" fill="#fff"/>
+              <rect x="90" y="42" width="20" height="36" rx="4" fill="#fff"/>
+              <rect x="22" y="48" width="12" height="24" rx="3" fill="#fff"/>
+              <rect x="86" y="48" width="12" height="24" rx="3" fill="#fff"/>
+              <rect x="34" y="54" width="52" height="12" rx="3" fill="#fff"/>
+            </svg>
+            <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 600 }}>
+              {todayDay ? "Today's training" : "Rest day"}
+            </div>
+            <div className="display" style={{ color: "#fff", fontSize: 22, fontWeight: 800, margin: "2px 0" }}>
+              {todayDay?.name ?? "Recovery"} <TbChevronRight style={{ verticalAlign: "-2px" }} />
             </div>
             <TbChevronRight size={20} style={{ color: "rgba(255,255,255,0.7)" }} />
           </div>
@@ -169,14 +168,14 @@ export function DashboardPage() {
           </div>
         </Link>
 
-        {/* Nutrition */}
-        <Link to="/nutrition" style={{ color: "inherit" }}>
-          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px" }}>
-            <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
-              <TbMeat size={13} /> Nutrition
-            </div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
-              {score.proteinPct >= 100 ? "On target" : `${score.proteinPct}% protein`}
+      {/* Weekly review */}
+      <Link to="/profile" style={{ color: "inherit" }}>
+        <Card size="small" style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <TbReportAnalytics style={{ fontSize: 20, color: t.gold }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700 }}>Weekly review</div>
+              <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>See how your week stacked up</div>
             </div>
           </div>
         </Link>

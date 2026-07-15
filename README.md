@@ -46,7 +46,6 @@ A local-first personal tracker — **training, nutrition, study, sleep, water & 
 | 💧 | **Water** | Pace-aware hydration with warnings, quick-add, 7-day chart |
 | 😴 | **Sleep** | Bed/wake logging, duration, quality, weekly sleep-debt |
 | ⛽ | **Fuel** | Full-to-full bike mileage (km/L), monthly spend, cost per km |
-| 📅 | **Calendar** | Month view colored by daily discipline score, tap a day to view/backfill water & sleep |
 | 📈 | **Stats** | All-module metrics, weekly review + insights, bodyweight, appearance, reminders, cloud sync, backup |
 
 ## 🛠 Tech stack

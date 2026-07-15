@@ -23,12 +23,6 @@ export default function App() {
     if (meta) meta.setAttribute("content", resolved === "dark" ? "#08080a" : "#7c5cfc");
   }, [resolved]);
 
-  // Enable theme-transition CSS only after first paint, so initial load never fades in.
-  useEffect(() => {
-    const t = requestAnimationFrame(() => document.documentElement.classList.add("theme-ready"));
-    return () => cancelAnimationFrame(t);
-  }, []);
-
   // Seed exercise library + default PPL on first launch — MUST complete before rendering
   useEffect(() => { seedIfEmpty().then(() => setSeeded(true)).catch(() => setSeeded(true)); }, []);
 
