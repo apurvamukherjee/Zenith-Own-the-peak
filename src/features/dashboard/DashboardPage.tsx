@@ -17,7 +17,8 @@ import { fmtDuration, todayKey } from "../../lib/date.utils";
 import { hapticLight } from "../../lib/haptics";
 
 // Time-aware greeting: text, icon, tagline, and a gradient accent that
-// evolves through the day — dawn amber, day peak violet, dusk red, night indigo.
+// evolves through the day — dawn amber, day peak crimson, dusk ember, night black.
+// Every stop stays inside the red-black-ember family. No purple.
 function greeting() {
   const h = new Date().getHours();
   if (h >= 5 && h < 8) return {
@@ -34,11 +35,11 @@ function greeting() {
   };
   if (h >= 15 && h < 18) return {
     text: "Steady on", icon: TbSun, tagline: "Second wind time",
-    grad: "linear-gradient(135deg, #d81f34, #7c5cfc)",
+    grad: "linear-gradient(135deg, #d81f34, #a8172b)",
   };
   if (h >= 18 && h < 21) return {
     text: "Good evening", icon: TbSunset, tagline: "Finish strong",
-    grad: "linear-gradient(135deg, #7c5cfc, #6e0f1c)",
+    grad: "linear-gradient(135deg, #a8172b, #6e0f1c)",
   };
   if (h >= 21 && h < 24) return {
     text: "Wind down", icon: TbMoon, tagline: "Recovery is where growth happens",
@@ -139,7 +140,7 @@ export function DashboardPage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ textAlign: "center" }}>
-            <div className="display" style={{ fontSize: 20, fontWeight: 800, color: t.gold, lineHeight: 1 }}>
+            <div className="display text-ember" style={{ fontSize: 20, fontWeight: 800, lineHeight: 1 }}>
               <TbFlame style={{ verticalAlign: "-2px" }} /><AnimatedNumber value={streak} />
             </div>
             <div style={{ fontSize: 9, color: "var(--ink-soft)" }}>streak</div>
@@ -173,13 +174,15 @@ export function DashboardPage() {
       {/* Center: discipline ring */}
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         style={{ textAlign: "center", flex: "0 0 auto", padding: "8px 0" }}>
-        <Progress type="dashboard" percent={score.score} size={120} strokeColor={t.accent} strokeWidth={8}
-          format={() => (
-            <div>
-              <div className="display" style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}><AnimatedNumber value={score.score} />%</div>
-              <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
-            </div>
-          )} />
+        <div className="ember-ring" style={{ display: "inline-block" }}>
+          <Progress type="dashboard" percent={score.score} size={120} strokeColor={t.accent} strokeWidth={8}
+            format={() => (
+              <div>
+                <div className="display" style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}><AnimatedNumber value={score.score} />%</div>
+                <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
+              </div>
+            )} />
+        </div>
         <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 6 }}>
           <Pill done={score.waterPct >= 100} label="Water" icon={<TbDroplet size={12} />} />
           <Pill done={score.sessionDone} label="Train" icon={<TbBarbell size={12} />} />
@@ -193,7 +196,7 @@ export function DashboardPage() {
 
       {/* Training hero card */}
       <Link to="/workout" style={{ color: "inherit", display: "block", flex: "0 0 auto" }}>
-        <div className="hero-grad" style={{
+        <div className="hero-grad metal-shadow" style={{
           borderRadius: 16, padding: "12px 16px", position: "relative", overflow: "hidden",
         }}>
           <svg viewBox="0 0 120 120" width="80" height="80" style={{ position: "absolute", right: -4, bottom: -10, opacity: 0.1 }}>

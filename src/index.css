@@ -1,15 +1,17 @@
 :root {
-  --bg: #f5f5fb;
+  --bg: #f5f0f0;
   --surface: #ffffff;
-  --ink: #16131f;
-  --ink-soft: #6b6780;
-  --violet: #7c5cfc;
-  --accent: #7c5cfc;
-  --gold: #ffb020;
-  --teal: #12b3a1;
-  --border: #ecebf3;
-  --nav-bg: rgba(255, 255, 255, 0.92);
-  --hero: linear-gradient(135deg, #7c5cfc, #9d7bff);
+  --ink: #1a0f13;
+  --ink-soft: #6b5a5f;
+  --violet: #c8112a;
+  --accent: #c8112a;
+  --gold: #b8860b;
+  --teal: #d05018;
+  --border: #ecdada;
+  --nav-bg: rgba(255, 250, 250, 0.94);
+  --hero: linear-gradient(135deg, #1a0509 0%, #6e0f1c 55%, #c8112a 100%);
+  --ember-glow: rgba(200, 17, 42, 0.35);
+  --ember-inner: rgba(200, 17, 42, 0.14);
 }
 
 /* Gothic dark: near-black + aggressive red + ember accents */
@@ -25,6 +27,8 @@
   --border: #2a2330;
   --nav-bg: rgba(12, 10, 14, 0.92);
   --hero: linear-gradient(135deg, #1a0509 0%, #6e0f1c 55%, #d81f34 100%);
+  --ember-glow: rgba(255, 39, 64, 0.40);
+  --ember-inner: rgba(255, 39, 64, 0.18);
 }
 
 * { box-sizing: border-box; }
@@ -63,7 +67,90 @@ h1, h2, h3, h4, .display { font-family: "Plus Jakarta Sans", Inter, sans-serif; 
 .hero-grad { background: var(--hero) !important; }
 .avatar-grad { background: var(--hero) !important; }
 
-/* Deterministic "fits one screen" height for no-scroll pages (Home).
+/* ------------------------------------------------------------------------
+   GOTHIC POLISH — Batch 3
+   Ember glow, red pulse, hairline dividers, blood-metal shadows.
+   Everything opt-in so existing components stay untouched unless they add
+   the class. Uses the CSS vars set in :root / [data-theme="dark"] so all
+   glow color stays automatic across the two modes.
+   ------------------------------------------------------------------------ */
+
+/* Ember card: subtle red inner-ring + outer-glow. Use on any card/panel
+   that should read as "important" (discipline ring, hero blocks). */
+.ember-card {
+  box-shadow:
+    inset 0 0 0 1px var(--ember-inner),
+    0 0 22px -12px var(--ember-glow),
+    0 6px 24px -18px rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+}
+
+/* Ember ring: use around progress rings / avatars. Pure outer halo, no
+   inner border, animated. */
+.ember-ring {
+  position: relative;
+}
+.ember-ring::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--ember-glow), transparent 70%);
+  filter: blur(6px);
+  z-index: -1;
+  animation: ember-pulse 3.5s ease-in-out infinite;
+}
+@keyframes ember-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 0.90; transform: scale(1.06); }
+}
+
+/* Red text-glow — for the streak flame, PR numbers, alert headings. */
+.text-ember {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--ember-glow), 0 0 22px rgba(0, 0, 0, 0.35);
+}
+
+/* Gothic hairline divider — fading red line, replaces flat borders. Use as
+   a `<hr class="hairline" />` or as border-image in bespoke sections. */
+.hairline {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+  margin: 12px 0;
+}
+
+/* Blood-metal shadow — heavier, moodier drop for elevated surfaces. */
+.metal-shadow {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.02) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.35) inset,
+    0 12px 32px -14px rgba(0, 0, 0, 0.55),
+    0 2px 8px -4px var(--ember-inner);
+}
+
+/* Slow scan-line breathe for the splash / hero backgrounds. Adds a barely-
+   visible vertical sweep. */
+@keyframes ember-scan {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  50%  { opacity: 0.06; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+.ember-scan {
+  position: relative;
+  overflow: hidden;
+}
+.ember-scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, var(--accent) 50%, transparent 100%);
+  animation: ember-scan 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Deterministic "fits one screen" height for no-scroll pages (Home). */
    AppBar is a fixed 48px + its own safe-area-top padding; BottomNav content is
    ~62px + its own safe-area-bottom padding. Computed directly so it doesn't
    depend on ancestor flex/percentage cascades resolving correctly. */

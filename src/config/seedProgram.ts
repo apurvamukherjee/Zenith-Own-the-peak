@@ -1,9 +1,13 @@
 import { db } from "../db/db";
 import { EXERCISE_LIBRARY } from "./exerciseLibrary";
+import { seedFoodsIfEmpty } from "./foodCatalog";
 import type { MuscleGroup } from "../db/types";
 
-// Seeds the exercise library + default PPL split on first launch. Idempotent.
+// Seeds the exercise library + default PPL split + food catalog on first launch. Idempotent.
 export async function seedIfEmpty() {
+  // Foods seed runs independently — it can grow later without invalidating gym seed.
+  await seedFoodsIfEmpty();
+
   const count = await db.exercises.count();
   if (count > 0) return; // already seeded
 

@@ -48,13 +48,13 @@ export function getTheme(mode: Mode): ThemeConfig {
     ...base,
     token: {
       ...shared,
-      colorPrimary: "#7c5cfc",
-      colorInfo: "#7c5cfc",
+      colorPrimary: "#c8112a",
+      colorInfo: "#c8112a",
       colorSuccess: "#12b3a1",
-      colorWarning: "#ffb020",
-      colorError: "#ff5c7a",
-      colorBgLayout: "#f5f5fb",
-      colorTextHeading: "#16131f",
+      colorWarning: "#b8860b",
+      colorError: "#c8112a",
+      colorBgLayout: "#f5f0f0",
+      colorTextHeading: "#1a0f13",
     },
     components,
   };
@@ -67,6 +67,6 @@ export const GOLD = "var(--gold)";
 
 // Concrete hexes for contexts where CSS vars don't resolve (recharts SVG attrs).
 export const TOKENS = {
-  light: { accent: "#7c5cfc", teal: "#12b3a1", gold: "#ffb020", danger: "#ff5c7a", grid: "rgba(120,120,140,0.18)" },
+  light: { accent: "#c8112a", teal: "#d05018", gold: "#b8860b", danger: "#ff5c7a", grid: "rgba(140,90,95,0.18)" },
   dark: { accent: "#ff2740", teal: "#ff6b3d", gold: "#f6b93b", danger: "#ff5c7a", grid: "rgba(180,160,170,0.14)" },
 };
