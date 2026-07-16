@@ -46,7 +46,7 @@ export default function App() {
         {showOnboarding && <OnboardingFlow onDone={() => setShowOnboarding(false)} />}
         {/* Gate routing behind seed completion so hooks don't query empty tables */}
         {seeded ? (
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <AppShell />
           </BrowserRouter>
         ) : (

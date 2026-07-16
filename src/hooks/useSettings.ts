@@ -17,6 +17,7 @@ export const DEFAULTS = {
   bgOpacity: 35,           // 0-100
   // Cloud
   autoBackup: 0,           // 1 = push to cloud on change
+  backupCount: 0,          // lifetime successful cloud backups (for achievements)
   onboarded: 0,            // 1 = onboarding completed
   // Reminders (times are HH:mm)
   remWater: 1,

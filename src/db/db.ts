@@ -76,6 +76,11 @@ class ZenithDB extends Dexie {
     this.version(5).stores({
       achievements: "&id, unlockedAt, seen",
     });
+    // Compound index for the frequent {date+dayId} session lookup
+    // (useTodaySession / ensureSession / backfillSession).
+    this.version(6).stores({
+      workoutSessions: "++id, date, weekKey, dayId, [date+dayId]",
+    });
   }
 }
 

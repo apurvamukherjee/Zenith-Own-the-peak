@@ -1,16 +1,12 @@
-import type { IconType } from "react-icons";
-import {
-  TbFlame, TbSkull, TbCrown, TbMountain, TbBarbell, TbTrophy, TbBolt,
-  TbTargetArrow, TbDroplet, TbMoon, TbBook2, TbSunrise, TbMoonStars,
-  TbDiamond, TbActivity, TbStack2,
-} from "react-icons/tb";
 import { db } from "../db/db";
 import { computeScoresForMonth } from "./dayScore";
 import { computeUnifiedStreak } from "./streak.utils";
 import { todayKey } from "./date.utils";
+import type { GlyphName } from "../components/ColdIcon";
 
 // ---- Tiers ---------------------------------------------------------------
 export type Tier = "bronze" | "silver" | "gold" | "platinum" | "mythic";
+export const TIER_RANK: Record<Tier, number> = { bronze: 1, silver: 2, gold: 3, platinum: 4, mythic: 5 };
 
 export const TIER_META: Record<Tier, { label: string; grad: string; ring: string; glow: string }> = {
   bronze:   { label: "Bronze",   grad: "linear-gradient(135deg,#7a5230,#c98a4b)", ring: "#c98a4b", glow: "rgba(201,138,75,0.45)" },
@@ -20,27 +16,46 @@ export const TIER_META: Record<Tier, { label: string; grad: string; ring: string
   mythic:   { label: "Mythic",   grad: "linear-gradient(135deg,#1a0509,#6e0f1c 55%,#ff2740)", ring: "#ff2740", glow: "rgba(216,31,52,0.60)" },
 };
 
-export type AchGroup = "streak" | "iron" | "discipline" | "water" | "sleep" | "mind" | "grind";
+export type AchGroup =
+  | "streak" | "iron" | "discipline" | "water" | "sleep" | "mind"
+  | "road" | "table" | "body" | "mystery";
 export const GROUP_LABEL: Record<AchGroup, string> = {
-  streak: "The Streak", iron: "Iron", discipline: "Discipline",
-  water: "Water", sleep: "Sleep", mind: "Mind", grind: "The Grind",
+  streak: "The Streak", iron: "Iron", discipline: "Discipline", water: "Water",
+  sleep: "Sleep", mind: "The Mind", road: "The Road", table: "The Table",
+  body: "The Body", mystery: "Mystery",
 };
 
-// ---- Context: one snapshot of everything the checks need -----------------
+// ---- Context -------------------------------------------------------------
 export interface AchievementContext {
   anyActivity: boolean;
   currentStreak: number;
   bestStreak: number;
+  bestSessionStreak: number;
+  distinctActiveDays: number;
   totalSessions: number;
   totalSets: number;
-  totalVolume: number;   // kg
+  totalVolume: number;
+  maxWeight: number;
   prCount: number;
-  perfectDays: number;   // discipline score === 100
+  perfectDays: number;
   waterGoalDays: number;
+  totalWaterMl: number;
   nightsLogged: number;
   topicsDone: number;
   studyMinutes: number;
-  earliestSetHour: number | null; // 0-23, when a set was logged
+  fuelFills: number;
+  bestMileage: number;
+  totalFuelKm: number;
+  mealsLogged: number;
+  proteinHitDays: number;
+  suppDoneCount: number;
+  bwLogs: number;
+  bwFirst: number | null;
+  bwLatest: number | null;
+  measureLogs: number;
+  dayPhotoCount: number;
+  freezesUsed: number;
+  backupCount: number;
   latestSetHour: number | null;
 }
 
@@ -50,9 +65,7 @@ export function longestRun(dates: string[]): number {
   const sorted = [...new Set(dates)].sort();
   let best = 1, cur = 1;
   for (let i = 1; i < sorted.length; i++) {
-    const prev = new Date(sorted[i - 1]);
-    const day = new Date(sorted[i]);
-    const diff = Math.round((day.getTime() - prev.getTime()) / 86_400_000);
+    const diff = Math.round((new Date(sorted[i]).getTime() - new Date(sorted[i - 1]).getTime()) / 86_400_000);
     cur = diff === 1 ? cur + 1 : 1;
     if (cur > best) best = cur;
   }
@@ -60,28 +73,33 @@ export function longestRun(dates: string[]): number {
 }
 
 export async function buildContext(waterGoal: number, proteinTarget: number): Promise<AchievementContext> {
-  const [sets, sessions, water, sleep, study, meals, freezes] = await Promise.all([
-    db.workoutSets.toArray(),
-    db.workoutSessions.count(),
-    db.water.toArray(),
-    db.sleep.toArray(),
-    db.studySessions.toArray(),
-    db.meals.toArray(),
-    db.streakFreezes.toArray(),
-  ]);
+  const [sets, sessions, water, sleep, study, meals, freezes, fuel, bw, measures, photos, schedLogs, settingBackup] =
+    await Promise.all([
+      db.workoutSets.toArray(),
+      db.workoutSessions.toArray(),
+      db.water.toArray(),
+      db.sleep.toArray(),
+      db.studySessions.toArray(),
+      db.meals.toArray(),
+      db.streakFreezes.count(),
+      db.fuel.toArray(),
+      db.bodyweight.orderBy("date").toArray(),
+      db.bodyMeasurements.count(),
+      db.dayPhotos.count(),
+      db.scheduleLogs.count(),
+      db.settings.get("backupCount"),
+    ]);
   const items = await db.studyItems.toArray();
 
-  // Union of all active dates → best streak.
+  // Union of all active dates → best overall streak + distinct active days.
   const active = new Set<string>();
   for (const s of sets) active.add(s.date);
   for (const w of water) active.add(w.date);
   for (const s of sleep) active.add(s.date);
   for (const s of study) active.add(s.date);
   for (const m of meals) active.add(m.date);
-  for (const f of freezes) active.add(f.date);
   const activeDates = [...active];
 
-  // Per-day discipline + water-goal counts (batch, one round trip per table).
   const scored = activeDates.length
     ? await computeScoresForMonth(activeDates, waterGoal, proteinTarget)
     : new Map();
@@ -91,140 +109,211 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
     if (m.waterPct >= 100) waterGoalDays++;
   }
 
-  const setHours = sets.map((s) => new Date(s.createdAt).getHours());
+  // Protein-hit days (>= target) from meals grouped by date.
+  const proteinByDay = new Map<string, number>();
+  for (const m of meals) proteinByDay.set(m.date, (proteinByDay.get(m.date) ?? 0) + m.protein);
+  let proteinHitDays = 0;
+  for (const v of proteinByDay.values()) if (proteinTarget > 0 && v >= proteinTarget) proteinHitDays++;
+
+  // Fuel: full-to-full mileage + tracked distance.
+  const sortedFuel = [...fuel].sort((a, b) => a.odometer - b.odometer);
+  let bestMileage = 0;
+  for (let i = 1; i < sortedFuel.length; i++) {
+    const dist = sortedFuel[i].odometer - sortedFuel[i - 1].odometer;
+    const l = sortedFuel[i].litres;
+    if (l > 0) bestMileage = Math.max(bestMileage, dist / l);
+  }
+  const totalFuelKm = sortedFuel.length > 1 ? sortedFuel[sortedFuel.length - 1].odometer - sortedFuel[0].odometer : 0;
+
   const currentStreak = await computeUnifiedStreak();
+  const sessionDates = sessions.map((s) => s.date);
 
   return {
     anyActivity: activeDates.length > 0,
     currentStreak,
     bestStreak: Math.max(currentStreak, longestRun(activeDates)),
-    totalSessions: sessions,
+    bestSessionStreak: longestRun(sessionDates),
+    distinctActiveDays: activeDates.length,
+    totalSessions: sessions.length,
     totalSets: sets.length,
     totalVolume: Math.round(sets.reduce((a, s) => a + s.weightKg * s.reps, 0)),
+    maxWeight: sets.reduce((m, s) => Math.max(m, s.weightKg), 0),
     prCount: sets.filter((s) => s.isPR).length,
     perfectDays,
     waterGoalDays,
+    totalWaterMl: water.reduce((a, w) => a + w.amountMl, 0),
     nightsLogged: new Set(sleep.map((s) => s.date)).size,
     topicsDone: items.filter((i) => i.status === "done").length,
     studyMinutes: study.reduce((a, s) => a + s.minutes, 0),
-    earliestSetHour: setHours.length ? Math.min(...setHours) : null,
-    latestSetHour: setHours.length ? Math.max(...setHours) : null,
+    fuelFills: fuel.length,
+    bestMileage: +bestMileage.toFixed(1),
+    totalFuelKm,
+    mealsLogged: meals.length,
+    proteinHitDays,
+    suppDoneCount: schedLogs,
+    bwLogs: bw.length,
+    bwFirst: bw.length ? bw[0].kg : null,
+    bwLatest: bw.length ? bw[bw.length - 1].kg : null,
+    measureLogs: measures,
+    dayPhotoCount: photos,
+    freezesUsed: freezes,
+    backupCount: Number(settingBackup?.value ?? 0),
+    latestSetHour: sets.length ? Math.max(...sets.map((s) => new Date(s.createdAt).getHours())) : null,
   };
 }
 
 // ---- Registry ------------------------------------------------------------
 export interface AchievementDef {
   id: string;
-  name: string;   // rude / cold / conqueror
-  desc: string;   // what it means once earned
-  hint: string;   // how to get it, shown while locked
+  name: string;
+  desc: string;
+  hint: string;
+  teaser?: string;     // shown while a mystery badge is still locked
+  mystery?: boolean;
   tier: Tier;
   group: AchGroup;
-  icon: IconType;
-  // progress 0..1 toward unlock, and the display value (e.g. "18 / 30")
+  glyph: GlyphName;
   progress: (c: AchievementContext) => { done: boolean; ratio: number; value: string };
 }
 
-// helper for simple "count >= threshold" checks
-function threshold(get: (c: AchievementContext) => number, target: number, unit = ""): AchievementDef["progress"] {
+// count >= target
+function thr(get: (c: AchievementContext) => number, target: number, unit = ""): AchievementDef["progress"] {
   return (c) => {
     const cur = get(c);
-    return { done: cur >= target, ratio: Math.min(1, cur / target), value: `${Math.min(cur, target)} / ${target}${unit}` };
+    const shown = cur >= 1000 ? Math.round(cur).toLocaleString() : Math.min(cur, target);
+    const tgt = target >= 1000 ? target.toLocaleString() : target;
+    return { done: cur >= target, ratio: Math.min(1, cur / target), value: `${shown} / ${tgt}${unit}` };
   };
+}
+// boolean flag
+function flag(get: (c: AchievementContext) => boolean, todo: string): AchievementDef["progress"] {
+  return (c) => { const d = get(c); return { done: d, ratio: d ? 1 : 0, value: d ? "Done" : todo }; };
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
-  // ---- Streak ----
-  { id: "first_blood", name: "First Blood", desc: "You showed up. Once.", hint: "Log anything, anywhere.",
-    tier: "bronze", group: "streak", icon: TbBolt,
-    progress: (c) => ({ done: c.anyActivity, ratio: c.anyActivity ? 1 : 0, value: c.anyActivity ? "Done" : "Nothing logged" }) },
-  { id: "no_days_off", name: "No Days Off", desc: "A full week without flinching.", hint: "Keep a 7-day streak.",
-    tier: "bronze", group: "streak", icon: TbFlame, progress: threshold((c) => c.bestStreak, 7, "d") },
-  { id: "built_different", name: "Built Different", desc: "A month. No excuses.", hint: "Reach a 30-day streak.",
-    tier: "silver", group: "streak", icon: TbFlame, progress: threshold((c) => c.bestStreak, 30, "d") },
-  { id: "certified_menace", name: "Certified Menace", desc: "75 days of quiet violence.", hint: "Reach a 75-day streak.",
-    tier: "gold", group: "streak", icon: TbSkull, progress: threshold((c) => c.bestStreak, 75, "d") },
-  { id: "unkillable", name: "Unkillable", desc: "Triple digits. You don't break.", hint: "Reach a 100-day streak.",
-    tier: "platinum", group: "streak", icon: TbCrown, progress: threshold((c) => c.bestStreak, 100, "d") },
-  { id: "grass_never", name: "Grass? Never Met Her", desc: "A year straight. Touch nothing but the bar.", hint: "Reach a 365-day streak.",
-    tier: "mythic", group: "streak", icon: TbMountain, progress: threshold((c) => c.bestStreak, 365, "d") },
+  // ---- The Streak (9) ----
+  { id: "first_blood", name: "First Blood", desc: "You showed up. Once.", hint: "Log anything, anywhere.", tier: "bronze", group: "streak", glyph: "spark", progress: flag((c) => c.anyActivity, "Log anything") },
+  { id: "no_days_off", name: "No Days Off", desc: "Seven days, zero flinches.", hint: "Hold a 7-day streak.", tier: "bronze", group: "streak", glyph: "flame", progress: thr((c) => c.bestStreak, 7, "d") },
+  { id: "two_weeks", name: "Two Weeks' Notice", desc: "A fortnight of not quitting.", hint: "Hold a 14-day streak.", tier: "bronze", group: "streak", glyph: "flame", progress: thr((c) => c.bestStreak, 14, "d") },
+  { id: "built_different", name: "Built Different", desc: "A month. No excuses.", hint: "Reach a 30-day streak.", tier: "silver", group: "streak", glyph: "flame", progress: thr((c) => c.bestStreak, 30, "d") },
+  { id: "off_season", name: "No Off-Season", desc: "Fifty straight. Nobody asked.", hint: "Reach a 50-day streak.", tier: "silver", group: "streak", glyph: "fang", progress: thr((c) => c.bestStreak, 50, "d") },
+  { id: "certified_menace", name: "Certified Menace", desc: "75 days of quiet violence.", hint: "Reach a 75-day streak.", tier: "gold", group: "streak", glyph: "fang", progress: thr((c) => c.bestStreak, 75, "d") },
+  { id: "unkillable", name: "Unkillable", desc: "Triple digits. You don't break.", hint: "Reach a 100-day streak.", tier: "platinum", group: "streak", glyph: "cracked-crown", progress: thr((c) => c.bestStreak, 100, "d") },
+  { id: "relentless", name: "Relentless", desc: "Half a year, chained to it.", hint: "Reach a 182-day streak.", tier: "platinum", group: "streak", glyph: "chain", progress: thr((c) => c.bestStreak, 182, "d") },
+  { id: "grass_never", name: "Grass? Never Met Her", desc: "365 days. Touch nothing but the bar.", hint: "Reach a 365-day streak.", tier: "mythic", group: "streak", glyph: "peak", progress: thr((c) => c.bestStreak, 365, "d") },
 
-  // ---- Iron ----
-  { id: "rack_earned", name: "Rack Earned", desc: "First set on the board.", hint: "Log your first set.",
-    tier: "bronze", group: "iron", icon: TbBarbell, progress: threshold((c) => c.totalSets, 1) },
-  { id: "volume_dealer", name: "Volume Dealer", desc: "100 sets pushed.", hint: "Log 100 sets total.",
-    tier: "silver", group: "iron", icon: TbStack2, progress: threshold((c) => c.totalSets, 100) },
-  { id: "set_machine", name: "Set Machine", desc: "A thousand sets. Inhuman.", hint: "Log 1,000 sets total.",
-    tier: "gold", group: "iron", icon: TbStack2, progress: threshold((c) => c.totalSets, 1000) },
-  { id: "new_ceiling", name: "New Ceiling", desc: "First PR. The floor just moved up.", hint: "Set your first personal record.",
-    tier: "bronze", group: "iron", icon: TbTrophy, progress: threshold((c) => c.prCount, 1) },
-  { id: "ratchet", name: "Ratchet Effect", desc: "25 records. Only one direction.", hint: "Set 25 personal records.",
-    tier: "silver", group: "iron", icon: TbTrophy, progress: threshold((c) => c.prCount, 25) },
-  { id: "six_figure", name: "Six-Figure Tonnage", desc: "100,000 kg moved. Total.", hint: "Accumulate 100,000 kg of volume.",
-    tier: "gold", group: "iron", icon: TbActivity, progress: threshold((c) => c.totalVolume, 100_000, "kg") },
-  { id: "moved_mountain", name: "Moved a Mountain", desc: "One million kilograms. Let that land.", hint: "Accumulate 1,000,000 kg of volume.",
-    tier: "mythic", group: "iron", icon: TbMountain, progress: threshold((c) => c.totalVolume, 1_000_000, "kg") },
+  // ---- Iron (13) ----
+  { id: "rack_earned", name: "Rack Earned", desc: "First set on the board.", hint: "Log your first set.", tier: "bronze", group: "iron", glyph: "bar", progress: thr((c) => c.totalSets, 1) },
+  { id: "warmed_up", name: "Warmed Up", desc: "25 sets. Now we talk.", hint: "Log 25 sets total.", tier: "bronze", group: "iron", glyph: "stack", progress: thr((c) => c.totalSets, 25) },
+  { id: "volume_dealer", name: "Volume Dealer", desc: "100 sets pushed.", hint: "Log 100 sets total.", tier: "silver", group: "iron", glyph: "stack", progress: thr((c) => c.totalSets, 100) },
+  { id: "set_machine", name: "Set Machine", desc: "A thousand sets. Inhuman.", hint: "Log 1,000 sets total.", tier: "gold", group: "iron", glyph: "stack", progress: thr((c) => c.totalSets, 1000) },
+  { id: "new_ceiling", name: "New Ceiling", desc: "First PR. The floor moved up.", hint: "Set your first PR.", tier: "bronze", group: "iron", glyph: "ceiling", progress: thr((c) => c.prCount, 1) },
+  { id: "ratchet", name: "Ratchet Effect", desc: "25 records. One direction only.", hint: "Set 25 PRs.", tier: "silver", group: "iron", glyph: "ceiling", progress: thr((c) => c.prCount, 25) },
+  { id: "pr_tyrant", name: "Ceiling? What Ceiling", desc: "100 PRs. Physics is a suggestion.", hint: "Set 100 PRs.", tier: "gold", group: "iron", glyph: "ceiling", progress: thr((c) => c.prCount, 100) },
+  { id: "first_ton", name: "First Ton", desc: "10,000 kg moved. Warm-up.", hint: "Accumulate 10,000 kg of volume.", tier: "bronze", group: "iron", glyph: "plate", progress: thr((c) => c.totalVolume, 10_000, "kg") },
+  { id: "six_figure", name: "Six-Figure Tonnage", desc: "100,000 kg. Total.", hint: "Accumulate 100,000 kg of volume.", tier: "gold", group: "iron", glyph: "anvil", progress: thr((c) => c.totalVolume, 100_000, "kg") },
+  { id: "moved_mountain", name: "Moved a Mountain", desc: "One million kilograms. Let it land.", hint: "Accumulate 1,000,000 kg of volume.", tier: "mythic", group: "iron", glyph: "monolith", progress: thr((c) => c.totalVolume, 1_000_000, "kg") },
+  { id: "sessions_50", name: "Reps Don't Lie", desc: "50 sessions logged.", hint: "Log 50 training sessions.", tier: "silver", group: "iron", glyph: "gauntlet", progress: thr((c) => c.totalSessions, 50) },
+  { id: "sessions_200", name: "Gym Rat, Confirmed", desc: "200 sessions. It's who you are now.", hint: "Log 200 training sessions.", tier: "gold", group: "iron", glyph: "gauntlet", progress: thr((c) => c.totalSessions, 200) },
+  { id: "bar_bender", name: "Bar Bender", desc: "100 kg on a single set.", hint: "Log a set at 100 kg or heavier.", tier: "gold", group: "iron", glyph: "plate", progress: thr((c) => c.maxWeight, 100, "kg") },
 
-  // ---- Discipline ----
-  { id: "flawless", name: "Flawless", desc: "Every pillar, one day.", hint: "Hit 100% discipline in a single day.",
-    tier: "silver", group: "discipline", icon: TbTargetArrow, progress: threshold((c) => c.perfectDays, 1) },
-  { id: "machine", name: "Machine Discipline", desc: "10 perfect days on the wall.", hint: "Rack up 10 perfect (100%) days.",
-    tier: "gold", group: "discipline", icon: TbTargetArrow, progress: threshold((c) => c.perfectDays, 10) },
-  { id: "no_notes", name: "No Notes", desc: "30 flawless days. Nothing to fix.", hint: "Rack up 30 perfect (100%) days.",
-    tier: "platinum", group: "discipline", icon: TbDiamond, progress: threshold((c) => c.perfectDays, 30) },
+  // ---- Discipline (6) ----
+  { id: "flawless", name: "Flawless", desc: "Every pillar, one day.", hint: "Hit 100% discipline in a day.", tier: "silver", group: "discipline", glyph: "crosshair", progress: thr((c) => c.perfectDays, 1) },
+  { id: "machine", name: "Machine Discipline", desc: "10 perfect days on the wall.", hint: "Rack up 10 perfect (100%) days.", tier: "gold", group: "discipline", glyph: "crosshair", progress: thr((c) => c.perfectDays, 10) },
+  { id: "no_notes", name: "No Notes", desc: "30 flawless days. Nothing to fix.", hint: "Rack up 30 perfect (100%) days.", tier: "platinum", group: "discipline", glyph: "diamond", progress: thr((c) => c.perfectDays, 30) },
+  { id: "above_reproach", name: "Above Reproach", desc: "60 perfect days. Untouchable.", hint: "Rack up 60 perfect (100%) days.", tier: "platinum", group: "discipline", glyph: "prism", progress: thr((c) => c.perfectDays, 60) },
+  { id: "hundred_deep", name: "Hundred Days Deep", desc: "100 days with something logged.", hint: "Log activity on 100 distinct days.", tier: "silver", group: "discipline", glyph: "rune", progress: thr((c) => c.distinctActiveDays, 100) },
+  { id: "half_your_year", name: "Half Your Year", desc: "182 active days. On the record.", hint: "Log activity on 182 distinct days.", tier: "gold", group: "discipline", glyph: "rune", progress: thr((c) => c.distinctActiveDays, 182) },
 
-  // ---- Water ----
-  { id: "watered", name: "Watered", desc: "Goal hit. Hydrated once.", hint: "Hit your water goal for a day.",
-    tier: "bronze", group: "water", icon: TbDroplet, progress: threshold((c) => c.waterGoalDays, 1) },
-  { id: "aquifer", name: "Human Aquifer", desc: "30 days fully watered.", hint: "Hit your water goal on 30 days.",
-    tier: "silver", group: "water", icon: TbDroplet, progress: threshold((c) => c.waterGoalDays, 30) },
+  // ---- Water (6) ----
+  { id: "watered", name: "Watered", desc: "Goal hit. Hydrated once.", hint: "Hit your water goal for a day.", tier: "bronze", group: "water", glyph: "droplet", progress: thr((c) => c.waterGoalDays, 1) },
+  { id: "seven_wet", name: "Seven Wet Days", desc: "A full week on target.", hint: "Hit your water goal on 7 days.", tier: "bronze", group: "water", glyph: "droplet", progress: thr((c) => c.waterGoalDays, 7) },
+  { id: "aquifer", name: "Human Aquifer", desc: "30 days fully watered.", hint: "Hit your water goal on 30 days.", tier: "silver", group: "water", glyph: "wave", progress: thr((c) => c.waterGoalDays, 30) },
+  { id: "tap_never_off", name: "Tap Never Off", desc: "100 days on target. Faucet human.", hint: "Hit your water goal on 100 days.", tier: "gold", group: "water", glyph: "wave", progress: thr((c) => c.waterGoalDays, 100) },
+  { id: "priming_pump", name: "Priming the Pump", desc: "50 litres logged, lifetime.", hint: "Log 50 L of water total.", tier: "bronze", group: "water", glyph: "droplet", progress: thr((c) => c.totalWaterMl, 50_000, "ml") },
+  { id: "reservoir", name: "Reservoir", desc: "250 litres. You are mostly water.", hint: "Log 250 L of water total.", tier: "silver", group: "water", glyph: "glacier", progress: thr((c) => c.totalWaterMl, 250_000, "ml") },
 
-  // ---- Sleep ----
-  { id: "logged_loaded", name: "Logged & Loaded", desc: "A week of tracked nights.", hint: "Log sleep on 7 nights.",
-    tier: "bronze", group: "sleep", icon: TbMoon, progress: threshold((c) => c.nightsLogged, 7) },
-  { id: "auditor", name: "Sleep Auditor", desc: "30 nights on record.", hint: "Log sleep on 30 nights.",
-    tier: "silver", group: "sleep", icon: TbMoonStars, progress: threshold((c) => c.nightsLogged, 30) },
+  // ---- Sleep (6) ----
+  { id: "lights_out", name: "Lights Out", desc: "First night on record.", hint: "Log sleep once.", tier: "bronze", group: "sleep", glyph: "crescent", progress: thr((c) => c.nightsLogged, 1) },
+  { id: "logged_loaded", name: "Logged & Loaded", desc: "A week of tracked nights.", hint: "Log sleep on 7 nights.", tier: "bronze", group: "sleep", glyph: "crescent", progress: thr((c) => c.nightsLogged, 7) },
+  { id: "auditor", name: "Sleep Auditor", desc: "30 nights on the books.", hint: "Log sleep on 30 nights.", tier: "silver", group: "sleep", glyph: "eclipse", progress: thr((c) => c.nightsLogged, 30) },
+  { id: "well_rested", name: "Rested & Ruthless", desc: "50 nights tracked.", hint: "Log sleep on 50 nights.", tier: "silver", group: "sleep", glyph: "eclipse", progress: thr((c) => c.nightsLogged, 50) },
+  { id: "nothing_past", name: "Nothing Gets Past You", desc: "100 nights logged.", hint: "Log sleep on 100 nights.", tier: "gold", group: "sleep", glyph: "moon-full", progress: thr((c) => c.nightsLogged, 100) },
+  { id: "dream_archivist", name: "Dream Archivist", desc: "200 nights. A ledger of rest.", hint: "Log sleep on 200 nights.", tier: "gold", group: "sleep", glyph: "moon-full", progress: thr((c) => c.nightsLogged, 200) },
 
-  // ---- Mind ----
-  { id: "cracked_spine", name: "Cracked the Spine", desc: "First topic conquered.", hint: "Finish your first study topic.",
-    tier: "bronze", group: "mind", icon: TbBook2, progress: threshold((c) => c.topicsDone, 1) },
-  { id: "knowledge_tax", name: "Knowledge Tax", desc: "10 topics paid in full.", hint: "Finish 10 study topics.",
-    tier: "silver", group: "mind", icon: TbBook2, progress: threshold((c) => c.topicsDone, 10) },
-  { id: "deep_work", name: "Deep Work Dealer", desc: "1,000 minutes in the trenches.", hint: "Log 1,000 minutes of study.",
-    tier: "gold", group: "mind", icon: TbBook2, progress: threshold((c) => c.studyMinutes, 1000, "m") },
+  // ---- The Mind (6) ----
+  { id: "sat_down", name: "Sat Down, Shut Up", desc: "First hour in the trenches.", hint: "Log 60 minutes of study.", tier: "bronze", group: "mind", glyph: "rune", progress: thr((c) => c.studyMinutes, 60, "m") },
+  { id: "cracked_spine", name: "Cracked the Spine", desc: "First topic conquered.", hint: "Finish your first study topic.", tier: "bronze", group: "mind", glyph: "tome", progress: thr((c) => c.topicsDone, 1) },
+  { id: "knowledge_tax", name: "Knowledge Tax", desc: "10 topics paid in full.", hint: "Finish 10 study topics.", tier: "silver", group: "mind", glyph: "tome", progress: thr((c) => c.topicsDone, 10) },
+  { id: "syllabus_exec", name: "Syllabus Executioner", desc: "50 topics, done and buried.", hint: "Finish 50 study topics.", tier: "gold", group: "mind", glyph: "obelisk", progress: thr((c) => c.topicsDone, 50) },
+  { id: "deep_work", name: "Deep Work Dealer", desc: "1,000 minutes deep.", hint: "Log 1,000 minutes of study.", tier: "gold", group: "mind", glyph: "obelisk", progress: thr((c) => c.studyMinutes, 1000, "m") },
+  { id: "time_thief", name: "Time Thief", desc: "5,000 minutes stolen from the void.", hint: "Log 5,000 minutes of study.", tier: "platinum", group: "mind", glyph: "obelisk", progress: thr((c) => c.studyMinutes, 5000, "m") },
 
-  // ---- Grind (time-of-day) ----
-  { id: "dawn_raider", name: "Dawn Raider", desc: "Trained before the sun bothered to.", hint: "Log a set before 7 AM.",
-    tier: "silver", group: "grind", icon: TbSunrise,
-    progress: (c) => { const done = c.earliestSetHour !== null && c.earliestSetHour < 7; return { done, ratio: done ? 1 : 0, value: done ? "Done" : "Before 7 AM" }; } },
-  { id: "graveyard", name: "Graveyard Shift", desc: "Iron at an hour that scares people.", hint: "Log a set at or after 10 PM.",
-    tier: "silver", group: "grind", icon: TbMoonStars,
-    progress: (c) => { const done = c.latestSetHour !== null && c.latestSetHour >= 22; return { done, ratio: done ? 1 : 0, value: done ? "Done" : "After 10 PM" }; } },
+  // ---- The Road (5) ----
+  { id: "full_to_full", name: "Full-to-Full", desc: "First tank logged.", hint: "Log your first fuel fill.", tier: "bronze", group: "road", glyph: "pump", progress: thr((c) => c.fuelFills, 1) },
+  { id: "odo_obsessed", name: "Odometer Obsessed", desc: "10 fills tracked.", hint: "Log 10 fuel fills.", tier: "silver", group: "road", glyph: "gauge", progress: thr((c) => c.fuelFills, 10) },
+  { id: "range_anxiety", name: "Range Anxiety Is For The Weak", desc: "50 km/L on a tank.", hint: "Hit 50 km/L on a full-to-full fill.", tier: "gold", group: "road", glyph: "gauge", progress: thr((c) => c.bestMileage, 50, " km/L") },
+  { id: "thousand_km", name: "Thousand-Km Club", desc: "1,000 km tracked.", hint: "Track 1,000 km across fills.", tier: "silver", group: "road", glyph: "road", progress: thr((c) => c.totalFuelKm, 1000, "km") },
+  { id: "long_hauler", name: "Long Hauler", desc: "10,000 km on the ledger.", hint: "Track 10,000 km across fills.", tier: "gold", group: "road", glyph: "road", progress: thr((c) => c.totalFuelKm, 10_000, "km") },
+
+  // ---- The Table (6) ----
+  { id: "on_record", name: "On the Record", desc: "First meal logged.", hint: "Log your first meal.", tier: "bronze", group: "table", glyph: "blade-fork", progress: thr((c) => c.mealsLogged, 1) },
+  { id: "protein_enforcer", name: "Protein Enforcer", desc: "Hit your protein target once.", hint: "Hit your protein target for a day.", tier: "bronze", group: "table", glyph: "chalice", progress: thr((c) => c.proteinHitDays, 1) },
+  { id: "nothing_untracked", name: "Nothing Untracked", desc: "30 days on protein target.", hint: "Hit protein target on 30 days.", tier: "silver", group: "table", glyph: "chalice", progress: thr((c) => c.proteinHitDays, 30) },
+  { id: "meal_menace", name: "Meal Prep Menace", desc: "100 meals logged.", hint: "Log 100 meals.", tier: "silver", group: "table", glyph: "blade-fork", progress: thr((c) => c.mealsLogged, 100) },
+  { id: "down_hatch", name: "Down the Hatch", desc: "First scheduled dose taken.", hint: "Mark a supplement/med done once.", tier: "bronze", group: "table", glyph: "capsule", progress: thr((c) => c.suppDoneCount, 1) },
+  { id: "pill_punctual", name: "Pill Punctual", desc: "100 doses on schedule.", hint: "Mark 100 scheduled doses done.", tier: "gold", group: "table", glyph: "capsule", progress: thr((c) => c.suppDoneCount, 100) },
+
+  // ---- The Body (5) ----
+  { id: "watching_weigh", name: "Watching the Weigh", desc: "First weigh-in.", hint: "Log your bodyweight once.", tier: "bronze", group: "body", glyph: "scale", progress: thr((c) => c.bwLogs, 1) },
+  { id: "scale_loyalist", name: "Scale Loyalist", desc: "30 weigh-ins tracked.", hint: "Log bodyweight 30 times.", tier: "silver", group: "body", glyph: "scale", progress: thr((c) => c.bwLogs, 30) },
+  { id: "measured_merciless", name: "Measured & Merciless", desc: "First tape measurement.", hint: "Log a body measurement once.", tier: "bronze", group: "body", glyph: "ruler", progress: thr((c) => c.measureLogs, 1) },
+  { id: "tape_dont_lie", name: "Tape Doesn't Lie", desc: "20 measurements logged.", hint: "Log 20 body measurements.", tier: "silver", group: "body", glyph: "ruler", progress: thr((c) => c.measureLogs, 20) },
+  { id: "receipts", name: "Receipts", desc: "First progress photo pinned.", hint: "Pin a photo to a calendar day.", tier: "bronze", group: "body", glyph: "effigy", progress: thr((c) => c.dayPhotoCount, 1) },
+
+  // ---- Mystery (7) ----
+  { id: "iron_sabbath", name: "Iron Sabbath", desc: "Trained seven days straight. No rest.", hint: "Hidden objective.", teaser: "Rest is a rumor.", mystery: true, tier: "gold", group: "mystery", glyph: "gauntlet", progress: flag((c) => c.bestSessionStreak >= 7, "???") },
+  { id: "witching_hour", name: "Witching Hour Regular", desc: "Logged a set at an hour that scares people.", hint: "Hidden objective.", teaser: "You'll know when it's late.", mystery: true, tier: "silver", group: "mystery", glyph: "crescent", progress: flag((c) => c.latestSetHour !== null && c.latestSetHour >= 23, "???") },
+  { id: "ghost_month", name: "Ghost Month", desc: "A 30-day streak. No freezes spent.", hint: "Hidden objective.", teaser: "Earned in silence.", mystery: true, tier: "platinum", group: "mystery", glyph: "flame", progress: flag((c) => c.bestStreak >= 30 && c.freezesUsed === 0, "???") },
+  { id: "the_vault", name: "The Vault", desc: "25 cloud backups. Nothing lost, ever.", hint: "Hidden objective.", teaser: "Nothing lost. Ever.", mystery: true, tier: "gold", group: "mystery", glyph: "rune", progress: flag((c) => c.backupCount >= 25, "???") },
+  { id: "featherweight", name: "Featherweight No More", desc: "Gained 5 kg since your first weigh-in.", hint: "Hidden objective.", teaser: "The scale noticed.", mystery: true, tier: "silver", group: "mystery", glyph: "scale", progress: flag((c) => c.bwFirst !== null && c.bwLatest !== null && c.bwLatest - c.bwFirst >= 5, "???") },
+  { id: "twice_yourself", name: "Twice Yourself", desc: "Moved twice your bodyweight on one bar.", hint: "Hidden objective.", teaser: "Twice your weight. One bar.", mystery: true, tier: "mythic", group: "mystery", glyph: "plate", progress: flag((c) => c.bwLatest !== null && c.bwLatest > 0 && c.maxWeight >= 2 * c.bwLatest, "???") },
+  { id: "completionist", name: "The Completionist", desc: "Every other badge, claimed.", hint: "Hidden objective.", teaser: "There's always one more.", mystery: true, tier: "mythic", group: "mystery", glyph: "prism", progress: flag(() => false, "???") },
 ];
 
-export const ACHIEVEMENT_COUNT = ACHIEVEMENTS.length;
-
-// ---- Unlock engine -------------------------------------------------------
-// Compares registry checks against the persisted unlock table. Inserts any
-// newly-earned rows (seen=0 so the UI can toast + dot them). Returns new ids.
-export async function syncAchievements(ctx: AchievementContext): Promise<string[]> {
-  const existing = await db.achievements.toArray();
-  const have = new Set(existing.map((a) => a.id));
-  const now = Date.now();
-  const fresh: string[] = [];
-  for (const a of ACHIEVEMENTS) {
-    if (have.has(a.id)) continue;
-    if (a.progress(ctx).done) {
-      await db.achievements.add({ id: a.id, unlockedAt: now, seen: 0 });
-      fresh.push(a.id);
-    }
-  }
-  return fresh;
-}
+export const ACHIEVEMENT_COUNT = ACHIEVEMENTS.length; // 69
+export const MYSTERY_COUNT = ACHIEVEMENTS.filter((a) => a.mystery).length; // 7
+const NON_MYSTERY_COUNT = ACHIEVEMENT_COUNT - MYSTERY_COUNT;
 
 export function defById(id: string): AchievementDef | undefined {
   return ACHIEVEMENTS.find((a) => a.id === id);
 }
 
-// today string re-exported for callers that toast "unlocked today"
+// ---- Unlock engine -------------------------------------------------------
+export async function syncAchievements(ctx: AchievementContext): Promise<string[]> {
+  const existing = await db.achievements.toArray();
+  const have = new Set(existing.map((a) => a.id));
+  const now = Date.now();
+  const fresh: string[] = [];
+
+  for (const a of ACHIEVEMENTS) {
+    if (a.id === "completionist" || have.has(a.id)) continue;
+    if (a.progress(ctx).done) {
+      await db.achievements.add({ id: a.id, unlockedAt: now, seen: 0 });
+      have.add(a.id);
+      fresh.push(a.id);
+    }
+  }
+
+  // Completionist resolves last: every non-mystery badge earned.
+  if (!have.has("completionist")) {
+    const nonMysteryUnlocked = ACHIEVEMENTS.filter((a) => !a.mystery && have.has(a.id)).length;
+    if (nonMysteryUnlocked >= NON_MYSTERY_COUNT) {
+      await db.achievements.add({ id: "completionist", unlockedAt: now, seen: 0 });
+      fresh.push("completionist");
+    }
+  }
+  return fresh;
+}
+
 export const TODAY = todayKey;

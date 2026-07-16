@@ -175,7 +175,7 @@ export function SessionLogger() {
         )}
         {!isRest && (
           <Progress percent={pct} strokeColor={pct >= 100 ? t.teal : t.accent} showInfo={false}
-            style={{ maxWidth: 320, margin: "0 auto" }} strokeWidth={8} />
+            style={{ maxWidth: 320, margin: "0 auto" }} size={[-1, 8]} />
         )}
       </div>
 

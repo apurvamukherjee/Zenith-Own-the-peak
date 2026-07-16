@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase, supabaseConfigured } from "../../lib/supabase";
-import { exportAll, importAll } from "../../db/db";
+import { exportAll, importAll, db } from "../../db/db";
 import { onMutation } from "../../lib/mutations";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 
@@ -36,6 +36,9 @@ export function useSync() {
       });
       if (error) throw error;
       setLastBackupAt(new Date().toISOString());
+      // lifetime counter (read-modify-write; drives the "Vault" achievement)
+      const cur = await db.settings.get("backupCount");
+      await setSetting("backupCount", Number(cur?.value ?? 0) + 1);
       setStatus("idle");
     } catch {
       setStatus("error");
