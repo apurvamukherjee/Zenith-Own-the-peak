@@ -14,18 +14,21 @@
   --ember-inner: rgba(200, 17, 42, 0.14);
 }
 
-/* Gothic dark: near-black + aggressive red + ember accents */
+/* Gothic dark: near-black with a faint blood-red undertone + aggressive red + ember accents.
+   The base isn't pure #08080a anymore — it's shifted ~2% toward #0d0608 so the whole
+   surface reads "cold blood" instead of "flat coal". Barely perceptible in isolation,
+   unmissable side-by-side. Surface and border shift with the same warmth. */
 [data-theme="dark"] {
-  --bg: #08080a;
-  --surface: #16131a;
+  --bg: #0d0608;
+  --surface: #1a1013;
   --ink: #f3eef2;
   --ink-soft: #948b98;
   --violet: #ff2740;
   --accent: #ff2740;
   --gold: #f6b93b;
   --teal: #ff6b3d;
-  --border: #2a2330;
-  --nav-bg: rgba(12, 10, 14, 0.92);
+  --border: #2f1a20;
+  --nav-bg: rgba(14, 8, 10, 0.92);
   --hero: linear-gradient(135deg, #1a0509 0%, #6e0f1c 55%, #d81f34 100%);
   --ember-glow: rgba(255, 39, 64, 0.40);
   --ember-inner: rgba(255, 39, 64, 0.18);
@@ -57,6 +60,78 @@ html.theme-ready *, html.theme-ready *::before, html.theme-ready *::after {
 }
 
 h1, h2, h3, h4, .display { font-family: "Plus Jakarta Sans", Inter, sans-serif; }
+
+/* Cinzel is a Roman-monumental serif — the gothic-title font in horror books
+   and dark-fantasy games. We only apply it where we actually want that mood
+   (splash wordmark, About page hero) — nowhere in the app UI, so Inter/Jakarta
+   stay in charge everywhere else. */
+.gothic { font-family: "Cinzel", "Plus Jakarta Sans", serif; font-weight: 800; letter-spacing: 0.06em; }
+
+/* -----------------------------------------------------------------------------
+   SPLASH — glitch / scanline / breathing glow
+   ----------------------------------------------------------------------------- */
+
+/* RGB-split glitch: three copies of the same text, two offset with color channels,
+   shifted x/y in tight bursts. Only fires during .glitch-active windows. */
+@keyframes glitch-jitter {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-2px, 1px); }
+  40% { transform: translate(2px, -1px); }
+  60% { transform: translate(-1px, 2px); }
+  80% { transform: translate(1px, -2px); }
+}
+@keyframes glitch-clip {
+  0%, 100% { clip-path: inset(0 0 0 0); }
+  20% { clip-path: inset(20% 0 60% 0); }
+  40% { clip-path: inset(60% 0 20% 0); }
+  60% { clip-path: inset(35% 0 45% 0); }
+  80% { clip-path: inset(75% 0 5% 0); }
+}
+.glitch { position: relative; display: inline-block; }
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute; inset: 0; pointer-events: none;
+  mix-blend-mode: screen;
+}
+.glitch::before { color: #ff2740; text-shadow: 2px 0 #ff2740; }
+.glitch::after  { color: #4b8fff; text-shadow: -2px 0 #4b8fff; }
+.glitch.glitch-active { animation: glitch-jitter 180ms steps(5) infinite; }
+.glitch.glitch-active::before { animation: glitch-jitter 200ms steps(5) infinite, glitch-clip 200ms steps(5) infinite; }
+.glitch.glitch-active::after  { animation: glitch-jitter 160ms steps(5) reverse infinite, glitch-clip 220ms steps(5) reverse infinite; }
+
+/* Breathing red glow — used on the "by Apurva" signature. Softly pulses to
+   feel alive without demanding attention. */
+@keyframes signature-breathe {
+  0%, 100% { text-shadow: 0 0 6px rgba(255, 39, 64, 0.4), 0 0 12px rgba(255, 39, 64, 0.2); opacity: 0.85; }
+  50% { text-shadow: 0 0 12px rgba(255, 39, 64, 0.85), 0 0 24px rgba(255, 39, 64, 0.4); opacity: 1; }
+}
+.signature-glow { animation: signature-breathe 2.4s ease-in-out infinite; }
+
+/* Horizontal scanline sweep (loading bar) — a single red line that traverses
+   the wordmark once, more moody than a percentage bar. */
+@keyframes scan-sweep {
+  0% { transform: translateX(-100%); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+.scan-line { animation: scan-sweep 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+/* Vignette wrapper — dims edges of the splash to concentrate the eye. */
+.gothic-vignette::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 0%, transparent 45%, rgba(0,0,0,0.75) 100%);
+}
+
+/* Falling ash — grey specks drifting down. Used instead of glowing red particles
+   for a colder, less "sparkler" feel. */
+@keyframes ash-fall {
+  0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { transform: translateY(110vh) translateX(20px) rotate(180deg); opacity: 0; }
+}
+.ash { animation: ash-fall linear infinite; will-change: transform; }
 
 /* Fills the viewport with dvh where supported, safe vh fallback for older iOS */
 .app-root {
