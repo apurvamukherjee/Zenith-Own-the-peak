@@ -15,6 +15,8 @@ export default function App() {
   const [seeded, setSeeded] = useState(false);
   const mode = useSetting("themeMode") as Mode;
   const onboarded = useSetting("onboarded");
+  const highContrast = Number(useSetting("highContrast")) === 1;
+  const reduceMotion = Number(useSetting("reduceMotion")) === 1;
   const [showOnboarding, setShowOnboarding] = useState(false);
   const resolved: Mode = mode === "light" ? "light" : "dark";
   const adaptive = useAdaptiveTheme();
@@ -27,6 +29,16 @@ export default function App() {
     // in index.html set the right theme before React mounts, killing the flash.
     try { localStorage.setItem("zenith-theme", resolved); } catch { /* ignore */ }
   }, [resolved]);
+
+  // Mirror accessibility flags onto <html> so CSS can key on them.
+  useEffect(() => {
+    if (highContrast) document.documentElement.setAttribute("data-contrast", "high");
+    else document.documentElement.removeAttribute("data-contrast");
+  }, [highContrast]);
+  useEffect(() => {
+    if (reduceMotion) document.documentElement.setAttribute("data-motion", "reduce");
+    else document.documentElement.removeAttribute("data-motion");
+  }, [reduceMotion]);
 
   // Adaptive theme: publish the time-of-day gradient as --hero so hero-grad
   // surfaces (training card, avatars, glance card) breathe with the day.

@@ -175,3 +175,69 @@ input, .ant-input, .ant-input-number-input, textarea, .ant-select-selection-sear
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
+
+/* ---------- Phase-3 UX polish ------------------------------------------- */
+
+/* Skeleton shimmer used by <Skeleton>. */
+@keyframes zenith-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Visible keyboard-focus ring on every interactive element. Tab-and-hunt
+   users need to see where they are; Sarah the trackpad user gets nothing.
+   :focus-visible confines the ring to keyboard navigation. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* User-toggled reduce-motion. Doubles down on the OS media query above so
+   users on systems without the OS toggle can still opt in from Settings. */
+html[data-motion="reduce"] * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+html[data-motion="reduce"] .ember-ring { animation: none !important; }
+
+/* High-contrast skin — WCAG AAA text vs surface, no gradients on the base
+   layer. We intentionally keep the accent (--accent) recognisable so the
+   brand still reads as Zenith; everything else flattens. */
+html[data-contrast="high"] {
+  --ink: #ffffff;
+  --ink-soft: #d9d9d9;
+  --surface: #000000;
+  --surface-2: #0a0a0a;
+  --bg: #000000;
+  --border: #ffffff;
+}
+html[data-contrast="high"] .hero-grad,
+html[data-contrast="high"] .ember-ring,
+html[data-contrast="high"] .avatar-grad {
+  background: var(--accent) !important;
+}
+html[data-contrast="high"] .text-ember {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* Bottom-sheet: applied on mobile by the <Sheet> wrapper. */
+.zenith-bottom-sheet.ant-modal-wrap { align-items: flex-end; padding: 0; }
+.zenith-bottom-sheet .ant-modal { top: auto; padding: 0; max-width: 100vw; margin: 0; width: 100vw !important; }
+.zenith-bottom-sheet .ant-modal-content { width: 100vw; box-sizing: border-box; }
+
+/* Sticky category headers used by Nutrition day sections. */
+.sticky-cat-head {
+  position: sticky; top: 0; z-index: 3;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 6px 12px; font-size: 11px; font-weight: 700; color: var(--ink-soft);
+  letter-spacing: 0.4px; text-transform: uppercase;
+}
+
+/* Route transitions — the AnimatedRoutes wrapper reads this duration. */
+:root { --page-transition-ms: 180ms; }
+

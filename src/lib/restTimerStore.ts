@@ -1,4 +1,5 @@
 import { hapticMedium } from "./haptics";
+import { playRockyFanfare } from "./audio";
 
 // -----------------------------------------------------------------------------
 // Global rest-timer state.
@@ -54,8 +55,10 @@ function tick() {
   if (rem <= 0 && state.active && !state.paused) {
     if (!firedZero) {
       firedZero = true;
-      // fire haptic + reset. Consumers just observe `active` flipping false.
       hapticMedium();
+      // Egg #9: Rocky trumpets on completion of a rest that started at
+      // *exactly* 3:20 (200 s). Not 3:19, not 3:21.
+      if (state.totalSec === 200) playRockyFanfare();
       stop();
     }
   }

@@ -5,7 +5,7 @@ import type {
   StudyPathDto, StudyItemDto, StudySessionDto, FuelDto, SettingDto,
   ScheduleDto, ScheduleLogDto, MealDto, GoalDayDto, DayPhotoDto, StreakFreezeDto,
   QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
-  AchievementUnlockDto, FoodDto, MealTemplateItemDto,
+  AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -37,6 +37,7 @@ class ZenithDB extends Dexie {
   achievements!: Table<AchievementUnlockDto, string>;
   foods!: Table<FoodDto, number>;
   mealTemplateItems!: Table<MealTemplateItemDto, number>;
+  usageHistory!: Table<UsageHistoryDto, string>;
 
   constructor() {
     super("zenith");
@@ -86,6 +87,12 @@ class ZenithDB extends Dexie {
       foods: "++id, name, category, favorite, isCustom, createdAt",
       mealTemplateItems: "++id, templateId, order",
     });
+    // v8: usage history — predictive input backing store. Small (<200 rows in
+    // practice), single primary key. No secondary index needed; we always
+    // read by exact key.
+    this.version(8).stores({
+      usageHistory: "&key, updatedAt",
+    });
   }
 }
 
@@ -99,7 +106,7 @@ for (const table of db.tables) {
 }
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 7, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 8, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

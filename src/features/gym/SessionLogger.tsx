@@ -16,6 +16,8 @@ import {
 import { prettyDate, todayKey } from "../../lib/date.utils";
 import { startRest } from "../../lib/restTimerStore";
 import { celebrate } from "../../lib/celebrate";
+import { hapticLight } from "../../lib/haptics";
+import { useUsageValue, recordUsage } from "../../hooks/useUsageHistory";
 
 // -----------------------------------------------------------------------------
 // SessionLogger — the "execute today's workout" surface.
@@ -33,16 +35,34 @@ import { celebrate } from "../../lib/celebrate";
 
 // ---- Row for a single set (unchanged UI, PR firing lifted into `complete`) ----
 function SetRow({
-  plan, exerciseName, exerciseId, setIndex, logged, ghost, getSessionId, onSetCompleted,
+  plan, exerciseName, exerciseId, setIndex, logged, ghost, lastCompleted, getSessionId, onSetCompleted,
 }: {
   plan: DayExerciseDto; exerciseName: string; exerciseId: number; setIndex: number;
   logged?: WorkoutSetDto; ghost?: WorkoutSetDto;
+  lastCompleted?: WorkoutSetDto;  // most recent completed set in THIS session (predictive)
   getSessionId: () => Promise<number>;
   onSetCompleted: (exerciseId: number) => void;
 }) {
   const t = useTokens();
-  const baseW = logged?.weightKg ?? ghost?.weightKg ?? plan.weightKg;
-  const baseR = logged?.reps ?? ghost?.reps ?? plan.repLow;
+  // Autofill priority: (1) already-logged row, (2) last completed set in this
+  // session for this exercise (predictive — the user just dialed it in),
+  // (3) usageHistory (last-ever value for this exercise), (4) ghost from
+  // previous session, (5) planned baseline. Falls through cleanly if any tier
+  // is missing.
+  const usageW = useUsageValue(`weight:${exerciseId}`);
+  const usageR = useUsageValue(`reps:${exerciseId}`);
+  const baseW =
+    logged?.weightKg
+    ?? lastCompleted?.weightKg
+    ?? usageW
+    ?? ghost?.weightKg
+    ?? plan.weightKg;
+  const baseR =
+    logged?.reps
+    ?? lastCompleted?.reps
+    ?? usageR
+    ?? ghost?.reps
+    ?? plan.repLow;
   const [w, setW] = useState(baseW);
   const [r, setR] = useState(baseR);
   useEffect(() => { if (!logged) { setW(baseW); setR(baseR); } }, [baseW, baseR, logged]);
@@ -63,17 +83,27 @@ function SetRow({
   async function complete() {
     if (w <= 0 || r <= 0) return;
     const sid = await getSessionId();
-    const { isPR, e1rm } = await logSet({
-      sessionId: sid, exerciseId, exerciseName, setIndex, weightKg: w, reps: r,
-    });
-    if (isPR) {
-      celebrate({
-        kind: "pr",
-        title: "New PR",
-        subtitle: `${exerciseName} · ${w}kg × ${r} · e1RM ${Math.round(e1rm)}`,
+    try {
+      const { isPR, e1rm } = await logSet({
+        sessionId: sid, exerciseId, exerciseName, setIndex, weightKg: w, reps: r,
       });
+      // Record for predictive autofill next time this exercise is picked.
+      void recordUsage(`weight:${exerciseId}`, w);
+      void recordUsage(`reps:${exerciseId}`, r);
+      if (isPR) {
+        celebrate({
+          kind: "pr",
+          title: "New PR",
+          subtitle: `${exerciseName} · ${w}kg × ${r} · e1RM ${Math.round(e1rm)}`,
+        });
+      } else {
+        void hapticLight();
+      }
+      onSetCompleted(exerciseId);
+    } catch (err) {
+      console.warn("[SessionLogger] logSet failed:", err);
+      // Surface via toast — retryable by tapping the set again.
     }
-    onSetCompleted(exerciseId);
   }
 
   return (
@@ -139,16 +169,24 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
         {plan.sets}×{plan.repLow}–{plan.repHigh} · rest {plan.restSec}s · {plan.weightKg}kg planned
       </div>
       <RestTimer />
-      {rows.map((si) => (
-        <SetRow
-          key={si} plan={plan} exerciseName={ex.name} exerciseId={plan.exerciseId}
-          setIndex={si}
-          logged={done.find((s) => s.setIndex === si)}
-          ghost={ghosts?.find((g: WorkoutSetDto) => g.setIndex === si)}
-          getSessionId={getSessionId}
-          onSetCompleted={() => { /* rest firing is driven by doneCount effect above */ }}
-        />
-      ))}
+      {rows.map((si) => {
+        // "Last completed" = the most recently logged set for THIS exercise
+        // in the current session, strictly before this set-index.
+        const last = done
+          .filter((s) => s.setIndex < si)
+          .sort((a, b) => b.setIndex - a.setIndex)[0];
+        return (
+          <SetRow
+            key={si} plan={plan} exerciseName={ex.name} exerciseId={plan.exerciseId}
+            setIndex={si}
+            logged={done.find((s) => s.setIndex === si)}
+            ghost={ghosts?.find((g: WorkoutSetDto) => g.setIndex === si)}
+            lastCompleted={last}
+            getSessionId={getSessionId}
+            onSetCompleted={() => { /* rest firing is driven by doneCount effect above */ }}
+          />
+        );
+      })}
     </motion.div>
   );
 }
@@ -254,16 +292,22 @@ function SupersetPartner({
         </div>
         <Tag style={{ borderRadius: 8, margin: 0 }}>{done.length}/{totalSets}</Tag>
       </div>
-      {rows.map((si) => (
-        <SetRow
-          key={si} plan={plan} exerciseName={ex.name} exerciseId={plan.exerciseId}
-          setIndex={si}
-          logged={done.find((s) => s.setIndex === si)}
-          ghost={ghosts?.find((g: WorkoutSetDto) => g.setIndex === si)}
-          getSessionId={getSessionId}
-          onSetCompleted={() => { /* rest firing owned by parent SupersetBlock */ }}
-        />
-      ))}
+      {rows.map((si) => {
+        const last = done
+          .filter((s) => s.setIndex < si)
+          .sort((a, b) => b.setIndex - a.setIndex)[0];
+        return (
+          <SetRow
+            key={si} plan={plan} exerciseName={ex.name} exerciseId={plan.exerciseId}
+            setIndex={si}
+            logged={done.find((s) => s.setIndex === si)}
+            ghost={ghosts?.find((g: WorkoutSetDto) => g.setIndex === si)}
+            lastCompleted={last}
+            getSessionId={getSessionId}
+            onSetCompleted={() => { /* rest firing owned by parent SupersetBlock */ }}
+          />
+        );
+      })}
     </div>
   );
 }

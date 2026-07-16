@@ -98,6 +98,15 @@ export function useAchievementEngine() {
         if (d) {
           void hapticSuccess();
           message.success({ content: `🏆 Unlocked — ${d.name}`, duration: 4 });
+          // Egg #15: every mythic unlock grows the mountain in Settings→About.
+          // We touch the setting directly instead of through setSetting to keep
+          // this file dependency-light; the mutation bus still fires.
+          if (d.tier === "mythic") {
+            void db.settings.get("mountainPeaks").then((row) => {
+              const cur = Number(row?.value ?? 0);
+              void db.settings.put({ key: "mountainPeaks", value: cur + 1 });
+            });
+          }
         }
       }
     };

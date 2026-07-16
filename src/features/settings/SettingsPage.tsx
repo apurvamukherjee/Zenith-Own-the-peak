@@ -1,11 +1,12 @@
 import { useRef } from "react";
-import { Card, Button, App, Avatar, Segmented, Slider, Input, InputNumber, Row, Col } from "antd";
+import { Card, Button, App, Avatar, Segmented, Slider, Input, InputNumber, Row, Col, Switch } from "antd";
 import {
   TbPalette, TbBulb, TbUser, TbPhoto, TbMoonStars, TbSun,
-  TbDownload, TbUpload, TbLock, TbTarget,
+  TbDownload, TbUpload, TbLock, TbTarget, TbAccessible, TbInfoCircle, TbCake,
 } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
+import { MountainGrows } from "../../components/MountainGrows";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { exportAll, importAll } from "../../db/db";
 import { encryptString } from "../../lib/encryptedExport";
@@ -28,6 +29,10 @@ export function SettingsPage() {
   const carbTargetG = useSetting("carbTargetG");
   const fatTargetG = useSetting("fatTargetG");
   const sleepTargetMin = useSetting("sleepTargetMin");
+  // Phase-3 additions
+  const birthday = String(useSetting("birthday") ?? "");
+  const highContrast = Number(useSetting("highContrast")) === 1;
+  const reduceMotion = Number(useSetting("reduceMotion")) === 1;
 
   const picRef = useRef<HTMLInputElement>(null);
   const bgRef = useRef<HTMLInputElement>(null);
@@ -84,6 +89,18 @@ export function SettingsPage() {
       <Card size="small" style={{ marginBottom: 12 }} title={<span><TbUser /> Profile</span>}>
         <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Name</div>
         <Input value={String(name)} onChange={(e) => setSetting("name", e.target.value)} style={{ marginBottom: 14 }} />
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>
+          <TbCake style={{ verticalAlign: "-2px" }} /> Birthday <span style={{ opacity: 0.6 }}>· MM-DD, optional</span>
+        </div>
+        <Input
+          value={birthday} maxLength={5} placeholder="04-25"
+          onChange={(e) => {
+            const v = e.target.value.replace(/[^\d-]/g, "").slice(0, 5);
+            void setSetting("birthday", v);
+          }}
+          style={{ marginBottom: 14, width: 120 }}
+          inputMode="numeric"
+        />
         <div style={{ fontSize: 12, fontWeight: 700, color: "var(--violet)", marginBottom: 8 }}><TbTarget style={{ verticalAlign: "-2px" }} /> Daily targets</div>
         <Row gutter={12}>
           {num("Wake hour", Number(wakeHour), "wakeHour", ":00", 1, 0)}
@@ -161,6 +178,37 @@ export function SettingsPage() {
         }}>Encrypted export</Button>
         <input ref={fileRef} type="file" accept="application/json" hidden
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ""; }} />
+      </Card>
+
+      {/* Accessibility */}
+      <Card size="small" style={{ marginBottom: 12 }} title={<span><TbAccessible /> Accessibility</span>}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>High contrast</div>
+            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+              WCAG-AAA text, no gradients. Better for low-vision use.
+            </div>
+          </div>
+          <Switch checked={highContrast} onChange={(v) => setSetting("highContrast", v ? 1 : 0)} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>Reduce motion</div>
+            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+              Turns off ember pulse, page slides, and celebratory flourishes.
+            </div>
+          </div>
+          <Switch checked={reduceMotion} onChange={(v) => setSetting("reduceMotion", v ? 1 : 0)} />
+        </div>
+      </Card>
+
+      {/* About — Zenith mountain grows quietly with each mythic unlock */}
+      <Card size="small" style={{ marginBottom: 20 }} title={<span><TbInfoCircle /> About</span>}>
+        <MountainGrows />
+        <div style={{ textAlign: "center", fontSize: 11, color: "var(--ink-soft)", marginTop: 10 }}>
+          <div style={{ fontWeight: 700, letterSpacing: 0.3 }}>Zenith · Own the peak</div>
+          <div style={{ opacity: 0.7 }}>by Apurva</div>
+        </div>
       </Card>
     </PageTransition>
   );

@@ -1,21 +1,22 @@
 import { useState } from "react";
 import {
   Card, Progress, Button, Modal, Input, TimePicker, Segmented,
-  Tag, App, Empty, Row, Col, Switch, Popconfirm,
+  Tag, App, Empty, Row, Col, Switch, Popconfirm, Checkbox,
 } from "antd";
 import {
   TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbToolsKitchen2, TbBookmark,
-  TbCopy, TbDroplet, TbStack2,
+  TbCopy, TbDroplet, TbStack2, TbX,
 } from "react-icons/tb";
 import dayjs from "dayjs";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
+import { EmptyState } from "../../components/EmptyState";
 import { db } from "../../db/db";
-import type { ScheduleKind } from "../../db/types";
+import type { MealDto, ScheduleKind } from "../../db/types";
 import {
   useSchedules, useTodayLogs, useTodayMeals, addSchedule, deleteSchedule, markDone,
-  deleteMeal, slotStatus, KIND_META,
+  deleteMeal, addMeal, slotStatus, KIND_META,
 } from "./useNutrition";
 import { useReminders, requestReminderPermission } from "../../hooks/useReminders";
 import { useSetting } from "../../hooks/useSettings";
@@ -31,6 +32,8 @@ import { MealComboBuilderModal } from "./MealComboBuilderModal";
 import { addWater } from "../water/useWater";
 import { hapticLight } from "../../lib/haptics";
 import { useBackClose } from "../../hooks/useBackClose";
+import { useUndo } from "../../hooks/useUndo";
+import { useBulkSelect } from "../../hooks/useBulkSelect";
 
 const STATUS_TAG = {
   done: { color: "green", label: "Done" },
@@ -48,6 +51,8 @@ export function NutritionPage() {
   const [manageOpen, setManageOpen] = useState(false);
   const [foodOpen, setFoodOpen] = useState(false);
   const [comboOpen, setComboOpen] = useState(false);
+  const withUndo = useUndo();
+  const bulk = useBulkSelect<number>();
   const [remindersOn, setRemindersOn] = useState(typeof Notification !== "undefined" && Notification.permission === "granted");
 
   useReminders(schedules, logs);
@@ -201,35 +206,98 @@ export function NutritionPage() {
         </div>
       </Card>
 
-      <Card size="small">
-        {meals.length === 0 ? <div style={{ textAlign: "center", padding: 16 }}>
-            <div style={{ marginBottom: 6 }}><TbToolsKitchen2 size={36} style={{ color: "var(--accent)" }} /></div>
-            <div style={{ fontWeight: 600, color: "var(--ink-soft)", fontSize: 13 }}>Tap "Add food" to log from the catalog, or "Same as yesterday" to repeat.</div>
-          </div> : (
-          meals.sort((a, b) => a.time.localeCompare(b.time)).map((m) => (
-            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {m.name} <Tag style={{ borderRadius: 6 }}>{m.mealType}</Tag>
-                </div>
-                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                  {m.time} · {Math.round(m.protein)}g P
-                  {m.fatG != null ? ` · ${Math.round(m.fatG)}g F` : ""}
-                  {m.carbsG != null ? ` · ${Math.round(m.carbsG)}g C` : ""}
-                  {" · "}{Math.round(m.calories)} kcal
-                </div>
-              </div>
-              <Button type="text" size="small" icon={<TbBookmark />} onClick={async () => {
-                const name = prompt("Save this meal as a template. Name:", m.name);
-                if (name?.trim()) { await saveMealAsTemplate(m, name); message.success("Template saved"); }
-              }} aria-label="Save as template" />
-              <Popconfirm title="Delete this meal?" okText="Delete" okButtonProps={{ danger: true }}
-                onConfirm={() => m.id && deleteMeal(m.id)}>
-                <Button type="text" size="small" danger icon={<TbTrash />} aria-label="Delete meal" />
+      <Card size="small" styles={{ body: { padding: 0 } }}>
+        <div className="sticky-cat-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <span>Meals · {meals.length}</span>
+          {bulk.isSelecting && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, textTransform: "none", letterSpacing: 0, fontWeight: 600 }}>
+              <Tag color="red" style={{ margin: 0 }}>{bulk.selected.size} selected</Tag>
+              <Popconfirm
+                title="Delete selected?" okText="Delete" okButtonProps={{ danger: true }}
+                onConfirm={async () => {
+                  const ids = [...bulk.selected];
+                  const snapshot: MealDto[] = meals.filter((m) => m.id != null && ids.includes(m.id));
+                  bulk.clear();
+                  await withUndo({
+                    do:   async () => { for (const id of ids) await deleteMeal(id); },
+                    undo: async () => { for (const m of snapshot) { const { id: _drop, ...rest } = m; await addMeal(rest); } },
+                    label: `${ids.length} meal${ids.length === 1 ? "" : "s"} deleted`,
+                  });
+                }}
+              >
+                <Button size="small" danger type="primary" icon={<TbTrash />}>Delete</Button>
               </Popconfirm>
-            </div>
-          ))
+              <Button size="small" type="text" icon={<TbX />} onClick={bulk.clear} aria-label="Cancel selection" />
+            </span>
+          )}
+        </div>
+        <div style={{ padding: "8px 12px 12px" }}>
+        {meals.length === 0 ? (
+          <EmptyState
+            icon={<TbToolsKitchen2 />}
+            title="No meals logged yet today"
+            hint="Tap Add food to log from the catalog, or Same as yesterday to repeat."
+            actionLabel="Add food"
+            onAction={() => setFoodOpen(true)}
+          />
+        ) : (
+          meals.sort((a, b) => a.time.localeCompare(b.time)).map((m) => {
+            const id = m.id!;
+            const isSelected = bulk.selected.has(id);
+            return (
+              <div
+                key={id}
+                onPointerDown={() => bulk.onItemPress(id)}
+                onPointerUp={bulk.onItemUp}
+                onPointerLeave={bulk.onItemUp}
+                onClick={() => { if (bulk.isSelecting) bulk.toggle(id); }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "8px 0",
+                  borderBottom: "1px solid var(--border)",
+                  background: isSelected ? "rgba(255,39,64,0.10)" : "transparent",
+                  borderRadius: 8, cursor: bulk.isSelecting ? "pointer" : "default",
+                  userSelect: "none", touchAction: "manipulation",
+                }}
+              >
+                {bulk.isSelecting && (
+                  <Checkbox checked={isSelected} onChange={() => bulk.toggle(id)} aria-label={`Select ${m.name}`} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {m.name} <Tag style={{ borderRadius: 6 }}>{m.mealType}</Tag>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
+                    {m.time} · {Math.round(m.protein)}g P
+                    {m.fatG != null ? ` · ${Math.round(m.fatG)}g F` : ""}
+                    {m.carbsG != null ? ` · ${Math.round(m.carbsG)}g C` : ""}
+                    {" · "}{Math.round(m.calories)} kcal
+                  </div>
+                </div>
+                {!bulk.isSelecting && (
+                  <>
+                    <Button type="text" size="small" icon={<TbBookmark />} onClick={async () => {
+                      const name = prompt("Save this meal as a template. Name:", m.name);
+                      if (name?.trim()) { await saveMealAsTemplate(m, name); message.success("Template saved"); }
+                    }} aria-label="Save as template" />
+                    <Button
+                      type="text" size="small" danger icon={<TbTrash />}
+                      aria-label="Delete meal"
+                      onClick={async () => {
+                        const { id: _drop, ...rest } = m;
+                        await withUndo({
+                          do:   () => deleteMeal(id),
+                          undo: () => addMeal(rest).then(() => undefined),
+                          label: `${m.name} deleted`,
+                        });
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            );
+          })
         )}
+        </div>
       </Card>
 
       <ManageScheduleModal open={manageOpen} onClose={() => setManageOpen(false)} />

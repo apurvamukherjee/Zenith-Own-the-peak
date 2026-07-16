@@ -180,3 +180,15 @@ export interface AchievementUnlockDto {
   unlockedAt: number;
   seen: number;
 }
+
+// ---- Phase-3 usage history ------------------------------------------------
+// Keyed store used by predictive-input UX. Key format: "<kind>:<itemId>".
+//   • "weight:<exerciseId>" → last-used weight for that exercise (kg)
+//   • "reps:<exerciseId>"   → last-used reps
+//   • "grams:<foodId>"      → last-used portion size for a catalog food
+// One row per key; updated in-place. Never deleted.
+export interface UsageHistoryDto {
+  key: string;
+  value: number;
+  updatedAt: number;
+}
