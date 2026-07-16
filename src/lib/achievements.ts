@@ -12,7 +12,7 @@ export const TIER_META: Record<Tier, { label: string; grad: string; ring: string
   bronze:   { label: "Bronze",   grad: "linear-gradient(135deg,#7a5230,#c98a4b)", ring: "#c98a4b", glow: "rgba(201,138,75,0.45)" },
   silver:   { label: "Silver",   grad: "linear-gradient(135deg,#727d86,#cdd6dd)", ring: "#cdd6dd", glow: "rgba(205,214,221,0.40)" },
   gold:     { label: "Gold",     grad: "linear-gradient(135deg,#b8860b,#ffd76b)", ring: "#ffd76b", glow: "rgba(255,215,107,0.50)" },
-  platinum: { label: "Platinum", grad: "linear-gradient(135deg,#5b47c9,#b39dfc)", ring: "#b39dfc", glow: "rgba(179,157,252,0.50)" },
+  platinum: { label: "Iron",     grad: "linear-gradient(135deg,#4a4550,#a8a2b0)", ring: "#a8a2b0", glow: "rgba(168,162,176,0.45)" },
   mythic:   { label: "Mythic",   grad: "linear-gradient(135deg,#1a0509,#6e0f1c 55%,#ff2740)", ring: "#ff2740", glow: "rgba(216,31,52,0.60)" },
 };
 

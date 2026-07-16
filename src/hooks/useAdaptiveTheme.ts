@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 
 // Adaptive theme (Batch 4): a subtle gradient that follows the day.
-// Dawn (5–8): amber–orange. Morning (8–12): orange–red. Midday (12–15): red.
-// Afternoon (15–18): red→violet. Evening (18–21): violet→ember. Night (21–24, 0–5): deep indigo.
-// This does NOT swap dark/light — that stays user-controlled. It only produces a
-// gradient that pages/components can opt into (Home hero, splash accents, etc.).
+// Every stop stays within the red-ember-crimson family — no purple, no lavender.
+// Dawn (5–8): amber → burnt-orange (embers reawakening).
+// Morning (8–12): burnt-orange → blood-red.  Midday (12–15): deep red at peak.
+// Afternoon (15–18): red → crimson.  Evening (18–21): crimson → ember-black.
+// Wind-down (21–24) + late-night (0–5): deep dried-blood into black.
 export interface TimeGradient { grad: string; label: string; }
 function pickGradient(h: number): TimeGradient {
   if (h >= 5 && h < 8) return { label: "dawn", grad: "linear-gradient(135deg, #f6b93b, #ff6b3d)" };
   if (h >= 8 && h < 12) return { label: "morning", grad: "linear-gradient(135deg, #ff6b3d, #ff2740)" };
   if (h >= 12 && h < 15) return { label: "midday", grad: "linear-gradient(135deg, #ff2740, #d81f34)" };
-  if (h >= 15 && h < 18) return { label: "afternoon", grad: "linear-gradient(135deg, #d81f34, #7c5cfc)" };
-  if (h >= 18 && h < 21) return { label: "evening", grad: "linear-gradient(135deg, #7c5cfc, #6e0f1c)" };
+  if (h >= 15 && h < 18) return { label: "afternoon", grad: "linear-gradient(135deg, #d81f34, #a8172b)" };
+  if (h >= 18 && h < 21) return { label: "evening", grad: "linear-gradient(135deg, #a8172b, #6e0f1c)" };
   if (h >= 21 && h < 24) return { label: "wind-down", grad: "linear-gradient(135deg, #6e0f1c, #1a0509)" };
   return { label: "late-night", grad: "linear-gradient(135deg, #1a0509, #08060a)" };
 }
