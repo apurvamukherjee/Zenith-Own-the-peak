@@ -9,6 +9,8 @@ export const DEFAULTS = {
   sleepTargetMin: 480,     // 8h
   calorieTargetKcal: 2600, // surplus for lean gain at ~50kg
   proteinTargetG: 100,     // ~2 g/kg
+  carbTargetG: 320,        // ~55% of a 2600 kcal surplus
+  fatTargetG: 75,          // ~25% of 2600 kcal
   name: "Apurva",
   themeMode: "dark",       // gothic by default
   profilePic: "",          // dataURL

@@ -372,3 +372,55 @@ Schema bumped to **v4** with 4 new tables:
   handles overlays, but reliably trapping the root-level Back isn't possible in a
   browser SPA without a hash-router hack — the real fix arrives with the Capacitor
   native wrapper (OS back-button handling).
+
+---
+
+## Phase 3 — Macros tracker + Batch 4 (2026-07)
+
+### Macros tracker
+- **Schema v7:** `foods` (catalog with per-100g or per-piece macros + JSON `presets`) and
+  `mealTemplateItems` (combo lines). `meals` gained nullable `fatG`, `carbsG`,
+  `foodId`, `grams` — older rows stay valid.
+- **Two log modes** live in `FoodPickerModal`: **From food** (search catalog,
+  favorites, recent, presets, live macro preview) and **Custom** (name + macros).
+- **Food catalog** in `src/config/foodCatalog.ts`: ~30 Indian-first foods —
+  chicken, egg, egg white, paneer, tofu, greek yogurt, curd, soya, whey,
+  rohu/salmon, white/brown rice, oats, roti, bread, potato, sweet potato,
+  banana, apple, oil, ghee, butter, almonds, walnuts, PB, avocado, chia, dal,
+  chana, rajma, milk. Seed values documented per user's spec; seeded on first
+  launch via `seedFoodsIfEmpty()` (independent from exercise seed).
+- **Discipline ring on Home stays protein-only** — carbs/fat are additive info,
+  not part of the "did I do today" contract.
+
+### Add-ons shipped (8 of 10)
+1. **Portion presets** — save any dialed-in amount as a preset via `TbBookmarkPlus`.
+2. **Meal combos** — `MealComboBuilderModal` builds a multi-food template that
+   later logs each food as its own meal row.
+3. **Daily macro bar** — stacked P/C/F/kcal vs target at the top of Nutrition.
+4. **Recent food chips** — top 5 most-recently logged foods appear above the search.
+5. **Time-of-day bar** — thin B/L/D/S calorie split under the macro bar.
+7. **Water chips with meals** — quick 200/500/1000ml log inline.
+8. **Copy yesterday** — one-tap replay of yesterday's meals via `copyYesterdayMeals()`.
+9. **Optional carb/fat targets** — `carbTargetG` (default 320) and `fatTargetG` (default 75)
+   in Settings, consumed by `MacroBar`.
+
+**Deferred to Phase 4:** #6 cost-per-meal, #10 photo-per-meal.
+
+### Batch 4 features
+- **Adaptive theme** — `useAdaptiveTheme` picks a 7-slot gradient (dawn/morning/
+  midday/afternoon/evening/wind-down/late-night) and publishes it as `--hero`
+  in dark mode only. Light mode keeps the calm violet. Hourly re-tick aligned
+  to the top of each hour.
+- **Voice log** — `useVoiceLog` wraps Web Speech API; `VoiceLogModal` mounts on
+  the FAB grid (now 6 cols). Parses "200g paneer" / "3 eggs" and fuzzy-matches
+  the catalog. Gracefully hides on unsupported browsers (iOS Safari).
+- **Before / after slider** — `BeforeAfterSlider` in Profile reuses `dayPhotos`;
+  auto-picks oldest+newest, allows manual date-pair selection, draggable divider.
+
+### Conventions preserved
+- No `@ant-design/icons` — Tabler-only via `react-icons/tb`.
+- All new modals use `useBackClose` for Android back-button dismissal.
+- All destructive actions use `Popconfirm`.
+- Every table access still routed through Dexie's mutation hooks so `bumpMutation`
+  still triggers auto-backup and achievements. All new tables (`foods`,
+  `mealTemplateItems`) are included in `exportAll()` via `db.tables` iteration.

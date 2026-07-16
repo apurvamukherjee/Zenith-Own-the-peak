@@ -1,24 +1,36 @@
 import { useState } from "react";
 import {
-  Card, Progress, Button, Modal, Input, InputNumber, TimePicker, Segmented,
+  Card, Progress, Button, Modal, Input, TimePicker, Segmented,
   Tag, App, Empty, Row, Col, Switch, Popconfirm,
 } from "antd";
-import { TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbToolsKitchen2, TbBookmark } from "react-icons/tb";
+import {
+  TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbToolsKitchen2, TbBookmark,
+  TbCopy, TbDroplet, TbStack2,
+} from "react-icons/tb";
 import dayjs from "dayjs";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { db } from "../../db/db";
-import type { MealType, ScheduleKind } from "../../db/types";
+import type { ScheduleKind } from "../../db/types";
 import {
   useSchedules, useTodayLogs, useTodayMeals, addSchedule, deleteSchedule, markDone,
-  addMeal, deleteMeal, slotStatus, KIND_META, nowHHMM,
+  deleteMeal, slotStatus, KIND_META,
 } from "./useNutrition";
 import { useReminders, requestReminderPermission } from "../../hooks/useReminders";
 import { useSetting } from "../../hooks/useSettings";
 import { VIOLET, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
-import { useMealTemplates, logFromTemplate, saveMealAsTemplate } from "./useMealTemplates";
+import {
+  useMealTemplates, logFromTemplate, saveMealAsTemplate,
+  deleteMealTemplate, copyYesterdayMeals,
+} from "./useMealTemplates";
+import { FoodPickerModal } from "./FoodPickerModal";
+import { MacroBar, TimeOfDayBar } from "./MacroBar";
+import { MealComboBuilderModal } from "./MealComboBuilderModal";
+import { addWater } from "../water/useWater";
+import { hapticLight } from "../../lib/haptics";
+import { useBackClose } from "../../hooks/useBackClose";
 
 const STATUS_TAG = {
   done: { color: "green", label: "Done" },
@@ -34,7 +46,8 @@ export function NutritionPage() {
   const logs = useTodayLogs();
   const meals = useTodayMeals();
   const [manageOpen, setManageOpen] = useState(false);
-  const [mealOpen, setMealOpen] = useState(false);
+  const [foodOpen, setFoodOpen] = useState(false);
+  const [comboOpen, setComboOpen] = useState(false);
   const [remindersOn, setRemindersOn] = useState(typeof Notification !== "undefined" && Notification.permission === "granted");
 
   useReminders(schedules, logs);
@@ -42,6 +55,8 @@ export function NutritionPage() {
   const latestBw = useLiveQuery(async () => (await db.bodyweight.orderBy("date").last())?.kg, []);
   const proteinDefault = useSetting("proteinTargetG");
   const calorieTarget = useSetting("calorieTargetKcal");
+  const carbTarget = useSetting("carbTargetG");
+  const fatTarget = useSetting("fatTargetG");
   const proteinTarget = latestBw ? Math.round(latestBw * 1.8) : proteinDefault;
 
   const protein = meals.reduce((s, m) => s + m.protein, 0);
@@ -60,20 +75,43 @@ export function NutritionPage() {
   const nextUp = schedules.find((s) => s.id && !doneIds.has(s.id) && slotStatus(s.time, false) !== "upcoming")
     ?? schedules.find((s) => s.id && !doneIds.has(s.id));
 
+  async function handleCopyYesterday() {
+    const n = await copyYesterdayMeals();
+    if (n === 0) message.info("Nothing logged yesterday to copy");
+    else { hapticLight(); message.success(`Copied ${n} meal${n === 1 ? "" : "s"} from yesterday`); }
+  }
+
+  async function quickWater(ml: number) {
+    await addWater(ml);
+    hapticLight();
+    message.success(`+${ml}ml`);
+  }
+
   return (
     <PageTransition>
       <SectionTitle eyebrow="Fuel your body" title="Nutrition"
         right={<Button icon={<TbPlus />} onClick={() => setManageOpen(true)}>Schedule</Button>} />
 
-      {/* Macros */}
-      <Card size="small" style={{ marginBottom: 16 }}>
+      {/* Macro bar (add-on #3) — top of page so imbalances are obvious */}
+      <Card size="small" style={{ marginBottom: 12 }} styles={{ body: { padding: "12px 14px" } }}>
+        <MacroBar meals={meals} proteinTarget={proteinTarget} fatTarget={fatTarget}
+          carbTarget={carbTarget} kcalTarget={calorieTarget} />
+        {meals.length > 0 && (
+          <div style={{ marginTop: 10, borderTop: "1px solid var(--border)", paddingTop: 8 }}>
+            <TimeOfDayBar meals={meals} />
+          </div>
+        )}
+      </Card>
+
+      {/* Protein ring + calories — kept because the discipline ring on Home still uses protein */}
+      <Card size="small" style={{ marginBottom: 12 }}>
         <Row gutter={16} align="middle">
           <Col span={10} style={{ textAlign: "center" }}>
-            <Progress type="circle" size={116} percent={Math.min(100, Math.round((protein / proteinTarget) * 100))}
+            <Progress type="circle" size={104} percent={Math.min(100, Math.round((protein / proteinTarget) * 100))}
               strokeColor={t.accent}
               format={() => (
                 <div style={{ lineHeight: 1.05, whiteSpace: "nowrap" }}>
-                  <div className="display" style={{ fontSize: 20, fontWeight: 800 }}>{protein}<span style={{ fontSize: 12 }}>g</span></div>
+                  <div className="display" style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(protein)}<span style={{ fontSize: 11 }}>g</span></div>
                   <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>of {proteinTarget}g</div>
                 </div>
               )} />
@@ -81,17 +119,16 @@ export function NutritionPage() {
           </Col>
           <Col span={14}>
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Calories</div>
-            <div className="display" style={{ fontSize: 24, fontWeight: 800, color: GOLD }}>{calories}<span style={{ fontSize: 13, color: "var(--ink-soft)", fontWeight: 600 }}> / {calorieTarget}</span></div>
-            <Progress percent={Math.min(100, Math.round((calories / calorieTarget) * 100))} strokeColor={t.gold} showInfo={false} />
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 8 }}>
-              {calories < calorieTarget ? `${calorieTarget - calories} kcal to your surplus goal — keep eating.` : "Surplus hit. Growth fuel locked in."}
+            <div className="display" style={{ fontSize: 22, fontWeight: 800, color: GOLD }}>{Math.round(calories)}<span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}> / {calorieTarget}</span></div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
+              {calories < calorieTarget ? `${Math.max(0, calorieTarget - Math.round(calories))} kcal to your surplus goal — keep eating.` : "Surplus hit. Growth fuel locked in."}
             </div>
           </Col>
         </Row>
       </Card>
 
       {/* Reminder toggle + next up */}
-      <Card size="small" style={{ marginBottom: 16 }}>
+      <Card size="small" style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <TbBell style={{ color: VIOLET, fontSize: 18 }} />
           <div style={{ flex: 1 }}>
@@ -107,9 +144,9 @@ export function NutritionPage() {
       {/* Today's schedule */}
       <SectionTitle title="Today's schedule" />
       {schedules.length === 0 ? (
-        <Empty description="Add meds, supplements or meal times to build your daily plan." style={{ marginBottom: 16 }} />
+        <Empty description="Add meds, supplements or meal times to build your daily plan." style={{ marginBottom: 12 }} />
       ) : (
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 12 }}>
           {schedules.map((s) => {
             const done = !!s.id && doneIds.has(s.id);
             const status = slotStatus(s.time, done);
@@ -139,21 +176,48 @@ export function NutritionPage() {
         </div>
       )}
 
-      {/* Meal templates quick-log */}
-      <TemplateChips />
+      {/* Templates / combos row */}
+      <TemplatesRow onCreateCombo={() => setComboOpen(true)} />
 
       {/* Meals today */}
-      <SectionTitle title="Meals today" right={<Button type="primary" icon={<TbPlus />} onClick={() => setMealOpen(true)}>Meal</Button>} />
+      <SectionTitle title="Meals today" right={
+        <div style={{ display: "flex", gap: 6 }}>
+          {meals.length === 0 && (
+            <Button size="small" icon={<TbCopy />} onClick={handleCopyYesterday}>Same as yesterday</Button>
+          )}
+          <Button type="primary" icon={<TbPlus />} onClick={() => setFoodOpen(true)}>Add food</Button>
+        </div>
+      } />
+
+      {/* Quick water chips (add-on #7) — logging a meal often coincides with a drink */}
+      <Card size="small" style={{ marginBottom: 12 }} styles={{ body: { padding: "10px 12px" } }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginRight: 4 }}>
+            <TbDroplet style={{ verticalAlign: "-2px", color: "var(--teal)" }} /> Drink with your meal
+          </span>
+          {[200, 500, 1000].map((v) => (
+            <Button key={v} size="small" onClick={() => quickWater(v)}>+{v}ml</Button>
+          ))}
+        </div>
+      </Card>
+
       <Card size="small">
         {meals.length === 0 ? <div style={{ textAlign: "center", padding: 16 }}>
             <div style={{ marginBottom: 6 }}><TbToolsKitchen2 size={36} style={{ color: "var(--accent)" }} /></div>
-            <div style={{ fontWeight: 600, color: "var(--ink-soft)", fontSize: 13 }}>Log your first meal above to start tracking protein and calories.</div>
+            <div style={{ fontWeight: 600, color: "var(--ink-soft)", fontSize: 13 }}>Tap "Add food" to log from the catalog, or "Same as yesterday" to repeat.</div>
           </div> : (
           meals.sort((a, b) => a.time.localeCompare(b.time)).map((m) => (
             <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{m.name} <Tag style={{ borderRadius: 6 }}>{m.mealType}</Tag></div>
-                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{m.time} · {m.protein}g P · {m.calories} kcal</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {m.name} <Tag style={{ borderRadius: 6 }}>{m.mealType}</Tag>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
+                  {m.time} · {Math.round(m.protein)}g P
+                  {m.fatG != null ? ` · ${Math.round(m.fatG)}g F` : ""}
+                  {m.carbsG != null ? ` · ${Math.round(m.carbsG)}g C` : ""}
+                  {" · "}{Math.round(m.calories)} kcal
+                </div>
               </div>
               <Button type="text" size="small" icon={<TbBookmark />} onClick={async () => {
                 const name = prompt("Save this meal as a template. Name:", m.name);
@@ -169,12 +233,23 @@ export function NutritionPage() {
       </Card>
 
       <ManageScheduleModal open={manageOpen} onClose={() => setManageOpen(false)} />
-      <AddMealModal open={mealOpen} onClose={() => setMealOpen(false)} />
+      <FoodPickerModal open={foodOpen} onClose={() => setFoodOpen(false)}
+        defaultMealType={inferMealType()} />
+      <MealComboBuilderModal open={comboOpen} onClose={() => setComboOpen(false)} />
     </PageTransition>
   );
 }
 
+function inferMealType() {
+  const h = new Date().getHours();
+  if (h < 11) return "breakfast" as const;
+  if (h < 15) return "lunch" as const;
+  if (h < 21) return "dinner" as const;
+  return "snack" as const;
+}
+
 function ManageScheduleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useBackClose(open, onClose);
   const [kind, setKind] = useState<ScheduleKind>("med");
   const [label, setLabel] = useState("");
   const [dose, setDose] = useState("");
@@ -202,50 +277,40 @@ function ManageScheduleModal({ open, onClose }: { open: boolean; onClose: () => 
   );
 }
 
-function AddMealModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { message } = App.useApp();
-  const [name, setName] = useState("");
-  const [type, setType] = useState<MealType>("breakfast");
-  const [protein, setProtein] = useState<number>();
-  const [calories, setCalories] = useState<number>();
-  function submit() {
-    if (!name.trim()) { message.warning("Name the meal"); return; }
-    addMeal({ date: dayjs().format("YYYY-MM-DD"), time: nowHHMM(), name: name.trim(), mealType: type, protein: protein ?? 0, calories: calories ?? 0 });
-    setName(""); setProtein(undefined); setCalories(undefined); onClose();
-  }
-  return (
-    <Modal open={open} title="Log a meal" onCancel={onClose} onOk={submit} okText="Log">
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
-        <Input placeholder="What did you eat?" value={name} onChange={(e) => setName(e.target.value)} />
-        <Segmented block value={type} onChange={(v) => setType(v as MealType)}
-          options={[{ label: "Breakfast", value: "breakfast" }, { label: "Lunch", value: "lunch" }, { label: "Dinner", value: "dinner" }, { label: "Snack", value: "snack" }]} />
-        <Row gutter={10}>
-          <Col span={12}><InputNumber inputMode="decimal" value={protein} onChange={(v) => setProtein(v ?? undefined)} placeholder="Protein g" style={{ width: "100%" }} controls={false} min={0} /></Col>
-          <Col span={12}><InputNumber inputMode="decimal" value={calories} onChange={(v) => setCalories(v ?? undefined)} placeholder="Calories" style={{ width: "100%" }} controls={false} min={0} /></Col>
-        </Row>
-        <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Rough estimates are fine — consistency beats precision.</div>
-      </div>
-    </Modal>
-  );
-}
-
-
-function TemplateChips() {
+function TemplatesRow({ onCreateCombo }: { onCreateCombo: () => void }) {
   const templates = useMealTemplates();
   const { message } = App.useApp();
-  if (templates.length === 0) return null;
   return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>Quick log</div>
-      <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
-        {templates.map((tpl) => (
-          <button key={tpl.id} onClick={async () => { await logFromTemplate(tpl); message.success(`Logged ${tpl.name}`); }}
-            style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10,
-              padding: "6px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer", color: "var(--ink)" }}>
-            {tpl.name} · {tpl.protein}p / {tpl.calories}kcal
-          </button>
-        ))}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Quick log</span>
+        <Button size="small" type="text" icon={<TbStack2 />} onClick={onCreateCombo}
+          style={{ fontSize: 12 }}>New combo</Button>
       </div>
+      {templates.length === 0 ? (
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", padding: "6px 2px" }}>
+          Save a meal or build a combo to fast-log your usuals.
+        </div>
+      ) : (
+        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
+          {templates.map((tpl) => (
+            <div key={tpl.id} style={{ position: "relative" }}>
+              <button onClick={async () => { await logFromTemplate(tpl); hapticLight(); message.success(`Logged ${tpl.name}`); }}
+                style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10,
+                  padding: "6px 24px 6px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
+                  cursor: "pointer", color: "var(--ink)" }}>
+                {tpl.isCombo ? "🍱 " : ""}{tpl.name} · {Math.round(tpl.protein)}p / {Math.round(tpl.calories)}kcal
+              </button>
+              <Popconfirm title="Delete this template?" okText="Delete" okButtonProps={{ danger: true }}
+                onConfirm={() => tpl.id && deleteMealTemplate(tpl.id)}>
+                <button title="Delete"
+                  style={{ position: "absolute", top: 2, right: 4, background: "none", border: "none",
+                    color: "var(--ink-soft)", cursor: "pointer", padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
+              </Popconfirm>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

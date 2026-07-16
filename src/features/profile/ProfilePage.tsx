@@ -13,6 +13,7 @@ import { YearHeatmap } from "./YearHeatmap";
 import { PhotoTimeline } from "./PhotoTimeline";
 import { EfficiencyCard } from "./EfficiencyCard";
 import { BodyComposition } from "./BodyComposition";
+import { BeforeAfterSlider } from "./BeforeAfterSlider";
 import { useSetting } from "../../hooks/useSettings";
 import { fmtDuration } from "../../lib/date.utils";
 import { useWeeklyReview } from "../review/useWeeklyReview";
@@ -87,6 +88,7 @@ export function ProfilePage() {
       {/* Year heatmap */}
       <YearHeatmap />
       <PhotoTimeline />
+      <BeforeAfterSlider />
       <EfficiencyCard />
       <BodyComposition />
 

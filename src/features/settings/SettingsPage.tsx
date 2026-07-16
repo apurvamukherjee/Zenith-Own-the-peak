@@ -25,6 +25,8 @@ export function SettingsPage() {
   const waterGoalMl = useSetting("waterGoalMl");
   const proteinTargetG = useSetting("proteinTargetG");
   const calorieTargetKcal = useSetting("calorieTargetKcal");
+  const carbTargetG = useSetting("carbTargetG");
+  const fatTargetG = useSetting("fatTargetG");
   const sleepTargetMin = useSetting("sleepTargetMin");
 
   const picRef = useRef<HTMLInputElement>(null);
@@ -88,6 +90,8 @@ export function SettingsPage() {
           {num("Water goal", Number(waterGoalMl), "waterGoalMl", "ml", 250)}
           {num("Protein", Number(proteinTargetG), "proteinTargetG", "g", 5)}
           {num("Calories", Number(calorieTargetKcal), "calorieTargetKcal", "kcal", 50)}
+          {num("Carbs", Number(carbTargetG), "carbTargetG", "g", 10)}
+          {num("Fat", Number(fatTargetG), "fatTargetG", "g", 5)}
           {num("Sleep target", Number(sleepTargetMin), "sleepTargetMin", "min", 15, 60)}
         </Row>
       </Card>

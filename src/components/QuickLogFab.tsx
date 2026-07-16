@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Modal, Button, InputNumber, App } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
-import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbGasStation, TbBolt } from "react-icons/tb";
+import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbGasStation, TbBolt, TbMicrophone } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { addWater } from "../features/water/useWater";
 import { hapticLight } from "../lib/haptics";
+import { VoiceLogModal } from "./VoiceLogModal";
 
 const actions = [
   { key: "water", label: "Water", icon: TbDroplet, color: "var(--teal)" },
+  { key: "voice", label: "Voice", icon: TbMicrophone, color: "var(--accent)" },
   { key: "meal", label: "Meal", icon: TbMeat, color: "var(--teal)" },
   { key: "workout", label: "Set", icon: TbBarbell, color: "var(--accent)" },
   { key: "sleep", label: "Sleep", icon: TbMoon, color: "var(--accent)" },
@@ -19,11 +21,13 @@ export function QuickLogFab() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [waterOpen, setWaterOpen] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const [ml, setMl] = useState(500);
 
   function handlePick(key: string) {
     setOpen(false);
     if (key === "water") { setWaterOpen(true); return; }
+    if (key === "voice") { setVoiceOpen(true); return; }
     const routes: Record<string, string> = { meal: "/nutrition", workout: "/workout", sleep: "/sleep", fuel: "/fuel" };
     navigate(routes[key] ?? "/");
   }
@@ -69,7 +73,7 @@ export function QuickLogFab() {
                 background: "var(--surface)", borderRadius: "20px 20px 0 0",
                 padding: "20px 16px", paddingBottom: "calc(20px + env(safe-area-inset-bottom))" }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: "var(--border)", margin: "0 auto 16px" }} />
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
                 {actions.map((a, i) => (
                   <motion.button key={a.key}
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -100,6 +104,8 @@ export function QuickLogFab() {
         <InputNumber inputMode="decimal" value={ml} onChange={(v) => setMl(v ?? 500)} min={50} step={50}
           style={{ width: "100%", marginTop: 10 }} suffix="ml" />
       </Modal>
+
+      <VoiceLogModal open={voiceOpen} onClose={() => setVoiceOpen(false)} />
     </>
   );
 }
