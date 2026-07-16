@@ -14,6 +14,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/calendar":  { title: "Calendar",    rank: 1, tab: false },
   "/glance":    { title: "At a glance", rank: 1, tab: false },
   "/quotes":    { title: "Motivation",  rank: 1, tab: false },
+  "/hall":      { title: "Hall of Frame", rank: 1, tab: false },
 };
 
 export function metaFor(pathname: string): RouteMeta {

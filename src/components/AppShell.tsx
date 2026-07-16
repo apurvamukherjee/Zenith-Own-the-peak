@@ -6,9 +6,11 @@ import { QuickLogFab } from "./QuickLogFab";
 import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { useSetting } from "../hooks/useSettings";
 import { useReminderEngine } from "../features/reminders/useReminderEngine";
+import { useAchievementEngine } from "../features/achievements/useAchievements";
 
 export function AppShell() {
   useReminderEngine();
+  useAchievementEngine();
   const bgImage = useSetting("bgImage");
   const bgBlur = useSetting("bgBlur");
   const bgOpacity = useSetting("bgOpacity");

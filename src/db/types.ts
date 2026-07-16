@@ -136,3 +136,12 @@ export interface HabitChainDto {
   id?: number; triggerTable: string; triggerKey?: string;
   action: "notify"; delayMin: number; message: string; active: number; createdAt: number;
 }
+
+// ---- Achievements ----
+// Definitions live in code (lib/achievements.ts). This table only persists
+// which ones the user has unlocked, keyed by the definition id (string).
+export interface AchievementUnlockDto {
+  id: string;         // matches an ACHIEVEMENTS[].id
+  unlockedAt: number; // epoch ms
+  seen: number;       // 0 = fresh (dot + toast), 1 = acknowledged
+}
