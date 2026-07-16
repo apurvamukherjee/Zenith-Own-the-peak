@@ -52,9 +52,14 @@ VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Restart `npm run dev`. Open **Stats → Cloud sync**, enter your email, type the
+Restart `npm run dev`. Open **Settings → Cloud sync**, enter your email, type the
 code, and toggle **Auto-backup**. Done — every change now pushes to the cloud a
 few seconds later, and **Restore** pulls it onto any device.
+
+> Cloud sync moved from Stats to **Settings** in Phase 2. Everything local is
+> included in the snapshot automatically — including your unlocked achievements
+> and daily targets — so there's nothing extra to configure. The `backups` table
+> and its RLS policies below are unchanged.
 
 > Nothing to configure? The card will say "not configured" and the app keeps
 > working locally with the manual Export/Import backup.

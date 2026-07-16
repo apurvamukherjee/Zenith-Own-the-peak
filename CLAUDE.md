@@ -34,7 +34,7 @@ UI (features/*/*.tsx)        ← never touches Dexie directly
 Mutation bus (`lib/mutations.ts`) fires on every Dexie write → cloud auto-backup
 debounces a push. Adding a new table auto-inherits this.
 
-## Routes (12 total)
+## Routes (15 total + 404)
 
 | Path | Page | Tab? |
 |------|------|------|
@@ -49,10 +49,23 @@ debounces a push. Adding a new table auto-inherits this.
 | `/sleep` | SleepPage | no |
 | `/fuel` | FuelPage | no |
 | `/calendar` | CalendarPage | no |
+| `/glance` | GlancePage | no |
 | `/quotes` | QuotesPage (Motivation) | no |
+| `/hall` | HallOfFrame (achievements) | no |
+| `/settings` | SettingsPage | no |
 
-BottomNav = 5 tabs. NavStrip = 5 secondary chips (Water, Sleep, Fuel, Progress, Calendar).
-Weekly Review is **inlined into ProfilePage**, not a separate route.
+Plus a `*` catch-all → 404 page (in `AnimatedRoutes.tsx`).
+
+BottomNav = 5 tabs (Home, Train, Nutrition, Learn, Stats). NavStrip = 5 secondary
+chips (Water, Sleep, Fuel, Progress, Calendar).
+
+**Stats vs Settings (Phase 2 split):** `/profile` (Stats) is now **read-only
+insights only** — weekly review, year heatmap, photo timeline, efficiency, body
+composition, bodyweight, the all-module stats grid, and the Hall of Frame entry.
+Everything configurable lives on `/settings` — profile name + daily targets,
+appearance, reminders, cloud sync, and backup. The Home gear (`TbSettings`) opens
+`/settings`; the Home share icon (`TbShare2`) opens `/glance`. Weekly Review is
+still **inlined into ProfilePage**, not a separate route.
 
 ## Directory map
 
@@ -71,18 +84,22 @@ src/
     haptics.ts           Capacitor haptics + navigator.vibrate fallback
     streak.utils.ts      Unified cross-module day streak
     todayScore.ts        Discipline score (water% + session + sleep + protein)
+    dayScore.ts          Per-date + batch-per-month scores, deload detect
+    achievements.ts      69-badge registry + context builder + unlock engine
     routes.ts            Route registry + metaFor()
   hooks/
     useSettings.ts       Typed key/value settings + DEFAULTS
     useTokens.ts         Concrete hex palette per theme mode (for charts/SVG)
     useWorkout.ts        Compat read-only hooks for Progress page
     useReminders.ts      Nutrition-specific reminder pinger
+    useBackClose.ts      Back button dismisses an overlay instead of navigating
   components/
     AppShell.tsx, AppBar.tsx, AnimatedRoutes.tsx, BottomNav.tsx
     SplashScreen.tsx     Gothic animated splash with particles
     QuickLogFab.tsx      Floating lightning-bolt action button
-    NavStrip.tsx         Secondary scrollable chip row
+    NavStrip.tsx         Secondary scrollable chip row (scroll pos persisted)
     MuscleIcon.tsx       Vector muscle-group icon component (JSX, separate from data)
+    ColdIcon.tsx         Cold angular achievement glyph set (currentColor SVG)
     CoachMark.tsx        Multi-step tooltip component
     PageTransition.tsx, SectionTitle.tsx, MetricCard.tsx, AnimatedNumber.tsx
   features/
@@ -94,7 +111,10 @@ src/
     study/               Learning paths, topic backlog, time logging
     fuel/                Bike mileage (full-to-full), monthly spend
     nutrition/           Meals, macros, supplement schedule
-    profile/             All-module stats, weekly review (merged), appearance, reminders, sync, backup
+    profile/             Stats (read-only insights) + weekly review (merged)
+    settings/            SettingsPage: profile+targets, appearance, reminders, sync, backup
+    achievements/        Hall of Frame page + useAchievements (list + engine + unseen)
+    glance/              Screenshot-friendly share card
     onboarding/          3-screen first-launch flow
     reminders/           App-wide reminder engine + settings card
     sync/                Supabase cloud backup card
@@ -122,7 +142,10 @@ Rule: style prop → CSS var. SVG/Progress attribute → `useTokens()`.
 - All pickers: `inputReadOnly` (no keyboard on mobile).
 - All borders: `var(--border)`, never a hardcoded hex.
 - All icons: `react-icons/tb`, never `@ant-design/icons`.
-- Settings live in Dexie (`db.settings`), never localStorage.
+- Settings live in Dexie (`db.settings`), never localStorage. **One exception:**
+  the resolved theme is mirrored to `localStorage["zenith-theme"]` purely as a
+  first-paint cache (read by an inline script in `index.html` to kill the
+  dark→light flash on reload). Dexie remains the source of truth.
 
 ## Known architectural decisions
 
@@ -275,6 +298,77 @@ Schema bumped to **v4** with 4 new tables:
 
 ### New utilities
 - `lib/encryptedExport.ts` — Web Crypto AES-GCM wrapper (PBKDF2 100k rounds).
-  Currently wired to a "Encrypted export" button in Stats → Data backup.
+  Wired to an "Encrypted export" button in **Settings → Data backup** (moved there
+  from Stats in Phase 2).
 - `lib/dayScore.ts` `detectDeloadWeek()` — 30%+ volume-drop → "deload" label
   (calendar UI can consume this to relabel low-scoring workout weeks).
+
+## Phase 2 — Achievements, Stats/Settings split, QA hardening
+
+### Schema v5 + v6
+- **v5** adds the `achievements` table (`&id, unlockedAt, seen`). Definitions live
+  in code (`lib/achievements.ts`); the table only persists *which* badges are
+  unlocked, keyed by the string definition id — so adding badges needs no migration.
+- **v6** adds a `[date+dayId]` compound index on `workoutSessions` (removes the
+  Dexie "would benefit from a compound index" hint on the frequent
+  `useTodaySession` / `ensureSession` / `backfillSession` lookups).
+- `exportAll()` version marker bumped to 5; the `achievements` table and the
+  `backupCount` setting ride the normal export/import + mutation-bus paths.
+
+### Achievements + Hall of Frame (`/hall`)
+- **69 badges total, 7 of them mystery.** `lib/achievements.ts` holds the registry,
+  a batched `buildContext()` (one snapshot of streaks/sets/volume/PRs/perfect days/
+  water/sleep/study/fuel/nutrition/body/backups), and `syncAchievements(ctx)` which
+  inserts newly-earned rows (`seen:0`) and resolves the meta "Completionist" badge last.
+- **Groups:** The Streak (9), Iron (13), Discipline (6), Water (6), Sleep (6),
+  The Mind (6), The Road (5), The Table (6), The Body (5), Mystery (7).
+- **Tiers:** bronze → silver → gold → platinum → mythic (`TIER_META`, tier pips I–V).
+- **Icons:** `components/ColdIcon.tsx` — ~35 cold angular stroke glyphs drawn in
+  `currentColor` (a curated glyph *language*, families shared per group, unique marks
+  for milestones/mythics). This is a deliberate exception to "Tabler-only" for the
+  medallion art; everything else still uses `react-icons/tb`.
+- **Rendering:** all 69 always shown. Locked non-mystery = greyscaled/dimmed glyph
+  + one-line hint + progress bar (`340 / 1,000`). Locked mystery = `void` glyph,
+  `???` title, italic teaser line (no how-to). Unlocked = tier gradient + glow + date.
+- **Engine:** `useAchievementEngine()` is mounted once in `AppShell` (beside
+  `useReminderEngine`). It recomputes on the mutation bus (debounced), toasts +
+  success-haptics each new unlock, and guards against double-fire. `useUnseenAchievements()`
+  drives the red dot on the Stats → Hall entry; opening `/hall` calls `markAllSeen()`.
+- **Backup counter:** `settings.backupCount` increments on each successful cloud
+  backup (`useSync.backupNow`) and powers the hidden "The Vault" badge (25 backups).
+- Two mystery badges ("Twice Yourself", "Featherweight No More") need bodyweight
+  logged to ever trigger — by design.
+
+### Stats / Settings split
+- New `features/settings/SettingsPage.tsx` at `/settings`. Holds: **Profile & daily
+  targets** (name + wakeHour/waterGoalMl/proteinTargetG/calorieTargetKcal/sleepTargetMin
+  — the first real in-app targets editor), **Appearance**, `RemindersCard`, `SyncCard`,
+  and **Data backup**. These were all cut out of ProfilePage.
+- `ProfilePage` (Stats) is now purely read-only insights + the Hall of Frame entry.
+- Home gear → `/settings` (was `/profile`); Home share icon → `/glance`.
+
+### Route + QA hardening
+- **404** catch-all route (`*`) → a proper NotFound instead of a blank page.
+- **`/glance`** is no longer orphaned — reachable from the Home share icon.
+- **`useBackClose(open, onClose)`** (`hooks/useBackClose.ts`): pushes a throwaway
+  history entry so the device/browser Back button dismisses an overlay instead of
+  navigating. Applied to the Calendar `DayDetailModal` and `AddGoalModal`.
+- **NavStrip** persists its horizontal scroll across route changes (module-level cache).
+- **Theme flash** killed via the `localStorage["zenith-theme"]` first-paint cache
+  (see conventions note above).
+- **Numeric keyboards:** every `<InputNumber>` carries `inputMode="decimal"`.
+- **Destructive deletes** in Nutrition (`deleteMeal`, `deleteSchedule`) are behind
+  a `Popconfirm` (explicit Yes/No) instead of one-tap.
+
+### Housekeeping / deprecations cleared
+- `index.html` includes `mobile-web-app-capable` (kept the Apple-prefixed one for
+  older iOS).
+- `BrowserRouter` opts into `future={{ v7_startTransition, v7_relativeSplatPath }}`.
+- antd line `<Progress>` migrated from deprecated `strokeWidth` to `size={[-1, 8]}`
+  (circle/dashboard `strokeWidth` is *not* deprecated — left as-is).
+
+### Known limitation
+- iOS Safari Back at the root route (`/`) can still exit the app. `useBackClose`
+  handles overlays, but reliably trapping the root-level Back isn't possible in a
+  browser SPA without a hash-router hack — the real fix arrives with the Capacitor
+  native wrapper (OS back-button handling).

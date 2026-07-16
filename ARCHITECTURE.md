@@ -15,6 +15,16 @@ Every read is a `useLiveQuery(...)` and every write is an exported async functio
 (`addWater`, `logSet`, `markDone`, …). Components never import `db` for writes.
 That single seam is what makes the backend swap cheap.
 
+Two Phase-2 additions ride these same seams with no new plumbing:
+- **Achievements** are derived, not a new write path. `lib/achievements.ts`
+  `buildContext()` reads existing tables and the unlock engine
+  (`useAchievementEngine`, mounted in `AppShell`) recomputes off the mutation bus —
+  the same debounce the cloud backup uses. The only stored state is the small
+  `achievements` unlock table (definitions live in code).
+- **Overlay history:** `hooks/useBackClose.ts` pushes a throwaway history entry
+  while a modal is open so the device Back button closes it instead of navigating.
+  It's a UI concern only — no data layer involvement.
+
 ## Adding a backend later (no UI changes)
 
 1. Keep the DTOs in `src/db/types.ts` as the shared contract (reuse them in the API).

@@ -15,7 +15,7 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 ![PWA](https://img.shields.io/badge/Offline-first-000000)
 ![License](https://img.shields.io/badge/license-MIT-informational)
 
-**Phase 1 — Live**
+**Phase 2 — Live**
 
 </div>
 
@@ -28,6 +28,7 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 - 📅 **Discipline calendar** — month grid colored by daily score with per-metric filters, streak freeze, workout backfill, on-this-day comparisons, goal countdowns, photo pins, range stats, and a GitHub-style year heatmap
 - 🌅 **Time-aware greeting** — 7 time-of-day slots with matching icons, taglines, and evolving gradients from dawn to late night
 - 💬 **Motivation deck** — swipeable quote cards you can add/edit/favorite by category (gym / study / life)
+- 🏆 **Hall of Frame** — 69 unlockable achievements (7 hidden "mystery" badges), bronze→mythic tiers, cold custom vector medallions; locked ones stay visible with a one-line objective so you always know what's next
 - 🖤 **Gothic dark mode** — black + aggressive red by default, with a one-tap Light toggle
 - ⚡ **Quick-Log FAB** — floating action button on every screen, one tap to log water, meals, or jump to any tracker
 - 🎨 **Make it yours** — custom profile picture, wallpaper with blur & opacity controls
@@ -51,7 +52,9 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 | ⛽ | **Fuel** | Full-to-full bike mileage (km/L), monthly spend, cost per km |
 | 📅 | **Calendar** | Month grid colored by discipline score, filters, goal countdowns, photo pins, range stats, streak freeze, backfill, year heatmap |
 | 💬 | **Motivation** | Swipeable quote deck by category (gym / study / life) — add, edit, favorite, delete |
-| 📈 | **Stats** | All-module metrics, weekly review + insights, bodyweight, appearance, reminders, cloud sync, backup |
+| 🏆 | **Hall of Frame** | 69 achievements (7 mystery), tiered badges with cold vector medallions, live progress on everything still locked |
+| 📈 | **Stats** | Read-only insights — weekly review, year heatmap, photo timeline, efficiency, body composition, bodyweight, all-module metrics |
+| ⚙️ | **Settings** | Profile & daily targets, appearance (theme / picture / wallpaper), reminders, cloud sync, backup |
 
 ## 🛠 Tech stack
 
