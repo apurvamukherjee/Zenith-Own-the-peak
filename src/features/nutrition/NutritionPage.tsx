@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Card, Progress, Button, Modal, Input, InputNumber, TimePicker, Segmented,
-  Tag, App, Empty, Row, Col, Switch,
+  Tag, App, Empty, Row, Col, Switch, Popconfirm,
 } from "antd";
 import { TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbToolsKitchen2, TbBookmark } from "react-icons/tb";
 import dayjs from "dayjs";
@@ -128,8 +128,10 @@ export function NutritionPage() {
                   <Button type={done ? "default" : "primary"} shape="circle"
                     icon={<TbCircleCheck />} aria-label="Mark done"
                     onClick={() => s.id && markDone(s.id, !done)} />
-                  <Button type="text" size="small" danger icon={<TbTrash />}
-                    onClick={() => s.id && deleteSchedule(s.id)} aria-label="Delete" />
+                  <Popconfirm title="Delete this schedule?" okText="Delete" okButtonProps={{ danger: true }}
+                    onConfirm={() => s.id && deleteSchedule(s.id)}>
+                    <Button type="text" size="small" danger icon={<TbTrash />} aria-label="Delete" />
+                  </Popconfirm>
                 </div>
               </Card>
             );
@@ -157,7 +159,10 @@ export function NutritionPage() {
                 const name = prompt("Save this meal as a template. Name:", m.name);
                 if (name?.trim()) { await saveMealAsTemplate(m, name); message.success("Template saved"); }
               }} aria-label="Save as template" />
-              <Button type="text" size="small" danger icon={<TbTrash />} onClick={() => m.id && deleteMeal(m.id)} aria-label="Delete meal" />
+              <Popconfirm title="Delete this meal?" okText="Delete" okButtonProps={{ danger: true }}
+                onConfirm={() => m.id && deleteMeal(m.id)}>
+                <Button type="text" size="small" danger icon={<TbTrash />} aria-label="Delete meal" />
+              </Popconfirm>
             </div>
           ))
         )}
@@ -215,8 +220,8 @@ function AddMealModal({ open, onClose }: { open: boolean; onClose: () => void })
         <Segmented block value={type} onChange={(v) => setType(v as MealType)}
           options={[{ label: "Breakfast", value: "breakfast" }, { label: "Lunch", value: "lunch" }, { label: "Dinner", value: "dinner" }, { label: "Snack", value: "snack" }]} />
         <Row gutter={10}>
-          <Col span={12}><InputNumber value={protein} onChange={(v) => setProtein(v ?? undefined)} placeholder="Protein g" style={{ width: "100%" }} controls={false} min={0} /></Col>
-          <Col span={12}><InputNumber value={calories} onChange={(v) => setCalories(v ?? undefined)} placeholder="Calories" style={{ width: "100%" }} controls={false} min={0} /></Col>
+          <Col span={12}><InputNumber inputMode="decimal" value={protein} onChange={(v) => setProtein(v ?? undefined)} placeholder="Protein g" style={{ width: "100%" }} controls={false} min={0} /></Col>
+          <Col span={12}><InputNumber inputMode="decimal" value={calories} onChange={(v) => setCalories(v ?? undefined)} placeholder="Calories" style={{ width: "100%" }} controls={false} min={0} /></Col>
         </Row>
         <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Rough estimates are fine — consistency beats precision.</div>
       </div>

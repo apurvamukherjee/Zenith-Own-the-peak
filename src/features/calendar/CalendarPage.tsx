@@ -12,6 +12,7 @@ import { TimeSelect } from "../../components/TimeSelect";
 import { useMonthScores as useRawMonthScores } from "./useCalendar";
 import { useDayDetail } from "./useCalendar";
 import { useSetting } from "../../hooks/useSettings";
+import { useBackClose } from "../../hooks/useBackClose";
 import { useTokens } from "../../hooks/useTokens";
 import { addWater } from "../water/useWater";
 import { upsertSleep } from "../sleep/useSleep";
@@ -272,6 +273,7 @@ function Legend({ color, label, bordered }: { color: string; label: string; bord
 function AddGoalModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(dayjs().add(7, "day").format("YYYY-MM-DD"));
+  useBackClose(open, onClose);
   async function submit() {
     if (!title.trim()) return;
     await addGoalDay(date, title.trim());
@@ -290,6 +292,7 @@ function AddGoalModal({ open, onClose }: { open: boolean; onClose: () => void })
 
 function DayDetailModal({ date, onClose }: { date: string; onClose: () => void }) {
   const { message, modal } = App.useApp();
+  useBackClose(true, onClose);
   const detail = useDayDetail(date);
   const waterGoal = useSetting("waterGoalMl");
   const proteinTarget = useSetting("proteinTargetG");
@@ -390,7 +393,7 @@ function DayDetailModal({ date, onClose }: { date: string; onClose: () => void }
               {isToday ? "Quick add" : "Missed something? Backfill it"}
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              <InputNumber placeholder="ml to add" value={waterAdd} onChange={(v) => setWaterAdd(v ?? undefined)}
+              <InputNumber inputMode="decimal" placeholder="ml to add" value={waterAdd} onChange={(v) => setWaterAdd(v ?? undefined)}
                 style={{ flex: 1 }} min={0} step={50} />
               <Button type="primary" onClick={saveWater}>Add water</Button>
             </div>

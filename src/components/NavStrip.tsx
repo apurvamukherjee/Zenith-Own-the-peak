@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { TbDroplet, TbMoon, TbGasStation, TbChartLine, TbCalendar } from "react-icons/tb";
 
@@ -9,13 +10,25 @@ const chips = [
   { to: "/calendar", label: "Calendar", icon: TbCalendar },
 ];
 
+// Module-level so it survives the strip unmounting/remounting between routes.
+let savedScrollX = 0;
+
 export function NavStrip() {
   const { pathname } = useLocation();
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Restore the saved scroll offset when the strip mounts on a new page.
+  useEffect(() => {
+    const el = ref.current;
+    if (el) el.scrollLeft = savedScrollX;
+  }, [pathname]);
+
   // Hide on Home (has its own quick links) and on the pages already in the strip
   if (pathname === "/" || chips.some((c) => c.to === pathname)) return null;
 
   return (
-    <div style={{ overflowX: "auto", whiteSpace: "nowrap", padding: "0 16px 8px",
+    <div ref={ref} onScroll={(e) => { savedScrollX = e.currentTarget.scrollLeft; }}
+      style={{ overflowX: "auto", whiteSpace: "nowrap", padding: "0 16px 8px",
       display: "flex", gap: 6, WebkitOverflowScrolling: "touch" }}>
       {chips.map((c) => (
         <Link key={c.to} to={c.to} style={{ textDecoration: "none" }}>

@@ -65,7 +65,7 @@ export function WaterPage() {
         ))}
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <InputNumber placeholder="custom ml" value={custom} onChange={(v) => setCustom(v ?? undefined)} min={1} style={{ flex: 1 }} controls={false} />
+        <InputNumber inputMode="decimal" placeholder="custom ml" value={custom} onChange={(v) => setCustom(v ?? undefined)} min={1} style={{ flex: 1 }} controls={false} />
         <Button type="primary" onClick={() => { if (custom) { log(custom); setCustom(undefined); } }}>Add</Button>
         <Button icon={<TbArrowBackUp />} onClick={undoLastWater} aria-label="Undo last" />
       </div>

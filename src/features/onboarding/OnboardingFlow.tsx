@@ -56,11 +56,11 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
                   <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Water goal (ml)</div>
-                  <InputNumber size="large" value={water} onChange={(v) => setWater(v ?? 3500)} step={250} min={1000} style={{ width: "100%" }} />
+                  <InputNumber inputMode="decimal" size="large" value={water} onChange={(v) => setWater(v ?? 3500)} step={250} min={1000} style={{ width: "100%" }} />
                 </div>
                 <div>
                   <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Protein target (g)</div>
-                  <InputNumber size="large" value={protein} onChange={(v) => setProtein(v ?? 100)} step={10} min={30} style={{ width: "100%" }} />
+                  <InputNumber inputMode="decimal" size="large" value={protein} onChange={(v) => setProtein(v ?? 100)} step={10} min={30} style={{ width: "100%" }} />
                 </div>
               </div>
             )}

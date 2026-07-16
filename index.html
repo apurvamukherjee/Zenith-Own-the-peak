@@ -9,6 +9,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Zenith — Own the peak</title>
     <style>html{background:#08080a}</style>
+    <script>
+      // Apply cached theme before first paint so a light-theme reload doesn't
+      // flash the default dark background. Dexie remains the source of truth.
+      (function(){try{var m=localStorage.getItem("zenith-theme");if(m==="light"){var d=document.documentElement;d.setAttribute("data-theme","light");d.style.background="#f5f5fb";}}catch(e){}})();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

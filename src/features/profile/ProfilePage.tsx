@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
-import { useRef } from "react";
-import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty, Segmented, Slider } from "antd";
+import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty } from "antd";
 import {
-  TbBolt, TbBook2, TbBulb, TbClipboardList, TbDownload, TbDroplet, TbLock,
-  TbFlame, TbGasStation, TbMoon, TbPalette, TbPhoto, TbTrendingUp, TbTrendingDown,
-  TbTrophy, TbUpload, TbUser, TbMoonStars, TbSun,
+  TbBolt, TbBook2, TbBulb, TbClipboardList, TbDroplet,
+  TbFlame, TbGasStation, TbMoon, TbTrendingUp, TbTrendingDown, TbTrophy,
 } from "react-icons/tb";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
@@ -15,14 +13,9 @@ import { YearHeatmap } from "./YearHeatmap";
 import { PhotoTimeline } from "./PhotoTimeline";
 import { EfficiencyCard } from "./EfficiencyCard";
 import { BodyComposition } from "./BodyComposition";
-import { useSetting, setSetting } from "../../hooks/useSettings";
-import { exportAll, importAll } from "../../db/db";
-import { encryptString } from "../../lib/encryptedExport";
+import { useSetting } from "../../hooks/useSettings";
 import { fmtDuration } from "../../lib/date.utils";
-import { fileToDataURL } from "../../lib/image.utils";
-import { SyncCard } from "../sync/SyncCard";
 import { useWeeklyReview } from "../review/useWeeklyReview";
-import { RemindersCard } from "../reminders/RemindersCard";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 import { useAchievements, useUnseenAchievements } from "../achievements/useAchievements";
@@ -35,49 +28,7 @@ export function ProfilePage() {
   const { unlockedCount, total } = useAchievements();
   const unseen = useUnseenAchievements();
   const name = useSetting("name");
-  const fileRef = useRef<HTMLInputElement>(null);
-  const themeMode = useSetting("themeMode");
   const profilePic = useSetting("profilePic");
-  const bgImage = useSetting("bgImage");
-  const bgBlur = useSetting("bgBlur");
-  const bgOpacity = useSetting("bgOpacity");
-  const picRef = useRef<HTMLInputElement>(null);
-  const bgRef = useRef<HTMLInputElement>(null);
-
-  async function pickImage(file: File, key: "profilePic" | "bgImage") {
-    try {
-      const dataUrl = await fileToDataURL(file, key === "profilePic" ? 400 : 1400, key === "profilePic" ? 0.85 : 0.8);
-      await setSetting(key, dataUrl);
-    } catch { message.error("Couldn't read that image"); }
-  }
-
-  async function handleExport() {
-    const json = await exportAll();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `zenith-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    message.success("Backup downloaded");
-  }
-
-  function handleImportFile(file: File) {
-    const reader = new FileReader();
-    reader.onload = async () => {
-      modal.confirm({
-        title: "Restore from backup?",
-        content: "This replaces all current data on this device.",
-        okText: "Restore", okButtonProps: { danger: true },
-        onOk: async () => {
-          try { await importAll(String(reader.result)); message.success("Data restored"); }
-          catch { message.error("Invalid backup file"); }
-        },
-      });
-    };
-    reader.readAsText(file);
-  }
 
   async function logBw() {
     const cur = stats?.bodyweight.latest || 50;
@@ -252,7 +203,7 @@ export function ProfilePage() {
 
       {/* Workout planner */}
       <Link to="/planner">
-        <Card size="small" style={{ marginBottom: 12 }}>
+        <Card size="small" style={{ marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <TbClipboardList size={20} style={{ color: "var(--accent)" }} />
             <div style={{ flex: 1 }}>
@@ -262,75 +213,6 @@ export function ProfilePage() {
           </div>
         </Card>
       </Link>
-
-      {/* Appearance */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span><TbPalette /> Appearance</span>}>
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6 }}><TbBulb /> Theme</div>
-        <Segmented
-          block value={themeMode}
-          onChange={(v) => setSetting("themeMode", v as string)}
-          options={[
-            { label: "Dark", value: "dark", icon: <TbMoonStars /> },
-            { label: "Light", value: "light", icon: <TbSun /> },
-          ]}
-          style={{ marginBottom: 16 }}
-        />
-
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><TbUser /> Profile picture</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <Avatar size={48} src={profilePic || undefined} className="avatar-grad">{String(name).charAt(0)}</Avatar>
-          <Button icon={<TbPhoto />} onClick={() => picRef.current?.click()}>Choose</Button>
-          {profilePic && <Button danger type="text" onClick={() => setSetting("profilePic", "")}>Remove</Button>}
-        </div>
-
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><TbPhoto /> Background image</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Button icon={<TbPhoto />} onClick={() => bgRef.current?.click()}>{bgImage ? "Replace" : "Choose"}</Button>
-          {bgImage && <Button danger type="text" onClick={() => setSetting("bgImage", "")}>Remove</Button>}
-        </div>
-        {bgImage && (
-          <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Blur — {bgBlur}px</div>
-            <Slider min={0} max={24} value={bgBlur} onChange={(v) => setSetting("bgBlur", v)} />
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Opacity — {bgOpacity}%</div>
-            <Slider min={0} max={100} value={bgOpacity} onChange={(v) => setSetting("bgOpacity", v)} />
-          </div>
-        )}
-        <input ref={picRef} type="file" accept="image/*" hidden
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f, "profilePic"); e.target.value = ""; }} />
-        <input ref={bgRef} type="file" accept="image/*" hidden
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f, "bgImage"); e.target.value = ""; }} />
-      </Card>
-
-      <RemindersCard />
-      <SyncCard />
-
-      {/* Backup */}
-      <Card size="small" title="Data backup">
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 12 }}>
-          Everything is stored only on this device. Export regularly so you never lose it.
-        </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <Button block icon={<TbDownload />} onClick={handleExport}>Export</Button>
-          <Button block icon={<TbUpload />} onClick={() => fileRef.current?.click()}>Import</Button>
-        </div>
-        <Button block icon={<TbLock />} style={{ marginTop: 8 }} onClick={async () => {
-          const pw = prompt("Password to encrypt with (remember this!):");
-          if (!pw) return;
-          const json = await exportAll();
-          const blob = await encryptString(json, pw);
-          const dl = new Blob([blob], { type: "text/plain" });
-          const url = URL.createObjectURL(dl);
-          const a = document.createElement("a");
-          a.href = url; a.download = `zenith-encrypted-${new Date().toISOString().slice(0, 10)}.txt`;
-          a.click(); URL.revokeObjectURL(url);
-          message.success("Encrypted backup downloaded");
-        }}>Encrypted export</Button>
-        <input ref={fileRef} type="file" accept="application/json" hidden
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ""; }} />
-        <Button type="link" size="small" style={{ marginTop: 8, padding: 0 }}
-          onClick={() => setSetting("name", prompt("Your name", String(name)) || String(name))}>Edit name</Button>
-      </Card>
     </PageTransition>
   );
 }

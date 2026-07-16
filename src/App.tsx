@@ -21,6 +21,9 @@ export default function App() {
     document.documentElement.setAttribute("data-theme", resolved);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", resolved === "dark" ? "#08080a" : "#7c5cfc");
+    // Paint-cache only (Dexie stays the source of truth): lets the inline script
+    // in index.html set the right theme before React mounts, killing the flash.
+    try { localStorage.setItem("zenith-theme", resolved); } catch { /* ignore */ }
   }, [resolved]);
 
   // Enable theme-transition CSS only after first paint, so initial load never fades in.

@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Spin } from "antd";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
@@ -17,8 +17,21 @@ const CalendarPage = lazy(() => import("../features/calendar/CalendarPage").then
 const GlancePage = lazy(() => import("../features/glance/GlancePage").then((m) => ({ default: m.GlancePage })));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then((m) => ({ default: m.ProfilePage })));
 const HallOfFrame = lazy(() => import("../features/achievements/HallOfFrame").then((m) => ({ default: m.HallOfFrame })));
+const SettingsPage = lazy(() => import("../features/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 
 const Fallback = <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><Spin /></div>;
+
+function NotFound() {
+  return (
+    <div style={{ textAlign: "center", padding: "64px 24px" }}>
+      <div className="display" style={{ fontSize: 52, fontWeight: 800, color: "var(--accent)", lineHeight: 1 }}>404</div>
+      <div style={{ fontSize: 15, color: "var(--ink-soft)", margin: "10px 0 20px" }}>
+        There's no peak here. That path doesn't exist.
+      </div>
+      <Link to="/" style={{ color: "var(--accent)", fontWeight: 700, textDecoration: "none" }}>← Back to Home</Link>
+    </div>
+  );
+}
 
 export function AnimatedRoutes() {
   const location = useLocation();
@@ -43,6 +56,8 @@ export function AnimatedRoutes() {
             <Route path="glance" element={<GlancePage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="hall" element={<HallOfFrame />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </motion.div>

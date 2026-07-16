@@ -100,13 +100,13 @@ function DayCard({ dayId }: { dayId: number }) {
         {editEx && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
             <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Sets</div><InputNumber value={editEx.sets} min={1} onChange={(v) => setEditEx({ ...editEx, sets: v ?? 3 })} style={{ width: "100%" }} /></div>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rep low</div><InputNumber value={editEx.repLow} min={1} onChange={(v) => setEditEx({ ...editEx, repLow: v ?? 6 })} style={{ width: "100%" }} /></div>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rep high</div><InputNumber value={editEx.repHigh} min={1} onChange={(v) => setEditEx({ ...editEx, repHigh: v ?? 12 })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Sets</div><InputNumber inputMode="decimal" value={editEx.sets} min={1} onChange={(v) => setEditEx({ ...editEx, sets: v ?? 3 })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rep low</div><InputNumber inputMode="decimal" value={editEx.repLow} min={1} onChange={(v) => setEditEx({ ...editEx, repLow: v ?? 6 })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rep high</div><InputNumber inputMode="decimal" value={editEx.repHigh} min={1} onChange={(v) => setEditEx({ ...editEx, repHigh: v ?? 12 })} style={{ width: "100%" }} /></div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Weight (kg)</div><InputNumber value={editEx.weightKg} min={0} step={2.5} onChange={(v) => setEditEx({ ...editEx, weightKg: v ?? 0 })} style={{ width: "100%" }} /></div>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rest (sec)</div><InputNumber value={editEx.restSec} min={0} step={15} onChange={(v) => setEditEx({ ...editEx, restSec: v ?? 90 })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Weight (kg)</div><InputNumber inputMode="decimal" value={editEx.weightKg} min={0} step={2.5} onChange={(v) => setEditEx({ ...editEx, weightKg: v ?? 0 })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rest (sec)</div><InputNumber inputMode="decimal" value={editEx.restSec} min={0} step={15} onChange={(v) => setEditEx({ ...editEx, restSec: v ?? 90 })} style={{ width: "100%" }} /></div>
             </div>
           </div>
         )}

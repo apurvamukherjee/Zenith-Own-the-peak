@@ -97,7 +97,7 @@ export function QuickLogFab() {
             <Button key={v} block type={ml === v ? "primary" : "default"} onClick={() => setMl(v)}>{v}ml</Button>
           ))}
         </div>
-        <InputNumber value={ml} onChange={(v) => setMl(v ?? 500)} min={50} step={50}
+        <InputNumber inputMode="decimal" value={ml} onChange={(v) => setMl(v ?? 500)} min={50} step={50}
           style={{ width: "100%", marginTop: 10 }} suffix="ml" />
       </Modal>
     </>

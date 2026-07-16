@@ -49,10 +49,10 @@ export function FuelPage() {
       <Card title="Log a fill-up" size="small" style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <DatePicker inputReadOnly value={date} onChange={(v) => v && setDate(v)} style={{ width: "100%" }} format="DD MMM YYYY" allowClear={false} />
-          <InputNumber value={odo} onChange={(v) => setOdo(v ?? undefined)} placeholder="Odometer (km)" style={{ width: "100%" }} controls={false} min={0} />
+          <InputNumber inputMode="decimal" value={odo} onChange={(v) => setOdo(v ?? undefined)} placeholder="Odometer (km)" style={{ width: "100%" }} controls={false} min={0} />
           <div style={{ display: "flex", gap: 10 }}>
-            <InputNumber value={litres} onChange={(v) => setLitres(v ?? undefined)} placeholder="Litres" style={{ flex: 1 }} controls={false} min={0} />
-            <InputNumber value={cost} onChange={(v) => setCost(v ?? undefined)} placeholder="Cost ₹" style={{ flex: 1 }} controls={false} min={0} />
+            <InputNumber inputMode="decimal" value={litres} onChange={(v) => setLitres(v ?? undefined)} placeholder="Litres" style={{ flex: 1 }} controls={false} min={0} />
+            <InputNumber inputMode="decimal" value={cost} onChange={(v) => setCost(v ?? undefined)} placeholder="Cost ₹" style={{ flex: 1 }} controls={false} min={0} />
           </div>
           <Button type="primary" size="large" icon={<TbPlus />} onClick={submit} style={{ fontWeight: 700 }}>Add fill-up</Button>
         </div>
