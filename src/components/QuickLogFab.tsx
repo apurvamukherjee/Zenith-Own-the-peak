@@ -72,7 +72,20 @@ export function QuickLogFab() {
               style={{ position: "absolute", bottom: 0, left: 0, right: 0,
                 background: "var(--surface)", borderRadius: "20px 20px 0 0",
                 padding: "20px 16px", paddingBottom: "calc(20px + env(safe-area-inset-bottom))" }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: "var(--border)", margin: "0 auto 16px" }} />
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: "var(--border)", margin: "0 auto 12px" }} />
+              <button
+                onClick={() => { setOpen(false); navigate("/quick"); }}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  width: "100%", padding: "10px 14px", marginBottom: 12,
+                  background: "var(--bg)", border: "1px solid var(--border)",
+                  borderRadius: 12, color: "var(--ink)", fontWeight: 700, fontSize: 13,
+                  cursor: "pointer",
+                }}
+                aria-label="Open quick log surface"
+              >
+                <TbBolt style={{ color: "var(--accent)" }} /> Open Quick log
+              </button>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
                 {actions.map((a, i) => (
                   <motion.button key={a.key}

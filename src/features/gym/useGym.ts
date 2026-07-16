@@ -119,6 +119,37 @@ export async function updateDayExercise(id: number, data: Partial<DayExerciseDto
 
 export async function removeDayExercise(id: number) { await db.dayExercises.delete(id); }
 
+// ---- Supersets (Phase 3) ---------------------------------------------------
+// Two or more consecutive exercises within a day (by `order`) sharing the same
+// non-null `supersetGroupId` are performed alternating. The group id itself is
+// an opaque number — we use Date.now() at link time. Legacy rows without the
+// field are just standalone exercises.
+//
+// `toggleSupersetLink(a, b)` links two exercises if neither is currently in a
+// group, or breaks the pair apart if they already share a group. Small helper
+// used by the Planner "Link" button on each row.
+export async function toggleSupersetLink(aId: number, bId: number): Promise<void> {
+  const [a, b] = await Promise.all([db.dayExercises.get(aId), db.dayExercises.get(bId)]);
+  if (!a || !b) return;
+  if (a.supersetGroupId && a.supersetGroupId === b.supersetGroupId) {
+    // Already linked — unlink both ends of the pair. Also unlink any other
+    // exercises that were transitively part of the same group so we don't
+    // leave dangling links.
+    const groupId = a.supersetGroupId;
+    const group = await db.dayExercises.where({ dayId: a.dayId })
+      .filter((e) => e.supersetGroupId === groupId).toArray();
+    await Promise.all(group.map((e) => db.dayExercises.update(e.id!, { supersetGroupId: undefined })));
+    return;
+  }
+  // Refuse to link across days (defensive — shouldn't happen from the UI).
+  if (a.dayId !== b.dayId) return;
+  const groupId = a.supersetGroupId ?? b.supersetGroupId ?? Date.now();
+  await Promise.all([
+    db.dayExercises.update(aId, { supersetGroupId: groupId }),
+    db.dayExercises.update(bId, { supersetGroupId: groupId }),
+  ]);
+}
+
 export async function setWeekday(weekday: number, dayId: number) {
   const existing = await db.weekSchedule.where({ weekday }).first();
   if (existing?.id) await db.weekSchedule.update(existing.id, { dayId });
