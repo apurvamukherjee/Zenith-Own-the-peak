@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, Button, Modal, Input, Select, InputNumber, Tag, App, Segmented } from "antd";
-import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell } from "react-icons/tb";
+import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell, TbLink, TbLinkOff } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
@@ -10,6 +10,7 @@ import {
   useWorkoutDays, useExerciseLibrary, useDayExercises, useWeekSchedule,
   addWorkoutDay, deleteWorkoutDay, cloneDay,
   addDayExercise, updateDayExercise, removeDayExercise, setWeekday,
+  toggleSupersetLink,
 } from "./useGym";
 
 const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -49,19 +50,55 @@ function DayCard({ dayId }: { dayId: number }) {
       {exercises.length === 0 ? (
         <div style={{ color: "var(--ink-soft)", fontSize: 13, padding: 8 }}>No exercises yet</div>
       ) : (
-        exercises.map((de) => {
+        exercises.map((de, idx) => {
           const ex = library.find((e) => e.id === de.exerciseId);
+          const next = exercises[idx + 1];
+          // "Linked-to-next" state: this row and the next share a non-null group id.
+          const linkedToNext = Boolean(
+            next && de.supersetGroupId != null && de.supersetGroupId === next.supersetGroupId,
+          );
+          // Bracket color when this row is part of any group (marker on the left).
+          const inGroup = de.supersetGroupId != null;
           return (
-            <div key={de.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--border)" }}>
-              <MuscleIcon muscle={ex?.primaryMuscle as MuscleGroup} size={16} color="var(--accent)" />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{ex?.name ?? "?"}</div>
-                <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
-                  {de.sets}×{de.repLow}–{de.repHigh} · {de.weightKg}kg · rest {de.restSec}s
+            <div key={de.id}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, padding: "6px 0",
+                borderBottom: linkedToNext ? "none" : "1px solid var(--border)",
+                borderLeft: inGroup ? "3px solid var(--accent)" : "3px solid transparent",
+                paddingLeft: inGroup ? 8 : 0,
+              }}>
+                <MuscleIcon muscle={ex?.primaryMuscle as MuscleGroup} size={16} color="var(--accent)" />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{ex?.name ?? "?"}</div>
+                  <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                    {de.sets}×{de.repLow}–{de.repHigh} · {de.weightKg}kg · rest {de.restSec}s
+                  </div>
                 </div>
+                {next && (
+                  <Button
+                    size="small" type="text"
+                    aria-label={linkedToNext ? "Unlink superset" : "Link as superset with next"}
+                    title={linkedToNext ? "Unlink superset" : "Link as superset with next"}
+                    icon={linkedToNext ? <TbLinkOff /> : <TbLink />}
+                    style={linkedToNext ? { color: "var(--accent)" } : undefined}
+                    onClick={() => {
+                      if (de.id && next.id) toggleSupersetLink(de.id, next.id);
+                    }}
+                  />
+                )}
+                <Button size="small" type="text" icon={<TbEdit />} onClick={() => setEditEx(de)} />
+                <Button size="small" type="text" danger icon={<TbTrash />} onClick={() => de.id && removeDayExercise(de.id)} />
               </div>
-              <Button size="small" type="text" icon={<TbEdit />} onClick={() => setEditEx(de)} />
-              <Button size="small" type="text" danger icon={<TbTrash />} onClick={() => de.id && removeDayExercise(de.id)} />
+              {linkedToNext && (
+                <div style={{
+                  fontSize: 10, fontWeight: 700, letterSpacing: 0.6,
+                  color: "var(--accent)", padding: "2px 0 2px 11px",
+                  borderLeft: "3px solid var(--accent)",
+                  textTransform: "uppercase",
+                }}>
+                  ↳ Superset
+                </div>
+              )}
             </div>
           );
         })

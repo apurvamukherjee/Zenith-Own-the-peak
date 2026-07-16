@@ -1,54 +1,77 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Progress, Button, App } from "antd";
 import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbShare2, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import { motion } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
+import { SisyphusOverlay } from "../../components/SisyphusOverlay";
+import { HomeQuoteCard } from "../../components/HomeQuoteCard";
 import { db } from "../../db/db";
 import { useTokens } from "../../hooks/useTokens";
-import { useSetting } from "../../hooks/useSettings";
+import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useTodayWater, useWorkoutToday, addWater } from "../water/useWater";
 import { useRecentSleep } from "../sleep/useSleep";
 import { computeUnifiedStreak, isFreezeAvailable, useStreakFreeze as useFreezeAction } from "../../lib/streak.utils";
 import { computeTodayScore } from "../../lib/todayScore";
 import { useMonthScores } from "../calendar/useCalendar";
 import { fmtDuration, todayKey } from "../../lib/date.utils";
-import { hapticLight } from "../../lib/haptics";
+import { hapticLight, hapticSuccess } from "../../lib/haptics";
+import { isDevilsHour, isPalindromeDate, isHardcoreActive, isSabbathActive } from "../../lib/easterEggs";
+import { playBellDing } from "../../lib/audio";
 
 // Time-aware greeting: text, icon, tagline, and a gradient accent that
 // evolves through the day — dawn amber, day peak crimson, dusk ember, night black.
 // Every stop stays inside the red-black-ember family. No purple.
-function greeting() {
+// `overrides` lets easter eggs replace the base greeting without touching
+// the base map: 3:33 AM → devil's hour, palindrome dates → symmetry note.
+function greeting(overrides?: { devilsHour?: boolean; palindrome?: boolean; hardcore?: boolean; sabbath?: boolean }) {
   const h = new Date().getHours();
-  if (h >= 5 && h < 8) return {
-    text: "Rise & shine", icon: TbSunrise, tagline: "Fresh day, fresh peak",
-    grad: "linear-gradient(135deg, #f6b93b, #ff6b3d)",
+
+  // Egg #5 — Devil's hour override. Only fires between 3:33 and 3:34.
+  if (overrides?.devilsHour) return {
+    text: "Devil's hour", icon: TbMoonStars, tagline: "What are you doing awake?",
+    grad: "linear-gradient(135deg, #6e0f1c, #ff2740)",
   };
-  if (h >= 8 && h < 12) return {
-    text: "Good morning", icon: TbCoffee, tagline: "Fuel up, own the day",
-    grad: "linear-gradient(135deg, #ff6b3d, #ff2740)",
-  };
-  if (h >= 12 && h < 15) return {
-    text: "Good afternoon", icon: TbSun, tagline: "Push through the middle",
-    grad: "linear-gradient(135deg, #ff2740, #d81f34)",
-  };
-  if (h >= 15 && h < 18) return {
-    text: "Steady on", icon: TbSun, tagline: "Second wind time",
-    grad: "linear-gradient(135deg, #d81f34, #a8172b)",
-  };
-  if (h >= 18 && h < 21) return {
-    text: "Good evening", icon: TbSunset, tagline: "Finish strong",
-    grad: "linear-gradient(135deg, #a8172b, #6e0f1c)",
-  };
-  if (h >= 21 && h < 24) return {
-    text: "Wind down", icon: TbMoon, tagline: "Recovery is where growth happens",
-    grad: "linear-gradient(135deg, #6e0f1c, #1a0509)",
-  };
-  return {
-    text: "Late night", icon: TbMoonStars, tagline: "Sleep is your edge",
-    grad: "linear-gradient(135deg, #1a0509, #08060a)",
-  };
+
+  const base = (() => {
+    if (h >= 5 && h < 8) return {
+      text: "Rise & shine", icon: TbSunrise, tagline: "Fresh day, fresh peak",
+      grad: "linear-gradient(135deg, #f6b93b, #ff6b3d)",
+    };
+    if (h >= 8 && h < 12) return {
+      text: "Good morning", icon: TbCoffee, tagline: "Fuel up, own the day",
+      grad: "linear-gradient(135deg, #ff6b3d, #ff2740)",
+    };
+    if (h >= 12 && h < 15) return {
+      text: "Good afternoon", icon: TbSun, tagline: "Push through the middle",
+      grad: "linear-gradient(135deg, #ff2740, #d81f34)",
+    };
+    if (h >= 15 && h < 18) return {
+      text: "Steady on", icon: TbSun, tagline: "Second wind time",
+      grad: "linear-gradient(135deg, #d81f34, #a8172b)",
+    };
+    if (h >= 18 && h < 21) return {
+      text: "Good evening", icon: TbSunset, tagline: "Finish strong",
+      grad: "linear-gradient(135deg, #a8172b, #6e0f1c)",
+    };
+    if (h >= 21 && h < 24) return {
+      text: "Wind down", icon: TbMoon, tagline: "Recovery is where growth happens",
+      grad: "linear-gradient(135deg, #6e0f1c, #1a0509)",
+    };
+    return {
+      text: "Late night", icon: TbMoonStars, tagline: "Sleep is your edge",
+      grad: "linear-gradient(135deg, #1a0509, #08060a)",
+    };
+  })();
+
+  // Egg #12 — Hardcore Mode SHOUTS training-flavoured base text (24 h window).
+  if (overrides?.hardcore) return { ...base, text: base.text.toUpperCase() + " — TRAIN", tagline: "GRIND ENGAGED" };
+  // Egg #12 — Sabbath Mode softens things (Sundays only).
+  if (overrides?.sabbath) return { ...base, tagline: "Rest is a discipline too" };
+  // Egg #13 — palindrome date. Appends symmetry line, keeps the base greeting.
+  if (overrides?.palindrome) return { ...base, tagline: `${base.tagline} · Palindrome day, fittingly symmetric` };
+  return base;
 }
 
 export function DashboardPage() {
@@ -66,9 +89,36 @@ export function DashboardPage() {
   const [score, setScore] = useState({ score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 });
   const [freezeAvailable, setFreezeAvailable] = useState(false);
 
+  // Egg overlay + interaction state.
+  const [sisyphusOpen, setSisyphusOpen] = useState(false);
+  const [flameHot, setFlameHot] = useState(false);
+  const [bellFlash, setBellFlash] = useState(0);
+  const ringTapsRef = useRef<{ count: number; last: number }>({ count: 0, last: 0 });
+  const ringPressRef = useRef<number | null>(null);
+
+  const hardcoreUntil = Number(useSetting("hardcoreUntil"));
+  const sabbathUntil = Number(useSetting("sabbathUntil"));
+  const eggReflectiveYear = String(useSetting("eggReflective") ?? "");
+
+  // Auto-claim Reflective (Egg #13) on a palindrome date, once per calendar year.
+  useEffect(() => {
+    const now = new Date();
+    if (!isPalindromeDate(now)) return;
+    const yr = String(now.getFullYear());
+    if (eggReflectiveYear === yr) return;
+    void setSetting("eggReflective", yr);
+  }, [eggReflectiveYear]);
+
   useEffect(() => { computeUnifiedStreak().then(setStreak); }, [waterMl, trained]);
   useEffect(() => { computeTodayScore(waterGoal, proteinTarget).then(setScore); }, [waterMl, waterGoal, proteinTarget]);
   useEffect(() => { isFreezeAvailable(todayKey()).then(setFreezeAvailable); }, [waterMl, trained]);
+
+  // Rocky Mode (Egg #14): 40+ sets today → gold star on the training hero card.
+  const setsToday = useLiveQuery(
+    () => db.workoutSets.where("date").equals(todayKey()).count(),
+    [],
+  ) ?? 0;
+  const rockyToday = setsToday >= 40;
 
   const hour = new Date().getHours();
   const streakInDanger = hour >= 21 && score.score === 0 && streak > 0;
@@ -102,14 +152,65 @@ export function DashboardPage() {
     message.success(`+${ml}ml`);
   }
 
-  const g = greeting();
+  const now = new Date();
+  const g = greeting({
+    devilsHour: isDevilsHour(now),
+    palindrome: isPalindromeDate(now),
+    hardcore: isHardcoreActive(hardcoreUntil),
+    sabbath: isSabbathActive(sabbathUntil),
+  });
   const GIcon = g.icon;
+
+  // Egg #2 — 3-tap the ring at 100%. Debounced 500 ms window between taps.
+  function onRingTap() {
+    if (score.score < 100) return;
+    const t = Date.now();
+    if (t - ringTapsRef.current.last > 500) ringTapsRef.current.count = 0;
+    ringTapsRef.current.count++;
+    ringTapsRef.current.last = t;
+    if (ringTapsRef.current.count >= 3) {
+      ringTapsRef.current.count = 0;
+      playBellDing();
+      void hapticSuccess();
+      setBellFlash(Date.now());
+      window.setTimeout(() => setBellFlash(0), 500);
+    }
+  }
+  // Egg #11 — 8-second continuous press. Cleared on any lift/leave.
+  function onRingPressStart() {
+    if (ringPressRef.current !== null) window.clearTimeout(ringPressRef.current);
+    ringPressRef.current = window.setTimeout(() => {
+      setSisyphusOpen(true);
+      ringPressRef.current = null;
+    }, 8000);
+  }
+  function onRingPressEnd() {
+    if (ringPressRef.current !== null) {
+      window.clearTimeout(ringPressRef.current);
+      ringPressRef.current = null;
+    }
+  }
+  // Egg #3 — long-press the streak flame (3 s) → flame ignites for a moment.
+  const flameHoldRef = useRef<number | null>(null);
+  function onFlameDown() {
+    if (flameHoldRef.current !== null) window.clearTimeout(flameHoldRef.current);
+    flameHoldRef.current = window.setTimeout(() => {
+      setFlameHot(true);
+      window.setTimeout(() => setFlameHot(false), 3000);
+      flameHoldRef.current = null;
+    }, 800);
+  }
+  function onFlameUp() {
+    if (flameHoldRef.current !== null) {
+      window.clearTimeout(flameHoldRef.current);
+      flameHoldRef.current = null;
+    }
+  }
 
   return (
     <div style={{
       display: "flex", flexDirection: "column", gap: 10,
-      padding: "12px 16px 8px", minHeight: "calc(100dvh - 100px)", maxHeight: "calc(100dvh - 100px)",
-      overflow: "hidden",
+      padding: "12px 16px 12px", minHeight: "calc(100dvh - 100px)",
     }}>
       {/* Header row: greeting + streak + settings */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -139,9 +240,27 @@ export function DashboardPage() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ textAlign: "center" }}>
-            <div className="display text-ember" style={{ fontSize: 20, fontWeight: 800, lineHeight: 1 }}>
+          <div
+            style={{ textAlign: "center", cursor: "default", touchAction: "manipulation" }}
+            onMouseDown={onFlameDown} onMouseUp={onFlameUp} onMouseLeave={onFlameUp}
+            onTouchStart={onFlameDown} onTouchEnd={onFlameUp} onTouchCancel={onFlameUp}
+          >
+            <div className="display text-ember" style={{ fontSize: 20, fontWeight: 800, lineHeight: 1, position: "relative" }}>
               <TbFlame style={{ verticalAlign: "-2px" }} /><AnimatedNumber value={streak} />
+              {flameHot && (
+                <motion.span
+                  aria-hidden
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: [0, 1, 1, 0], scale: [0.6, 1.4, 1.6, 1.8] }}
+                  transition={{ duration: 3, times: [0, 0.15, 0.85, 1] }}
+                  style={{
+                    position: "absolute", left: -8, right: -8, top: -14, bottom: -6,
+                    background: "radial-gradient(circle at 50% 60%, #ff6b3d 0%, #ff2740 50%, rgba(255,39,64,0) 75%)",
+                    filter: "blur(6px)", pointerEvents: "none", borderRadius: "50%",
+                    mixBlendMode: "screen",
+                  }}
+                />
+              )}
             </div>
             <div style={{ fontSize: 9, color: "var(--ink-soft)" }}>streak</div>
           </div>
@@ -174,7 +293,13 @@ export function DashboardPage() {
       {/* Center: discipline ring */}
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         style={{ textAlign: "center", flex: "0 0 auto", padding: "8px 0" }}>
-        <div className="ember-ring" style={{ display: "inline-block" }}>
+        <div
+          className="ember-ring"
+          style={{ display: "inline-block", position: "relative", cursor: "pointer", userSelect: "none", touchAction: "manipulation" }}
+          onClick={onRingTap}
+          onMouseDown={onRingPressStart} onMouseUp={onRingPressEnd} onMouseLeave={onRingPressEnd}
+          onTouchStart={onRingPressStart} onTouchEnd={onRingPressEnd} onTouchCancel={onRingPressEnd}
+        >
           <Progress type="dashboard" percent={score.score} size={120} strokeColor={t.accent} strokeWidth={8}
             format={() => (
               <div>
@@ -182,6 +307,19 @@ export function DashboardPage() {
                 <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
               </div>
             )} />
+          {bellFlash > 0 && (
+            <motion.div
+              key={bellFlash} aria-hidden
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: [0, 0.9, 0], scale: [0.9, 1.15, 1.3] }}
+              transition={{ duration: 0.5 }}
+              style={{
+                position: "absolute", inset: -14, borderRadius: "50%",
+                background: "radial-gradient(circle,#ffd76b 0%,rgba(255,215,107,0) 70%)",
+                pointerEvents: "none", filter: "blur(2px)",
+              }}
+            />
+          )}
         </div>
         <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 6 }}>
           <Pill done={score.waterPct >= 100} label="Water" icon={<TbDroplet size={12} />} />
@@ -213,6 +351,11 @@ export function DashboardPage() {
               </div>
               <div className="display" style={{ color: "#fff", fontSize: 20, fontWeight: 800 }}>
                 {todayDay?.name ?? "Recovery"}
+                {rockyToday && (
+                  <span title="Rocky Mode — 40+ sets today" style={{ marginLeft: 6, fontSize: 16, verticalAlign: "-1px" }} aria-label="Rocky Mode">
+                    ⭐
+                  </span>
+                )}
               </div>
             </div>
             <TbChevronRight size={20} style={{ color: "rgba(255,255,255,0.7)" }} />
@@ -289,6 +432,11 @@ export function DashboardPage() {
           </div>
         </Link>
       </div>
+
+      {/* Motivation quote — tap card or shuffle button to draw a new one. */}
+      <HomeQuoteCard />
+
+      <SisyphusOverlay open={sisyphusOpen} onClose={() => setSisyphusOpen(false)} />
     </div>
   );
 }

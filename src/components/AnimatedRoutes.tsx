@@ -18,6 +18,7 @@ const GlancePage = lazy(() => import("../features/glance/GlancePage").then((m) =
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then((m) => ({ default: m.ProfilePage })));
 const HallOfFrame = lazy(() => import("../features/achievements/HallOfFrame").then((m) => ({ default: m.HallOfFrame })));
 const SettingsPage = lazy(() => import("../features/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const QuickLogPage = lazy(() => import("../features/quick/QuickLogPage").then((m) => ({ default: m.QuickLogPage })));
 
 const Fallback = <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><Spin /></div>;
 
@@ -38,8 +39,8 @@ export function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div key={location.pathname}
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: "easeOut" }}>
         <Suspense fallback={Fallback}>
           <Routes location={location}>
             <Route index element={<DashboardPage />} />
@@ -57,6 +58,7 @@ export function AnimatedRoutes() {
             <Route path="profile" element={<ProfilePage />} />
             <Route path="hall" element={<HallOfFrame />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="quick" element={<QuickLogPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

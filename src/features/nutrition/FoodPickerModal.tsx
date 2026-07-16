@@ -10,6 +10,8 @@ import {
 } from "./useFoods";
 import { useBackClose } from "../../hooks/useBackClose";
 import { hapticLight } from "../../lib/haptics";
+import { recordUsage } from "../../hooks/useUsageHistory";
+import { Sheet } from "../../components/Sheet";
 import { nowHHMM } from "./useNutrition";
 import { todayKey } from "../../lib/date.utils";
 import type { FoodPresetDto } from "../../db/types";
@@ -60,13 +62,35 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
       return;
     }
     await logFood(selected, amount, mealType, todayKey(), nowHHMM());
+    // Record the last-used grams for this food id so next tap suggests it.
+    if (selected.id != null) void recordUsage(`grams:${selected.id}`, amount);
     hapticLight();
     message.success(`Logged ${selected.name}`);
     onClose();
   }
 
+  // Predictive default: when a food is picked, use its remembered portion
+  // if one exists; otherwise its first preset; otherwise the unit default.
+  function initialAmountFor(f: FoodDto, remembered?: number): number {
+    if (remembered && remembered > 0) return remembered;
+    return f.presets?.[0]?.amount ?? (f.unit === "g" || f.unit === "ml" ? 100 : 1);
+  }
+  // Async resolver reads the last-used amount for a food from usageHistory.
+  // Falls back to preset defaults if nothing is remembered yet.
+  async function pickFood(f: FoodDto) {
+    let remembered: number | undefined;
+    if (f.id != null) {
+      try {
+        const row = await db.usageHistory.get(`grams:${f.id}`);
+        remembered = row?.value;
+      } catch { /* ignore */ }
+    }
+    setSelected(f);
+    setAmount(initialAmountFor(f, remembered));
+  }
+
   return (
-    <Modal open={open} onCancel={onClose} title={title}
+    <Sheet open={open} onCancel={onClose} title={title}
       footer={null} destroyOnClose width={520}
       styles={{ body: { paddingTop: 8 } }}>
       <Segmented block value={tab} onChange={(v) => setTab(v as typeof tab)}
@@ -89,7 +113,7 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
                   <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>Recent</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {recent.map((f) => (
-                      <Tag key={f.id} onClick={() => { setSelected(f); setAmount(f.presets?.[0]?.amount ?? (f.unit === "g" || f.unit === "ml" ? 100 : 1)); }}
+                      <Tag key={f.id} onClick={() => { pickFood(f); }}
                         style={{ borderRadius: 8, cursor: "pointer", padding: "4px 10px", fontSize: 12 }}>
                         {f.name}
                       </Tag>
@@ -105,7 +129,7 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {favorites.map((f) => (
-                      <Tag key={f.id} color="volcano" onClick={() => { setSelected(f); setAmount(f.presets?.[0]?.amount ?? (f.unit === "g" || f.unit === "ml" ? 100 : 1)); }}
+                      <Tag key={f.id} color="volcano" onClick={() => { pickFood(f); }}
                         style={{ borderRadius: 8, cursor: "pointer", padding: "4px 10px", fontSize: 12 }}>
                         {f.name}
                       </Tag>
@@ -125,7 +149,7 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
                 ) : (
                   filtered.map((f) => (
                     <FoodRow key={f.id} food={f}
-                      onSelect={() => { setSelected(f); setAmount(f.presets?.[0]?.amount ?? (f.unit === "g" || f.unit === "ml" ? 100 : 1)); }} />
+                      onSelect={() => { pickFood(f); }} />
                   ))
                 )}
               </div>
@@ -158,7 +182,7 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
       {tab === "custom" && (
         <CustomHandEntry onClose={onClose} defaultMealType={mealType} />
       )}
-    </Modal>
+    </Sheet>
   );
 }
 

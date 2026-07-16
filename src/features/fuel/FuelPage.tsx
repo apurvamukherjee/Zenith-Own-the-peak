@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
+import { EmptyState } from "../../components/EmptyState";
 import { useFuel, addFuel, deleteFuel, computeRows, fuelStats } from "./useFuel";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
@@ -77,11 +78,13 @@ export function FuelPage() {
       )}
 
       <Card title="History" size="small">
-        {rows.length === 0 ? <div style={{ textAlign: "center", padding: 24 }}>
-            <div style={{ marginBottom: 8 }}><TbGasStation size={40} style={{ color: "var(--accent)" }} /></div>
-            <div style={{ fontWeight: 700, marginBottom: 4 }}>No fill-ups logged</div>
-            <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>Log your first full-tank fill above. Mileage starts from the second fill.</div>
-          </div> : (
+        {rows.length === 0 ? (
+          <EmptyState
+            icon={<TbGasStation />}
+            title="No fill-ups logged"
+            hint="Log your first full-tank fill above. Mileage starts from the second fill."
+          />
+        ) : (
           [...rows].reverse().map((r) => (
             <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
               <div style={{ flex: 1 }}>

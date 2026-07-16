@@ -57,6 +57,12 @@ export interface AchievementContext {
   freezesUsed: number;
   backupCount: number;
   latestSetHour: number | null;
+  // Phase-3 egg-driven flags (read straight from settings).
+  eggKonami: number;
+  eggSisyphus: number;
+  eggReflective: string;   // last YYYY collected — non-empty means at least one palindrome-day claimed
+  // Sessions with 40+ sets logged (Rocky Mode).
+  bruisingSessions: number;
 }
 
 // Longest consecutive-day run in a set of YYYY-MM-DD dates.
@@ -73,7 +79,7 @@ export function longestRun(dates: string[]): number {
 }
 
 export async function buildContext(waterGoal: number, proteinTarget: number): Promise<AchievementContext> {
-  const [sets, sessions, water, sleep, study, meals, freezes, fuel, bw, measures, photos, schedLogs, settingBackup] =
+  const [sets, sessions, water, sleep, study, meals, freezes, fuel, bw, measures, photos, schedLogs, settingBackup, settingKonami, settingSisyphus, settingReflective] =
     await Promise.all([
       db.workoutSets.toArray(),
       db.workoutSessions.toArray(),
@@ -88,6 +94,9 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
       db.dayPhotos.count(),
       db.scheduleLogs.count(),
       db.settings.get("backupCount"),
+      db.settings.get("eggKonami"),
+      db.settings.get("eggSisyphus"),
+      db.settings.get("eggReflective"),
     ]);
   const items = await db.studyItems.toArray();
 
@@ -128,6 +137,13 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
   const currentStreak = await computeUnifiedStreak();
   const sessionDates = sessions.map((s) => s.date);
 
+  // Rocky Mode — sessions with 40+ sets logged. Group sets by sessionId then
+  // count buckets meeting the threshold.
+  const setsPerSession = new Map<number, number>();
+  for (const s of sets) setsPerSession.set(s.sessionId, (setsPerSession.get(s.sessionId) ?? 0) + 1);
+  let bruisingSessions = 0;
+  for (const c of setsPerSession.values()) if (c >= 40) bruisingSessions++;
+
   return {
     anyActivity: activeDates.length > 0,
     currentStreak,
@@ -159,6 +175,10 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
     freezesUsed: freezes,
     backupCount: Number(settingBackup?.value ?? 0),
     latestSetHour: sets.length ? Math.max(...sets.map((s) => new Date(s.createdAt).getHours())) : null,
+    eggKonami: Number(settingKonami?.value ?? 0),
+    eggSisyphus: Number(settingSisyphus?.value ?? 0),
+    eggReflective: String(settingReflective?.value ?? ""),
+    bruisingSessions,
   };
 }
 
@@ -278,11 +298,19 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "the_vault", name: "The Vault", desc: "25 cloud backups. Nothing lost, ever.", hint: "Hidden objective.", teaser: "Nothing lost. Ever.", mystery: true, tier: "gold", group: "mystery", glyph: "rune", progress: flag((c) => c.backupCount >= 25, "???") },
   { id: "featherweight", name: "Featherweight No More", desc: "Gained 5 kg since your first weigh-in.", hint: "Hidden objective.", teaser: "The scale noticed.", mystery: true, tier: "silver", group: "mystery", glyph: "scale", progress: flag((c) => c.bwFirst !== null && c.bwLatest !== null && c.bwLatest - c.bwFirst >= 5, "???") },
   { id: "twice_yourself", name: "Twice Yourself", desc: "Moved twice your bodyweight on one bar.", hint: "Hidden objective.", teaser: "Twice your weight. One bar.", mystery: true, tier: "mythic", group: "mystery", glyph: "plate", progress: flag((c) => c.bwLatest !== null && c.bwLatest > 0 && c.maxWeight >= 2 * c.bwLatest, "???") },
+
+  // ---- Phase 3 easter-egg unlocks (all mystery) ----
+  { id: "contra", name: "Contra", desc: "Up up down down, left right left right, B A.", hint: "Hidden objective.", teaser: "Older than most passwords.", mystery: true, tier: "silver", group: "mystery", glyph: "diamond", progress: flag((c) => c.eggKonami === 1, "???") },
+  { id: "the_number", name: "The Number", desc: "Logged 666 sets. The gym approves.", hint: "Hidden objective.", teaser: "A number you don't reach politely.", mystery: true, tier: "gold", group: "mystery", glyph: "fang", progress: flag((c) => c.totalSets >= 666, "???") },
+  { id: "sisyphus", name: "Sisyphus", desc: "Held the ring long enough to hear the stone roll.", hint: "Hidden objective.", teaser: "Meaningful things take patience.", mystery: true, tier: "platinum", group: "mystery", glyph: "monolith", progress: flag((c) => c.eggSisyphus === 1, "???") },
+  { id: "reflective", name: "Reflective", desc: "Logged a day on a palindrome date.", hint: "Hidden objective.", teaser: "Some days read the same forwards and back.", mystery: true, tier: "gold", group: "mystery", glyph: "prism", progress: flag((c) => c.eggReflective.length > 0, "???") },
+  { id: "rocky", name: "Rocky", desc: "Forty sets in a single session. Cold storage stuff.", hint: "Hidden objective.", teaser: "Named after the man who trained in a freezer.", mystery: true, tier: "gold", group: "mystery", glyph: "anvil", progress: flag((c) => c.bruisingSessions >= 1, "???") },
+
   { id: "completionist", name: "The Completionist", desc: "Every other badge, claimed.", hint: "Hidden objective.", teaser: "There's always one more.", mystery: true, tier: "mythic", group: "mystery", glyph: "prism", progress: flag(() => false, "???") },
 ];
 
-export const ACHIEVEMENT_COUNT = ACHIEVEMENTS.length; // 69
-export const MYSTERY_COUNT = ACHIEVEMENTS.filter((a) => a.mystery).length; // 7
+export const ACHIEVEMENT_COUNT = ACHIEVEMENTS.length; // 74 (69 originals + 5 new hidden)
+export const MYSTERY_COUNT = ACHIEVEMENTS.filter((a) => a.mystery).length; // 12
 const NON_MYSTERY_COUNT = ACHIEVEMENT_COUNT - MYSTERY_COUNT;
 
 export function defById(id: string): AchievementDef | undefined {

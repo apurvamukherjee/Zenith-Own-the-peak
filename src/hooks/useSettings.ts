@@ -29,6 +29,21 @@ export const DEFAULTS = {
   remSupps: 1,
   remSession: 1,
   remSessionAt: "18:00",
+  // Phase-3 accessibility + motion
+  highContrast: 0,        // 1 = WCAG-AAA gradient-free skin
+  reduceMotion: 0,        // 1 = user-forced motion reduction on top of OS preference
+  // Phase-3 easter eggs + observability
+  birthday: "",           // MM-DD (empty = not set)
+  eggKonami: 0,
+  egg666: 0,
+  eggSisyphus: 0,
+  eggReflective: "",      // last YYYY collected (one per year)
+  eggPeak: 0,
+  eggIddqd: 0,
+  eggDramatic: 0,         // 1 = seen the "System overload…" intro (once per lifetime)
+  hardcoreUntil: 0,       // epoch ms — Hardcore Mode active until
+  sabbathUntil: 0,        // epoch ms — Sabbath Mode active until (Sunday-only)
+  mountainPeaks: 0,       // count of mythic badges ever unlocked (drives Settings→About)
 };
 export type SettingKey = keyof typeof DEFAULTS;
 

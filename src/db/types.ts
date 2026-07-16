@@ -32,6 +32,10 @@ export interface DayExerciseDto {
   repHigh: number;
   weightKg: number;
   restSec: number;
+  // Phase 3 — Superset linking. Two or more consecutive exercises (by `order`)
+  // sharing the same non-null group id are performed alternating: A1 → B1 →
+  // rest → A2 → B2 → rest. Legacy rows omit the field entirely.
+  supersetGroupId?: number;
 }
 
 export interface WeekScheduleDto {
@@ -175,4 +179,16 @@ export interface AchievementUnlockDto {
   id: string;
   unlockedAt: number;
   seen: number;
+}
+
+// ---- Phase-3 usage history ------------------------------------------------
+// Keyed store used by predictive-input UX. Key format: "<kind>:<itemId>".
+//   • "weight:<exerciseId>" → last-used weight for that exercise (kg)
+//   • "reps:<exerciseId>"   → last-used reps
+//   • "grams:<foodId>"      → last-used portion size for a catalog food
+// One row per key; updated in-place. Never deleted.
+export interface UsageHistoryDto {
+  key: string;
+  value: number;
+  updatedAt: number;
 }

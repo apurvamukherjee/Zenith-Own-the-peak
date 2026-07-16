@@ -1,0 +1,29 @@
+{
+  "name": "Zenith — Own the peak",
+  "short_name": "Zenith",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08080a",
+  "theme_color": "#08080a",
+  "orientation": "portrait",
+  "scope": "/",
+  "description": "Local-first tracker for gym, nutrition, sleep, water, study, and fuel.",
+  "shortcuts": [
+    {
+      "name": "Quick log",
+      "short_name": "Quick",
+      "description": "Two-tap logging for water, meal, set, sleep",
+      "url": "/quick"
+    },
+    {
+      "name": "Log a workout",
+      "short_name": "Train",
+      "url": "/workout"
+    },
+    {
+      "name": "Log water",
+      "short_name": "Water",
+      "url": "/water"
+    }
+  ]
+}

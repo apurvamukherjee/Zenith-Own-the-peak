@@ -6,6 +6,7 @@ import { TbBook2, TbBrandYoutube, TbClock, TbFileText, TbPlus, TbTrash } from "r
 import { BarChart, Bar, XAxis, ResponsiveContainer } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
+import { EmptyState } from "../../components/EmptyState";
 import type { StudyItemDto, StudyPathDto, StudyStatus, StudySource } from "../../db/types";
 import {
   usePaths, useItems, useWeeklyStudy, addPath, deletePath, addItem, cycleStatus,
@@ -50,12 +51,13 @@ export function StudyPage() {
       </Card>
 
       {paths.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 32 }}>
-          <div style={{ marginBottom: 8 }}><TbBook2 size={48} style={{ color: "var(--accent)" }} /></div>
-          <div style={{ fontWeight: 700, marginBottom: 4 }}>No learning paths yet</div>
-          <div style={{ color: "var(--ink-soft)", fontSize: 13, marginBottom: 16 }}>Add a YouTube playlist, course, or book — then break it into topics and track your way through.</div>
-          <Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>Create your first path</Button>
-        </div>
+        <EmptyState
+          icon={<TbBook2 />}
+          title="No learning paths yet"
+          hint="Add a YouTube playlist, course, or book — then break it into topics and track your way through."
+          actionLabel="Create your first path"
+          onAction={() => setAddOpen(true)}
+        />
       ) : (
         paths.map((p) => <PathCard key={p.id} path={p} />)
       )}
