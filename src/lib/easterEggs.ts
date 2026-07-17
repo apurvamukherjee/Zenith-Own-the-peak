@@ -39,6 +39,11 @@ export function isDevilsHour(d = new Date()): boolean {
   return d.getHours() === 3 && d.getMinutes() === 33;
 }
 
+/** Zenith hour — exactly 12:00 noon. The sun's peak = the app's name. */
+export function isZenithHour(d = new Date()): boolean {
+  return d.getHours() === 12 && d.getMinutes() === 0;
+}
+
 /** Is the user in a Konami-Hardcore window right now? */
 export function isHardcoreActive(hardcoreUntil: number, now = Date.now()): boolean {
   return hardcoreUntil > 0 && now < hardcoreUntil;

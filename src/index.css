@@ -257,6 +257,13 @@ h1, h2, h3, h4, .display {
 
 /* Ember ring: use around progress rings / avatars. Pure outer halo, no
    inner border, animated. */
+/* #13 — Discipline ring animates on mount. antd's dashboard Progress uses an
+   SVG circle with stroke-dashoffset for the fill. Adding a transition makes
+   the ring count up from 0 on first render instead of snapping. */
+.ant-progress-circle .ant-progress-circle-path {
+  transition: stroke-dashoffset 800ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
 .ember-ring {
   position: relative;
   user-select: none;

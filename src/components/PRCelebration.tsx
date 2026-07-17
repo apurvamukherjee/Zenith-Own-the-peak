@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TbTrophy } from "react-icons/tb";
 import { subscribeCelebrate, type CelebrationPayload } from "../lib/celebrate";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 
 // Full-screen PR celebration overlay. Mounts once (in AppShell). Listens to the
 // celebrate emitter and shows a ~1.4s burst: gold ring pulse, headline, and
@@ -29,6 +30,7 @@ function makeFlakes(count = 24): Flake[] {
 export function PRCelebration() {
   const [payload, setPayload] = useState<CelebrationPayload | null>(null);
   const flakes = useMemo(() => makeFlakes(), [payload?.title]); // fresh set per celebration
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     return subscribeCelebrate((p) => {
@@ -37,6 +39,17 @@ export function PRCelebration() {
       return () => window.clearTimeout(t);
     });
   }, []);
+
+  // Reduced-motion mode: skip confetti, just show a subtle bottom banner
+  if (reducedMotion) {
+    return payload ? (
+      <div style={{ position: "fixed", bottom: 80, left: 0, right: 0, zIndex: 200, textAlign: "center", pointerEvents: "none" }}>
+        <span className="display" style={{ background: "var(--surface)", padding: "8px 16px", borderRadius: 12, fontSize: 14, fontWeight: 700, color: "var(--gold)", border: "1px solid var(--border)" }}>
+          🏆 {payload.title}
+        </span>
+      </div>
+    ) : null;
+  }
 
   return (
     <AnimatePresence>

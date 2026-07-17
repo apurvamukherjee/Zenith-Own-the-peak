@@ -1,14 +1,20 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { TbChevronLeft } from "react-icons/tb";
+import { TbChevronLeft, TbSun, TbMoon } from "react-icons/tb";
 import { metaFor } from "../lib/routes";
+import { useSetting, setSetting } from "../hooks/useSettings";
 
 // Slim persistent top bar. Back button appears only on secondary (non-tab) pages.
+// Dark/light toggle always visible at the right edge.
 export function AppBar() {
   const nav = useNavigate();
   const { pathname } = useLocation();
   const meta = metaFor(pathname);
   const showBack = !meta.tab;
+  const themeMode = useSetting("themeMode") as "dark" | "light" | "system";
+  const resolved = themeMode === "system"
+    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : themeMode;
 
   return (
     <div
@@ -39,6 +45,17 @@ export function AppBar() {
           </motion.button>
         )}
       </AnimatePresence>
+      <div style={{ flex: 1 }} />
+      <button
+        onClick={() => setSetting("themeMode", resolved === "dark" ? "light" : "dark")}
+        aria-label="Toggle theme"
+        style={{
+          border: "none", background: "transparent", cursor: "pointer",
+          color: "var(--ink-soft)", padding: "6px 8px", display: "flex", alignItems: "center",
+        }}
+      >
+        {resolved === "dark" ? <TbSun size={18} /> : <TbMoon size={18} />}
+      </button>
     </div>
   );
 }

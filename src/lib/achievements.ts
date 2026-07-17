@@ -63,6 +63,12 @@ export interface AchievementContext {
   eggReflective: string;   // last YYYY collected — non-empty means at least one palindrome-day claimed
   // Sessions with 40+ sets logged (Rocky Mode).
   bruisingSessions: number;
+  // Phase 4 egg context
+  hasNightSet: boolean;           // any set logged between 00:00–03:59
+  bestProteinStreak: number;      // longest consecutive days hitting protein target
+  bestWaterStreak: number;        // longest consecutive days hitting water goal
+  hasSpeedSession: boolean;       // any session: all planned sets done in <30min with ≥12 sets
+  reflectiveYears: number;        // count of distinct palindrome years collected
 }
 
 // Longest consecutive-day run in a set of YYYY-MM-DD dates.
@@ -144,6 +150,41 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
   let bruisingSessions = 0;
   for (const c of setsPerSession.values()) if (c >= 40) bruisingSessions++;
 
+  // Phase 4 egg computations ---
+  // #1 Graveyard Shift: any set logged between midnight and 4am
+  const hasNightSet = sets.some((s) => {
+    const h = new Date(s.createdAt).getHours();
+    return h >= 0 && h < 4;
+  });
+
+  // #3 Protein Oath: longest consecutive days hitting protein target
+  const sortedProteinDates = [...proteinByDay.entries()]
+    .filter(([, v]) => proteinTarget > 0 && v >= proteinTarget)
+    .map(([d]) => d).sort();
+  const bestProteinStreak = longestRun(sortedProteinDates);
+
+  // #6 Hydration Legend: longest consecutive days hitting water goal
+  const waterHitDates = [...scored.entries()]
+    .filter(([, m]) => m.waterPct >= 100)
+    .map(([d]) => d).sort();
+  const bestWaterStreak = longestRun(waterHitDates);
+
+  // #4 Speed Demon: any session with ≥12 planned sets, all completed, total time <30min
+  let hasSpeedSession = false;
+  for (const sess of sessions) {
+    const sessSetList = sets.filter((s) => s.sessionId === sess.id);
+    if (sessSetList.length < 12) continue;
+    const times = sessSetList.map((s) => s.createdAt).sort((a, b) => a - b);
+    if (times.length >= 2) {
+      const durationMin = (times[times.length - 1] - times[0]) / 60_000;
+      if (durationMin > 0 && durationMin < 30) { hasSpeedSession = true; break; }
+    }
+  }
+
+  // #7 Palindrome collector: count distinct years in the eggReflective CSV
+  const reflectiveRaw = String(settingReflective?.value ?? "");
+  const reflectiveYears = reflectiveRaw ? reflectiveRaw.split(",").filter(Boolean).length : 0;
+
   return {
     anyActivity: activeDates.length > 0,
     currentStreak,
@@ -177,8 +218,13 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
     latestSetHour: sets.length ? Math.max(...sets.map((s) => new Date(s.createdAt).getHours())) : null,
     eggKonami: Number(settingKonami?.value ?? 0),
     eggSisyphus: Number(settingSisyphus?.value ?? 0),
-    eggReflective: String(settingReflective?.value ?? ""),
+    eggReflective: reflectiveRaw,
     bruisingSessions,
+    hasNightSet,
+    bestProteinStreak,
+    bestWaterStreak,
+    hasSpeedSession,
+    reflectiveYears,
   };
 }
 
@@ -306,11 +352,22 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "reflective", name: "Reflective", desc: "Logged a day on a palindrome date.", hint: "Hidden objective.", teaser: "Some days read the same forwards and back.", mystery: true, tier: "gold", group: "mystery", glyph: "prism", progress: flag((c) => c.eggReflective.length > 0, "???") },
   { id: "rocky", name: "Rocky", desc: "Forty sets in a single session. Cold storage stuff.", hint: "Hidden objective.", teaser: "Named after the man who trained in a freezer.", mystery: true, tier: "gold", group: "mystery", glyph: "anvil", progress: flag((c) => c.bruisingSessions >= 1, "???") },
 
+  // ---- Phase 4 easter-egg badges -------------------------------------------
+  { id: "graveyard_shift", name: "Graveyard Shift", desc: "Logged a set between midnight and 4am. Respect.", hint: "Hidden objective.", teaser: "Some hours aren't meant for lifting.", mystery: true, tier: "platinum", group: "mystery", glyph: "crescent", progress: flag((c) => c.hasNightSet, "???") },
+  { id: "quarter_million", name: "Quarter Million", desc: "250,000 kg. Most people never get here.", hint: "Keep moving iron.", mystery: false, tier: "platinum", group: "iron", glyph: "anvil", progress: thr((c) => c.totalVolume, 250_000, "kg") },
+  { id: "moved_a_mountain", name: "Moved a Mountain", desc: "1,000,000 kg. The mountain didn't move. You did.", hint: "Hidden objective.", teaser: "Mythic weight.", mystery: true, tier: "mythic", group: "iron", glyph: "peak", progress: thr((c) => c.totalVolume, 1_000_000, "kg") },
+  { id: "oath_keeper", name: "Oath Keeper", desc: "30 consecutive days hitting protein. The body remembers consistency.", hint: "Protein, every day, for a month.", mystery: false, tier: "gold", group: "discipline", glyph: "blade-fork", progress: thr((c) => c.bestProteinStreak, 30, "days") },
+  { id: "speed_demon", name: "Speed Demon", desc: "All 12+ sets done in under 30 minutes. No rest for the wicked.", hint: "Hidden objective.", teaser: "Fast and complete.", mystery: true, tier: "gold", group: "mystery", glyph: "gauge", progress: flag((c) => c.hasSpeedSession, "???") },
+  { id: "the_scholar", name: "The Scholar", desc: "1,000 minutes studied. Knowledge compounds.", hint: "Study consistently.", mystery: false, tier: "gold", group: "mind", glyph: "obelisk", progress: thr((c) => c.studyMinutes, 1000, "min") },
+  { id: "hydration_legend", name: "Hydration Legend", desc: "100 consecutive days hitting water. Your cells are grateful.", hint: "Hidden objective.", teaser: "Water finds its level.", mystery: true, tier: "mythic", group: "water", glyph: "glacier", progress: thr((c) => c.bestWaterStreak, 100, "days") },
+  { id: "time_symmetrist", name: "Time Symmetrist", desc: "Palindrome badges across 3 different years.", hint: "Hidden objective.", teaser: "Collect palindromes across the years.", mystery: true, tier: "platinum", group: "mystery", glyph: "prism", progress: thr((c) => c.reflectiveYears, 3, "years") },
+  { id: "the_archivist", name: "The Archivist", desc: "10 cloud backups. Your data outlives your device.", hint: "Back up consistently.", mystery: false, tier: "silver", group: "road", glyph: "monolith", progress: thr((c) => c.backupCount, 10, "") },
+
   { id: "completionist", name: "The Completionist", desc: "Every other badge, claimed.", hint: "Hidden objective.", teaser: "There's always one more.", mystery: true, tier: "mythic", group: "mystery", glyph: "prism", progress: flag(() => false, "???") },
 ];
 
-export const ACHIEVEMENT_COUNT = ACHIEVEMENTS.length; // 74 (69 originals + 5 new hidden)
-export const MYSTERY_COUNT = ACHIEVEMENTS.filter((a) => a.mystery).length; // 12
+export const ACHIEVEMENT_COUNT = ACHIEVEMENTS.length;
+export const MYSTERY_COUNT = ACHIEVEMENTS.filter((a) => a.mystery).length;
 const NON_MYSTERY_COUNT = ACHIEVEMENT_COUNT - MYSTERY_COUNT;
 
 export function defById(id: string): AchievementDef | undefined {

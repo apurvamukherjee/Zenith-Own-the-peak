@@ -129,7 +129,12 @@ export function CalendarPage() {
       {/* Month nav + filter + actions */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <Button type="text" icon={<TbChevronLeft />} onClick={prevMonth} aria-label="Previous month" />
-        <button onClick={() => setShowSummary(true)} style={{ background: "none", border: "none", fontWeight: 700, fontSize: 15, cursor: "pointer", color: "var(--ink)" }}>
+        <button onClick={() => setShowSummary(true)} style={{
+          background: "none", border: "none",
+          fontFamily: '"Cinzel", "Plus Jakarta Sans", serif',
+          fontWeight: 700, fontSize: 15, letterSpacing: "0.14em",
+          textTransform: "uppercase", cursor: "pointer", color: "var(--ink)",
+        }}>
           {monthLabel}
         </button>
         <Button type="text" icon={<TbChevronRight />} onClick={nextMonth} aria-label="Next month" />
@@ -150,10 +155,13 @@ export function CalendarPage() {
             return week.map((iso) => {
               const cell = rawCells.find((c) => c.date === iso);
               const pct = cell ? filteredValue(cell, filter) : 0;
-              const bg = cell?.hasAny ? colorFor(pct, cell.hasAny, t) : "var(--border)";
+              const bg = cell?.hasAny ? colorFor(pct, cell.hasAny, t) : "var(--surface)";
+              const bgImage = cell?.hasAny ? "none" : "radial-gradient(circle at 50% 50%, var(--ember-inner) 1px, transparent 1px)";
               return (
                 <div key={iso} style={{
-                  aspectRatio: "1", borderRadius: 6, background: bg, opacity: cell?.isFuture ? 0.25 : 1,
+                  aspectRatio: "1", borderRadius: 6, background: bg,
+                  backgroundImage: bgImage, backgroundSize: "6px 6px",
+                  opacity: cell?.isFuture ? 0.25 : 1,
                   border: cell?.isToday ? `2px solid ${t.accent}` : "none",
                 }} />
               );
@@ -197,6 +205,8 @@ export function CalendarPage() {
                 position: "relative", aspectRatio: "1", borderRadius: 10,
                 border: c.isToday ? `2px solid ${t.accent}` : inRange ? `2px solid ${t.gold}` : "1px solid var(--border)",
                 background: c.hasAny ? colorFor(pct, c.hasAny, t) : "var(--surface)",
+                backgroundImage: c.hasAny ? "none" : "radial-gradient(circle at 50% 50%, var(--ember-inner) 1px, transparent 1px)",
+                backgroundSize: "6px 6px",
                 opacity: c.isFuture ? 0.25 : c.hasAny ? 0.9 : 1,
                 color: c.hasAny ? "#fff" : "var(--ink-soft)",
                 fontWeight: 700, fontSize: 12, cursor: c.isFuture ? "default" : "pointer",

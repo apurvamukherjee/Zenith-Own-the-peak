@@ -30,6 +30,7 @@ import {
 import { FoodPickerModal } from "./FoodPickerModal";
 import { MacroBar, TimeOfDayBar } from "./MacroBar";
 import { MealComboBuilderModal } from "./MealComboBuilderModal";
+import { WeeklyMacroChart } from "./WeeklyMacroChart";
 import { addWater } from "../water/useWater";
 import { hapticLight } from "../../lib/haptics";
 import { useBackClose } from "../../hooks/useBackClose";
@@ -108,6 +109,9 @@ export function NutritionPage() {
           </div>
         )}
       </Card>
+
+      {/* 7-day macro trend — biggest data gap fixed: 12 writes, zero charts until now */}
+      <WeeklyMacroChart />
 
       {/* Protein ring + calories — kept because the discipline ring on Home still uses protein */}
       <Card size="small" style={{ marginBottom: 12 }}>
@@ -213,6 +217,15 @@ export function NutritionPage() {
           {bulk.isSelecting && (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, textTransform: "none", letterSpacing: 0, fontWeight: 600 }}>
               <Tag color="red" style={{ margin: 0 }}>{bulk.selected.size} selected</Tag>
+              {/* Select-all — tap to grab every meal in one go instead of
+                  long-pressing each item individually */}
+              {bulk.selected.size < meals.length && (
+                <Button size="small" type="text"
+                  onClick={() => bulk.selectAll(meals.map((m) => m.id!).filter(Boolean))}
+                  style={{ fontSize: 11, padding: "0 6px", color: "var(--accent)", fontWeight: 700 }}>
+                  All {meals.length}
+                </Button>
+              )}
               <Popconfirm
                 title="Delete selected?" okText="Delete" okButtonProps={{ danger: true }}
                 onConfirm={async () => {

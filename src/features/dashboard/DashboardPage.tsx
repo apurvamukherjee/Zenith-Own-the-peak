@@ -17,7 +17,7 @@ import { computeTodayScore } from "../../lib/todayScore";
 import { useMonthScores } from "../calendar/useCalendar";
 import { fmtDuration, todayKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
-import { isDevilsHour, isPalindromeDate, isHardcoreActive, isSabbathActive } from "../../lib/easterEggs";
+import { isDevilsHour, isZenithHour, isPalindromeDate, isHardcoreActive, isSabbathActive } from "../../lib/easterEggs";
 import { playBellDing } from "../../lib/audio";
 
 // Time-aware greeting: text, icon, tagline, and a gradient accent that
@@ -25,13 +25,19 @@ import { playBellDing } from "../../lib/audio";
 // Every stop stays inside the red-black-ember family. No purple.
 // `overrides` lets easter eggs replace the base greeting without touching
 // the base map: 3:33 AM → devil's hour, palindrome dates → symmetry note.
-function greeting(overrides?: { devilsHour?: boolean; palindrome?: boolean; hardcore?: boolean; sabbath?: boolean }) {
+function greeting(overrides?: { devilsHour?: boolean; zenithHour?: boolean; palindrome?: boolean; hardcore?: boolean; sabbath?: boolean }) {
   const h = new Date().getHours();
 
   // Egg #5 — Devil's hour override. Only fires between 3:33 and 3:34.
   if (overrides?.devilsHour) return {
     text: "Devil's hour", icon: TbMoonStars, tagline: "What are you doing awake?",
     grad: "linear-gradient(135deg, #6e0f1c, #ff2740)",
+  };
+
+  // Egg #10 — Zenith hour. Exactly 12:00 noon — the sun's peak.
+  if (overrides?.zenithHour) return {
+    text: "Zenith hour", icon: TbSun, tagline: "The sun is at its peak. So are you.",
+    grad: "linear-gradient(135deg, #ff2740, #d81f34)",
   };
 
   const base = (() => {
@@ -170,6 +176,7 @@ export function DashboardPage() {
   const now = new Date();
   const g = greeting({
     devilsHour: isDevilsHour(now),
+    zenithHour: isZenithHour(now),
     palindrome: isPalindromeDate(now),
     hardcore: isHardcoreActive(hardcoreUntil),
     sabbath: isSabbathActive(sabbathUntil),
@@ -294,7 +301,9 @@ export function DashboardPage() {
                 />
               )}
             </div>
-            <div style={{ fontSize: 9, color: "var(--ink-soft)" }}>streak</div>
+            <div style={{ fontSize: 9, color: "var(--ink-soft)" }}>
+              streak{freezeAvailable && <span style={{ marginLeft: 4, fontSize: 8, opacity: 0.7 }}>❄️1</span>}
+            </div>
           </div>
           <Link to="/glance"><Button type="text" size="small" icon={<TbShare2 size={18} />} aria-label="Share card" /></Link>
           <Link to="/settings"><Button type="text" size="small" icon={<TbSettings size={18} />} aria-label="Settings" /></Link>
