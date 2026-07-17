@@ -30,6 +30,11 @@ export function useBulkSelect<T extends number | string>() {
     });
   }, []);
 
+  const selectAll = useCallback((ids: T[]) => {
+    setIsSelecting(true);
+    setSelected(new Set(ids));
+  }, []);
+
   const onItemPress = useCallback((id: T) => {
     // In selection mode, a tap should toggle. We don't fight it with a timer.
     if (isSelecting) return;
@@ -52,5 +57,5 @@ export function useBulkSelect<T extends number | string>() {
     pressingIdRef.current = null;
   }, []);
 
-  return { isSelecting, selected, toggle, clear, onItemPress, onItemUp };
+  return { isSelecting, selected, toggle, clear, selectAll, onItemPress, onItemUp };
 }
