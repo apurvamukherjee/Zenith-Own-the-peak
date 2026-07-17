@@ -252,18 +252,16 @@ export function DashboardPage() {
           <motion.div
             key={g.text}
             initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-            style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+            style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
+            {/* Bare icon — no badge, no gradient box. Just the glyph in ember red. */}
+            <GIcon size={14} style={{ color: "var(--accent)", opacity: 0.85, flexShrink: 0 }} />
+            {/* Gothic italic — Cinzel, solid ink, no gradient clip. Restrained > flashy. */}
             <span style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              width: 22, height: 22, borderRadius: 7,
-              background: "var(--time-grad)", color: "#fff",
-            }}>
-              <GIcon size={13} />
-            </span>
-            <span style={{
-              fontSize: 12, fontWeight: 700, letterSpacing: 0.3,
-              background: "var(--time-grad)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              fontFamily: '"Cinzel", "Plus Jakarta Sans", serif',
+              fontStyle: "italic",
+              fontSize: 12, fontWeight: 600,
+              letterSpacing: "0.08em",
+              color: "var(--ink-soft)",
             }}>{g.text}</span>
           </motion.div>
           <h2 className="display" style={{ margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1.05 }}>
