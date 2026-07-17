@@ -343,7 +343,7 @@ export function DashboardPage() {
 
       {/* Center: discipline ring */}
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        style={{ textAlign: "center", flex: "0 0 auto", padding: "8px 0" }}>
+        style={{ textAlign: "center", flex: "0 0 auto", padding: "8px 0", userSelect: "none" }}>
         <div
           className="ember-ring"
           style={{ display: "inline-block", position: "relative", cursor: "pointer", userSelect: "none", touchAction: "manipulation" }}
