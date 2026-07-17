@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Card, Button, Modal, Input, Select, InputNumber, Tag, App, Segmented } from "antd";
-import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell, TbLink, TbLinkOff } from "react-icons/tb";
+import { Card, Button, Modal, Input, Select, Tag, App, Segmented, Alert } from "antd";
+import { SmartInputNumber } from "../../components/SmartInputNumber";
+import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell, TbLink, TbLinkOff, TbTrendingUp } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
+import { CoachMark } from "../../components/CoachMark";
+import { useSetting, setSetting } from "../../hooks/useSettings";
 import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
 import { MuscleIcon } from "../../components/MuscleIcon";
 import type { MuscleGroup, ExerciseDto, DayExerciseDto } from "../../db/types";
@@ -12,6 +15,7 @@ import {
   addDayExercise, updateDayExercise, removeDayExercise, setWeekday,
   toggleSupersetLink,
 } from "./useGym";
+import { useOverloadSuggestions } from "./useOverloadSuggestions";
 
 const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const ALL_MUSCLES: MuscleGroup[] = ["chest", "back", "shoulders", "biceps", "triceps", "quads", "hamstrings", "glutes", "calves", "abs", "forearms", "traps"];
@@ -25,6 +29,10 @@ function DayCard({ dayId }: { dayId: number }) {
   const [addOpen, setAddOpen] = useState(false);
   const [filter, setFilter] = useState<MuscleGroup | "all">("all");
   const [editEx, setEditEx] = useState<DayExerciseDto | null>(null);
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<number[]>([]);
+
+  const suggestions = useOverloadSuggestions(exercises);
+  const activeSuggestions = suggestions.filter((s) => !dismissedSuggestions.includes(s.exerciseId));
 
   if (!day) return null;
   const filtered = filter === "all" ? library : library.filter((e) => e.primaryMuscle === filter);
@@ -47,6 +55,32 @@ function DayCard({ dayId }: { dayId: number }) {
           modal.confirm({ title: `Delete ${day.name}?`, onOk: () => deleteWorkoutDay(dayId), okButtonProps: { danger: true } });
         }} />
       </div>}>
+      {/* Progressive overload suggestions — fires after 3 sessions all hitting repHigh */}
+      {activeSuggestions.map((s) => (
+        <Alert key={s.exerciseId} type="info" style={{ marginBottom: 8, borderRadius: 10 }}
+          icon={<TbTrendingUp size={16} />} showIcon
+          message={
+            <span>
+              <strong>{s.exerciseName}</strong> — try <strong>{s.suggestKg}kg</strong>
+              <span style={{ fontSize: 11, color: "var(--ink-soft)", marginLeft: 4 }}>
+                (+{s.increment}kg · 3 sessions at top of rep range)
+              </span>
+            </span>
+          }
+          action={
+            <div style={{ display: "flex", gap: 6 }}>
+              <Button size="small" type="primary" onClick={async () => {
+                const ex = exercises.find((e) => e.exerciseId === s.exerciseId);
+                if (ex?.id) {
+                  await updateDayExercise(ex.id, { ...ex, weightKg: s.suggestKg });
+                  message.success(`${s.exerciseName} updated to ${s.suggestKg}kg`);
+                  setDismissedSuggestions((p) => [...p, s.exerciseId]);
+                }
+              }}>Apply</Button>
+              <Button size="small" onClick={() => setDismissedSuggestions((p) => [...p, s.exerciseId])}>Later</Button>
+            </div>
+          } />
+      ))}
       {exercises.length === 0 ? (
         <div style={{ color: "var(--ink-soft)", fontSize: 13, padding: 8 }}>No exercises yet</div>
       ) : (
@@ -137,13 +171,13 @@ function DayCard({ dayId }: { dayId: number }) {
         {editEx && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
             <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Sets</div><InputNumber inputMode="decimal" value={editEx.sets} min={1} onChange={(v) => setEditEx({ ...editEx, sets: v ?? 3 })} style={{ width: "100%" }} /></div>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rep low</div><InputNumber inputMode="decimal" value={editEx.repLow} min={1} onChange={(v) => setEditEx({ ...editEx, repLow: v ?? 6 })} style={{ width: "100%" }} /></div>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rep high</div><InputNumber inputMode="decimal" value={editEx.repHigh} min={1} onChange={(v) => setEditEx({ ...editEx, repHigh: v ?? 12 })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Sets</div><SmartInputNumber value={editEx.sets} min={1} onChange={(v) => setEditEx({ ...editEx, sets: Number(v ?? 3) })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rep low</div><SmartInputNumber value={editEx.repLow} min={1} onChange={(v) => setEditEx({ ...editEx, repLow: Number(v ?? 6) })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rep high</div><SmartInputNumber value={editEx.repHigh} min={1} onChange={(v) => setEditEx({ ...editEx, repHigh: Number(v ?? 12) })} style={{ width: "100%" }} /></div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Weight (kg)</div><InputNumber inputMode="decimal" value={editEx.weightKg} min={0} step={2.5} onChange={(v) => setEditEx({ ...editEx, weightKg: v ?? 0 })} style={{ width: "100%" }} /></div>
-              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rest (sec)</div><InputNumber inputMode="decimal" value={editEx.restSec} min={0} step={15} onChange={(v) => setEditEx({ ...editEx, restSec: v ?? 90 })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Weight (kg)</div><SmartInputNumber value={editEx.weightKg} min={0} step={2.5} onChange={(v) => setEditEx({ ...editEx, weightKg: Number(v ?? 0) })} style={{ width: "100%" }} /></div>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 12, marginBottom: 4 }}>Rest (sec)</div><SmartInputNumber value={editEx.restSec} min={0} step={15} onChange={(v) => setEditEx({ ...editEx, restSec: Number(v ?? 90) })} style={{ width: "100%" }} /></div>
             </div>
           </div>
         )}
@@ -158,6 +192,12 @@ export function WorkoutPlanner() {
   const [addOpen, setAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newMuscles, setNewMuscles] = useState<MuscleGroup[]>([]);
+  const coachDone = Number(useSetting("coachPlanner"));
+  const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
+  const PLANNER_COACH = [
+    { title: "Plan your week", body: "Assign a workout day to each weekday below. You can have multiple days with different muscle groups." },
+    { title: "Link supersets", body: "In any day card, tap the ⛓ chain icon between two exercises to link them as a superset A1→A2." },
+  ];
 
   function handleCreate() {
     if (!newName.trim()) return;
@@ -167,6 +207,14 @@ export function WorkoutPlanner() {
 
   return (
     <PageTransition>
+      {coachStep >= 0 && (
+        <CoachMark
+          steps={PLANNER_COACH}
+          current={coachStep}
+          onNext={() => setCoachStep((s) => s + 1)}
+          onDone={() => { setCoachStep(-1); void setSetting("coachPlanner", 1); }}
+        />
+      )}
       <SectionTitle eyebrow="Planner" title="Build your program" right={
         <Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>New day</Button>
       } />

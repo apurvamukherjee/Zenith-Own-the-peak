@@ -23,6 +23,10 @@ export const DEFAULTS = {
   onboarded: 0,            // 1 = onboarding completed
   firstSeenAt: 0,          // epoch ms of first launch — drives 7-day review nudge
   reviewNudgeDone: 0,      // 1 = nudge shown/dismissed, never show again
+  // CoachMark first-visit flags (1 = shown)
+  coachLogger: 0,
+  coachPlanner: 0,
+  coachNutrition: 0,
   // Reminders (times are HH:mm)
   remWater: 1,
   remWaterEveryH: 2,

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, InputNumber, Modal, App } from "antd";
+import { Button, Modal, App } from "antd";
+import { SmartInputNumber } from "../../components/SmartInputNumber";
 import { motion } from "framer-motion";
 import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbBolt } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
@@ -137,9 +138,8 @@ export function QuickLogPage() {
             </Button>
           ))}
         </div>
-        <InputNumber
-          inputMode="decimal"
-          value={ml} onChange={(v) => setMl(v ?? 500)}
+        <SmartInputNumber
+          value={ml} onChange={(v) => setMl(Number(v ?? 500))}
           min={50} step={50}
           style={{ width: "100%", marginTop: 10 }}
           suffix="ml"

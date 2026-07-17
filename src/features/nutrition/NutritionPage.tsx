@@ -20,7 +20,7 @@ import {
   deleteMeal, addMeal, slotStatus, KIND_META,
 } from "./useNutrition";
 import { useReminders, requestReminderPermission } from "../../hooks/useReminders";
-import { useSetting } from "../../hooks/useSettings";
+import { useSetting, setSetting } from "../../hooks/useSettings";
 import { VIOLET, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 import {
@@ -35,6 +35,7 @@ import { addWater } from "../water/useWater";
 import { hapticLight } from "../../lib/haptics";
 import { useBackClose } from "../../hooks/useBackClose";
 import { useUndo } from "../../hooks/useUndo";
+import { CoachMark } from "../../components/CoachMark";
 import { useBulkSelect } from "../../hooks/useBulkSelect";
 
 const STATUS_TAG = {
@@ -56,6 +57,12 @@ export function NutritionPage() {
   const withUndo = useUndo();
   const bulk = useBulkSelect<number>();
   const [remindersOn, setRemindersOn] = useState(typeof Notification !== "undefined" && Notification.permission === "granted");
+  const coachDone = Number(useSetting("coachNutrition"));
+  const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
+  const NUTRITION_COACH = [
+    { title: "Log from catalog", body: "Tap the + button and search for food (e.g. 'chicken breast') to get auto-calculated macros by weight." },
+    { title: "Bulk delete", body: "Long-press any meal to enter selection mode. Then tap 'All N' to select everything and delete in one go." },
+  ];
 
   useReminders(schedules, logs);
 
@@ -96,6 +103,14 @@ export function NutritionPage() {
 
   return (
     <PageTransition>
+      {coachStep >= 0 && (
+        <CoachMark
+          steps={NUTRITION_COACH}
+          current={coachStep}
+          onNext={() => setCoachStep((s) => s + 1)}
+          onDone={() => { setCoachStep(-1); void setSetting("coachNutrition", 1); }}
+        />
+      )}
       <SectionTitle eyebrow="Fuel your body" title="Nutrition"
         right={<Button icon={<TbPlus />} onClick={() => setManageOpen(true)}>Schedule</Button>} />
 

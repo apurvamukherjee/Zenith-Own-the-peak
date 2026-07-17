@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Modal, Input, Button, Tag, InputNumber, Segmented, App, Popconfirm } from "antd";
+import { Modal, Input, Button, Tag, Segmented, App, Popconfirm } from "antd";
+import { SmartInputNumber } from "../../components/SmartInputNumber";
 import { TbStar, TbStarFilled, TbSearch, TbPlus, TbHeart, TbTrash, TbBookmarkPlus } from "react-icons/tb";
 import type { FoodDto, MealType } from "../../db/types";
 import { db } from "../../db/db";
@@ -268,8 +269,8 @@ function FoodDetail({ food, amount, setAmount, mealType, setMealType, hideMealTy
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <InputNumber inputMode="decimal" value={amount} min={0.1} step={food.unit === "g" || food.unit === "ml" ? 10 : 0.5}
-          onChange={(v) => setAmount(v ?? 0)} style={{ flex: 1 }}
+        <SmartInputNumber value={amount} min={0.1} step={food.unit === "g" || food.unit === "ml" ? 10 : 0.5}
+          onChange={(v) => setAmount(Number(v ?? 0))} style={{ flex: 1 }}
           addonAfter={food.unit === "g" || food.unit === "ml" ? food.unit : food.unit + (amount === 1 ? "" : "s")} />
         <Button icon={<TbBookmarkPlus />} onClick={savePresetHere} title="Save as preset" />
       </div>
@@ -359,8 +360,8 @@ function LabeledNum({ label, value, onChange }: { label: string; value: number; 
   return (
     <div>
       <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 2 }}>{label}</div>
-      <InputNumber inputMode="decimal" value={value} min={0} step={0.1}
-        onChange={(v) => onChange(v ?? 0)} style={{ width: "100%" }} />
+      <SmartInputNumber value={value} min={0} step={0.1}
+        onChange={(v) => onChange(Number(v ?? 0))} style={{ width: "100%" }} />
     </div>
   );
 }

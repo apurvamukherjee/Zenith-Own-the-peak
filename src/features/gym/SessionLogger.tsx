@@ -14,10 +14,14 @@ import {
   useSessionSets, useGhostSets, useExercise, ensureSession, logSet,
 } from "./useGym";
 import { prettyDate, todayKey } from "../../lib/date.utils";
+import { db } from "../../db/db";
 import { startRest } from "../../lib/restTimerStore";
 import { celebrate } from "../../lib/celebrate";
+import { unlockAudio } from "../../lib/audio";
 import { hapticLight } from "../../lib/haptics";
 import { useUsageValue, recordUsage } from "../../hooks/useUsageHistory";
+import { CoachMark } from "../../components/CoachMark";
+import { useSetting, setSetting } from "../../hooks/useSettings";
 
 // -----------------------------------------------------------------------------
 // SessionLogger — the "execute today's workout" surface.
@@ -82,6 +86,10 @@ function SetRow({
 
   async function complete() {
     if (w <= 0 || r <= 0) return;
+    // Warm the WebAudio context on the first user gesture. Chrome/Safari
+    // block AudioContext until a user interaction, so before this line, the
+    // rest-timer completion beep would be silent on the first ring.
+    unlockAudio();
     const sid = await getSessionId();
     try {
       const { isPR, e1rm } = await logSet({
@@ -157,11 +165,15 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
         opacity: allDone ? 0.75 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={20} color="var(--accent)" />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>{ex.name}</div>
-          {ex.cues && <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{ex.cues}</div>}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div title={ex.name} style={{
+            fontWeight: 700, fontSize: 14,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>{ex.name}</div>
+          {ex.cues && <div style={{ fontSize: 11, color: "var(--ink-soft)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ex.cues}</div>}
         </div>
-        <Tag color={allDone ? "green" : "default"} style={{ borderRadius: 8, margin: 0 }}>
+        <Tag color={allDone ? "green" : "default"} style={{ borderRadius: 8, margin: 0, flexShrink: 0 }}>
           {doneCount}/{totalSets}
         </Tag>
       </div>
@@ -283,14 +295,17 @@ function SupersetPartner({
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={18} color="var(--accent)" />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 13 }}>{ex.name}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div title={ex.name} style={{
+            fontWeight: 700, fontSize: 13,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>{ex.name}</div>
           <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>
             {plan.sets}×{plan.repLow}–{plan.repHigh} · {plan.weightKg}kg
             {isLastInGroup ? ` · rest ${plan.restSec}s after round` : " · then →"}
           </div>
         </div>
-        <Tag style={{ borderRadius: 8, margin: 0 }}>{done.length}/{totalSets}</Tag>
+        <Tag style={{ borderRadius: 8, margin: 0, flexShrink: 0 }}>{done.length}/{totalSets}</Tag>
       </div>
       {rows.map((si) => {
         const last = done
@@ -362,6 +377,40 @@ export function SessionLogger() {
   const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
   const volume = sets.reduce((s, x) => s + x.weightKg * x.reps, 0);
 
+  // Auto-duration timer — starts silently on the first set logged, writes back
+  // durationMin when the user leaves or the component unmounts. Zero user effort.
+  const sessionStartRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (doneSets === 1 && sessionStartRef.current === null) {
+      // first set just appeared — mark the session start
+      sessionStartRef.current = Date.now();
+    }
+  }, [doneSets]);
+  useEffect(() => {
+    return () => {
+      if (sessionStartRef.current && sessionIdRef.current) {
+        const mins = Math.round((Date.now() - sessionStartRef.current) / 60_000);
+        if (mins > 0 && mins < 300) { // sanity: ignore if >5h (left the tab open)
+          void db.workoutSessions.update(sessionIdRef.current, { durationMin: mins });
+        }
+      }
+    };
+  }, []);
+
+  // Live elapsed clock — updates every minute once session has started.
+  // Shows in the footer stat bar alongside sets and volume.
+  const [elapsedMin, setElapsedMin] = useState(0);
+  useEffect(() => {
+    const tick = () => {
+      if (sessionStartRef.current) {
+        setElapsedMin(Math.round((Date.now() - sessionStartRef.current) / 60_000));
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, 15_000); // 15s for live feel
+    return () => window.clearInterval(id);
+  }, []);
+
   async function getSessionId(): Promise<number> {
     if (sessionIdRef.current) return sessionIdRef.current;
     if (!dayId) throw new Error("No day");
@@ -371,10 +420,26 @@ export function SessionLogger() {
   }
 
   const isRest = !dayId || dayId === 0;
+  const coachDone = Number(useSetting("coachLogger"));
+  const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
+
+  const COACH_STEPS = [
+    { title: "Log a set", body: "Dial in your weight and reps, then tap ✓ to complete the set. Rest timer starts automatically." },
+    { title: "Supersets", body: "In the Planner, tap the chain icon to link two exercises. They'll alternate here with one shared rest." },
+    { title: "Your best is shown", body: "Greyed values are your ghost from last week. Beat them." },
+  ];
 
   return (
     <>
       <PageTransition>
+        {coachStep >= 0 && !isRest && (
+          <CoachMark
+            steps={COACH_STEPS}
+            current={coachStep}
+            onNext={() => setCoachStep((s) => s + 1)}
+            onDone={() => { setCoachStep(-1); void setSetting("coachLogger", 1); }}
+          />
+        )}
         <div style={{ textAlign: "center", marginBottom: 12, position: "relative" }}>
           <Link to="/quotes" style={{ position: "absolute", top: -2, right: 0 }}>
             <Button type="text" shape="circle" icon={<TbQuote size={20} />} aria-label="Motivation quotes" />
@@ -438,6 +503,12 @@ export function SessionLogger() {
                 <div style={{ fontSize: 18, fontWeight: 800, color: t.gold }}><TbFlame style={{ verticalAlign: "-2px" }} /> {pct}%</div>
                 <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>done</div>
               </div>
+              {elapsedMin > 0 && (
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink-soft)" }}>{elapsedMin}m</div>
+                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>elapsed</div>
+                </div>
+              )}
             </div>
           </>
         )}

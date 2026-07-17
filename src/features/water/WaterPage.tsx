@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Card, Button, Progress, Alert, InputNumber, App } from "antd";
+import { Card, Button, Progress, Alert, App } from "antd";
+import { SmartInputNumber } from "../../components/SmartInputNumber";
 import { TbPlus, TbArrowBackUp, TbRefresh } from "react-icons/tb";
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
@@ -28,7 +29,7 @@ export function WaterPage() {
   const [custom, setCustom] = useState<number>();
 
   const goal = base + (trained ? bump : 0);
-  const { optimistic, commit } = useOptimisticNumber(total);
+  const { optimistic, commit } = useOptimisticNumber(total, "water");
   const { status, deltaMl } = computeStatus(optimistic, goal, wakeHour, windowH);
   const pct = Math.min(100, Math.round((optimistic / goal) * 100));
 
@@ -100,7 +101,7 @@ export function WaterPage() {
           ))}
         </div>
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-          <InputNumber inputMode="decimal" placeholder="custom ml" value={custom} onChange={(v) => setCustom(v ?? undefined)} min={1} style={{ flex: 1 }} controls={false} aria-label="Custom water amount" />
+          <SmartInputNumber placeholder="custom ml" value={custom} onChange={(v) => setCustom(v == null ? undefined : Number(v))} min={1} style={{ flex: 1 }} controls={false} aria-label="Custom water amount" />
           <Button type="primary" onClick={() => { if (custom) { void log(custom); setCustom(undefined); } }}>Add</Button>
           <Button
             icon={<TbArrowBackUp />}
