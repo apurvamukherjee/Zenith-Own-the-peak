@@ -95,6 +95,8 @@ export function DashboardPage() {
   const [bellFlash, setBellFlash] = useState(0);
   const ringTapsRef = useRef<{ count: number; last: number }>({ count: 0, last: 0 });
   const ringPressRef = useRef<number | null>(null);
+  const ringPressTickRef = useRef<number | null>(null);
+  const [ringPressPct, setRingPressPct] = useState(0);
 
   const hardcoreUntil = Number(useSetting("hardcoreUntil"));
   const sabbathUntil = Number(useSetting("sabbathUntil"));
@@ -120,8 +122,21 @@ export function DashboardPage() {
   ) ?? 0;
   const rockyToday = setsToday >= 40;
 
+  const firstSeenAt = Number(useSetting("firstSeenAt"));
+  const reviewNudgeDone = Number(useSetting("reviewNudgeDone"));
+  // Show "Review your targets" nudge on day 7+ after first launch — once only.
+  // The 7-day window means the user has lived with the app long enough to
+  // know if their water/protein targets are actually right for them.
+  const sevenDaysOld = firstSeenAt > 0 && (Date.now() - firstSeenAt) >= 7 * 86_400_000;
+  const showReviewNudge = sevenDaysOld && !reviewNudgeDone;
+
   const hour = new Date().getHours();
-  const streakInDanger = hour >= 21 && score.score === 0 && streak > 0;
+  // Fires at 9pm+ only if the user has literally zero writes today AND has a streak
+  // to protect. Old condition used `score.score === 0`, but score can be 0 for a
+  // legitimate rest day where sleep hasn't been logged yet — reading as "app broken"
+  // instead of "genuine warning".
+  const hasAnyWriteToday = score.waterPct > 0 || score.sessionDone || score.sleepLogged || score.proteinPct > 0;
+  const streakInDanger = hour >= 21 && !hasAnyWriteToday && streak > 0;
 
   async function protectStreak() {
     await addWater(500);
@@ -176,12 +191,26 @@ export function DashboardPage() {
       window.setTimeout(() => setBellFlash(0), 500);
     }
   }
-  // Egg #11 — 8-second continuous press. Cleared on any lift/leave.
+  // Egg #11 — 8-second continuous press. Mid-press feedback via ringPressPct
+  // (0→1 over 8s) so users know something is happening; before, nothing
+  // moved and people gave up at 3s thinking it was broken. Cleared on lift.
   function onRingPressStart() {
     if (ringPressRef.current !== null) window.clearTimeout(ringPressRef.current);
+    if (ringPressTickRef.current !== null) window.clearInterval(ringPressTickRef.current);
+    const startedAt = Date.now();
+    setRingPressPct(0);
+    ringPressTickRef.current = window.setInterval(() => {
+      const pct = Math.min(1, (Date.now() - startedAt) / 8000);
+      setRingPressPct(pct);
+    }, 90);
     ringPressRef.current = window.setTimeout(() => {
       setSisyphusOpen(true);
       ringPressRef.current = null;
+      if (ringPressTickRef.current !== null) {
+        window.clearInterval(ringPressTickRef.current);
+        ringPressTickRef.current = null;
+      }
+      setRingPressPct(0);
     }, 8000);
   }
   function onRingPressEnd() {
@@ -189,6 +218,11 @@ export function DashboardPage() {
       window.clearTimeout(ringPressRef.current);
       ringPressRef.current = null;
     }
+    if (ringPressTickRef.current !== null) {
+      window.clearInterval(ringPressTickRef.current);
+      ringPressTickRef.current = null;
+    }
+    setRingPressPct(0);
   }
   // Egg #3 — long-press the streak flame (3 s) → flame ignites for a moment.
   const flameHoldRef = useRef<number | null>(null);
@@ -222,13 +256,13 @@ export function DashboardPage() {
             <span style={{
               display: "inline-flex", alignItems: "center", justifyContent: "center",
               width: 22, height: 22, borderRadius: 7,
-              background: g.grad, color: "#fff",
+              background: "var(--time-grad)", color: "#fff",
             }}>
               <GIcon size={13} />
             </span>
             <span style={{
               fontSize: 12, fontWeight: 700, letterSpacing: 0.3,
-              background: g.grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              background: "var(--time-grad)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>{g.text}</span>
           </motion.div>
@@ -255,7 +289,7 @@ export function DashboardPage() {
                   transition={{ duration: 3, times: [0, 0.15, 0.85, 1] }}
                   style={{
                     position: "absolute", left: -8, right: -8, top: -14, bottom: -6,
-                    background: "radial-gradient(circle at 50% 60%, #ff6b3d 0%, #ff2740 50%, rgba(255,39,64,0) 75%)",
+                    background: "radial-gradient(circle at 50% 60%, #d81f34 0%, #ff2740 50%, rgba(255,39,64,0) 75%)",
                     filter: "blur(6px)", pointerEvents: "none", borderRadius: "50%",
                     mixBlendMode: "screen",
                   }}
@@ -290,6 +324,25 @@ export function DashboardPage() {
         </motion.div>
       )}
 
+      {/* 7-day review nudge — fires once on day 7+ after first launch */}
+      {showReviewNudge && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          style={{ background: "var(--surface)", borderRadius: 12,
+            padding: "10px 14px", border: "1px solid var(--ember-inner)",
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700 }}>A week in — targets still right?</div>
+            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>Your water, protein, and sleep goals are easy to adjust.</div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            <Link to="/settings">
+              <Button size="small" type="primary">Review</Button>
+            </Link>
+            <Button size="small" type="text" onClick={() => setSetting("reviewNudgeDone", 1)}>✕</Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Center: discipline ring */}
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         style={{ textAlign: "center", flex: "0 0 auto", padding: "8px 0" }}>
@@ -300,6 +353,22 @@ export function DashboardPage() {
           onMouseDown={onRingPressStart} onMouseUp={onRingPressEnd} onMouseLeave={onRingPressEnd}
           onTouchStart={onRingPressStart} onTouchEnd={onRingPressEnd} onTouchCancel={onRingPressEnd}
         >
+          {/* #4 — Sisyphus press progress ring. Grows from 0→1 during the 8s hold. */}
+          {ringPressPct > 0 && (
+            <svg viewBox="0 0 120 120"
+              style={{
+                position: "absolute", inset: -8, width: 136, height: 136,
+                pointerEvents: "none", zIndex: 1,
+              }}>
+              <circle cx="60" cy="60" r="58"
+                fill="none" stroke="var(--accent)" strokeWidth="2"
+                strokeDasharray={2 * Math.PI * 58}
+                strokeDashoffset={2 * Math.PI * 58 * (1 - ringPressPct)}
+                transform="rotate(-90 60 60)"
+                style={{ transition: "stroke-dashoffset 90ms linear", opacity: 0.7 }}
+              />
+            </svg>
+          )}
           <Progress type="dashboard" percent={score.score} size={120} strokeColor={t.accent} strokeWidth={8}
             format={() => (
               <div>
@@ -327,6 +396,14 @@ export function DashboardPage() {
           <Pill done={score.sleepLogged} label="Sleep" icon={<TbMoon size={12} />} />
           <Pill done={score.proteinPct >= 100} label="Protein" icon={<TbMeat size={12} />} />
         </div>
+        {score.score === 0 && !hasAnyWriteToday && (
+          <div style={{
+            fontSize: 10, color: "var(--ink-soft)", fontStyle: "italic",
+            marginTop: 8, opacity: 0.7, letterSpacing: 0.3,
+          }}>
+            Ready when you are
+          </div>
+        )}
       </motion.div>
 
       {/* Mini calendar streak strip — last 7 days */}
@@ -475,9 +552,19 @@ function MiniWeekStrip() {
 }
 
 function Pill({ done, label, icon }: { done: boolean; label: string; icon: React.ReactNode }) {
+  // Not-done pills used to render as grey ghost text at 0.6 opacity, which read
+  // as "app broken" at 6am on a fresh day. Now they carry a subtle red outline
+  // (1px accent border, transparent bg) so the ring at 0% looks like anticipation,
+  // not an error state.
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 600,
-      color: done ? "var(--teal)" : "var(--ink-soft)", opacity: done ? 1 : 0.6 }}>
+    <div style={{
+      display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 600,
+      padding: "3px 8px", borderRadius: 999,
+      color: done ? "var(--teal)" : "var(--accent)",
+      border: done ? "1px solid transparent" : "1px solid var(--ember-inner)",
+      background: done ? "rgba(18,179,161,0.10)" : "transparent",
+      opacity: done ? 1 : 0.75,
+    }}>
       {icon} {label} {done && "✓"}
     </div>
   );

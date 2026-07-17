@@ -41,16 +41,15 @@ export default function App() {
     else document.documentElement.removeAttribute("data-motion");
   }, [reduceMotion]);
 
-  // Adaptive theme: publish the time-of-day gradient as --hero so hero-grad
-  // surfaces (training card, avatars, glance card) breathe with the day.
-  // Light mode keeps the static crimson-black hero — adaptive only applies in dark mode.
+  // Adaptive theme: publish the time-of-day gradient as --time-grad.
+  // We deliberately do NOT override --hero here — that variable drives all
+  // hero cards (.hero-grad), the Hall of Frame entry, glance card, etc.
+  // Overriding it with the morning orange gradient was making every dark card
+  // go orange/pink (the "AI slop" look). --hero stays gothic dark always.
+  // Components that WANT the time colour can use var(--time-grad) directly.
   useEffect(() => {
-    if (resolved === "dark") {
-      document.documentElement.style.setProperty("--hero", adaptive.grad);
-    } else {
-      document.documentElement.style.removeProperty("--hero");
-    }
-  }, [adaptive.grad, resolved]);
+    document.documentElement.style.setProperty("--time-grad", adaptive.grad);
+  }, [adaptive.grad]);
 
   // Enable theme-transition CSS only after first paint, so initial load never fades in.
   useEffect(() => {
