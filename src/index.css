@@ -59,7 +59,100 @@ html.theme-ready *, html.theme-ready *::before, html.theme-ready *::after {
     fill 0.35s ease, stroke 0.35s ease, box-shadow 0.35s ease;
 }
 
-h1, h2, h3, h4, .display { font-family: "Plus Jakarta Sans", Inter, sans-serif; }
+h1, h2, h3, h4, .display {
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  /* UI #4 — tabular numerals kill horizontal jitter in streak/percentage counters */
+  font-variant-numeric: tabular-nums;
+}
+
+/* UI #3 — Cinzel escapes the splash. Used by SectionTitle's eyebrow so every
+   page's section headers tie back to the splash's gothic mood. */
+.gothic-eyebrow {
+  font-family: "Cinzel", "Plus Jakarta Sans", serif;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-size: 11px;
+}
+
+/* UI #2 — red-tinted shimmer, replaces the old grey shimmer keyframes.
+   Applies wherever `zenith-shimmer` was used. */
+@keyframes zenith-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.zenith-shimmer-bg {
+  background: linear-gradient(90deg,
+    var(--surface) 0%,
+    var(--ember-inner) 50%,
+    var(--surface) 100%);
+  background-size: 200% 100%;
+  animation: zenith-shimmer 1.6s linear infinite;
+}
+
+/* UI #8 — ember-corner. A soft red glow anchored to the bottom-right of a
+   card. Not visible in isolation but always present. Use `.ember-corner`
+   on any positioned parent. */
+.ember-corner { position: relative; }
+.ember-corner::after {
+  content: "";
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 60px; height: 60px;
+  background: radial-gradient(circle at 100% 100%, var(--ember-glow), transparent 60%);
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.5;
+}
+
+/* UI #5 — bottom-nav altar. Curved top edge + hairline red gradient border. */
+.altar-nav {
+  border-radius: 20px 20px 0 0 !important;
+  border-top: none !important;
+  position: relative;
+}
+.altar-nav::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 8%; right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.55;
+}
+
+/* UI #6 — progress bar leading edge spark. antd Progress renders as
+   .ant-progress-bg (the filled portion). We attach a small circle at its
+   trailing end via ::after so it feels like flowing energy. */
+.ant-progress-line .ant-progress-bg { position: relative; }
+.ant-progress-line .ant-progress-bg::after {
+  content: "";
+  position: absolute;
+  right: -3px; top: 50%;
+  transform: translateY(-50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px var(--accent), 0 0 3px #fff;
+  opacity: 0.9;
+}
+/* Full/empty bars don't need the spark — cleaner ends */
+.ant-progress-line .ant-progress-bg[style*="width: 0%"]::after,
+.ant-progress-line .ant-progress-bg[style*="width: 100%"]::after {
+  display: none;
+}
+
+/* UI #9 — icon-stroke standardization. Global rules for Tabler icons so I
+   don't have to sweep every call site. Primary-action buttons (buttons
+   inside .ant-btn-primary and floating actions) get slightly thinner
+   strokes; decorative icons (inside statistics, section headers) get the
+   thinnest. This is opt-in via className/context so I don't accidentally
+   thin out chrome icons like Modal close buttons. */
+.tb-hair svg { stroke-width: 1.25 !important; }
+.tb-thin svg { stroke-width: 1.5 !important; }
+
+/* UI #7 — hairline divider utility (already present, keeping for completeness).
+   .hairline { existing } */
 
 /* Cinzel is a Roman-monumental serif — the gothic-title font in horror books
    and dark-fantasy games. We only apply it where we actually want that mood
@@ -252,12 +345,6 @@ input, .ant-input, .ant-input-number-input, textarea, .ant-select-selection-sear
 }
 
 /* ---------- Phase-3 UX polish ------------------------------------------- */
-
-/* Skeleton shimmer used by <Skeleton>. */
-@keyframes zenith-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
 
 /* Visible keyboard-focus ring on every interactive element. Tab-and-hunt
    users need to see where they are; Sarah the trackpad user gets nothing.

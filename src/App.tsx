@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
-import { ConfigProvider, App as AntApp, Spin } from "antd";
+import { ConfigProvider, App as AntApp } from "antd";
 import { AnimatePresence } from "framer-motion";
 import { getTheme, type Mode } from "./theme";
 import { useSetting } from "./hooks/useSettings";
 import { AppShell } from "./components/AppShell";
 import { SplashScreen } from "./components/SplashScreen";
+import { BloodDrop } from "./components/BloodDrop";
 import { OnboardingFlow } from "./features/onboarding/OnboardingFlow";
 import { seedIfEmpty } from "./config/seedProgram";
 import { useAdaptiveTheme } from "./hooks/useAdaptiveTheme";
@@ -79,7 +80,7 @@ export default function App() {
           </BrowserRouter>
         ) : (
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh" }}>
-            <Spin size="large" />
+            <BloodDrop size={44} />
           </div>
         )}
       </AntApp>

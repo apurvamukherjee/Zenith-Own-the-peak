@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Card, Button, Progress, Alert, InputNumber, App } from "antd";
-import { TbPlus, TbArrowBackUp, TbRefresh, TbDroplet } from "react-icons/tb";
+import { TbPlus, TbArrowBackUp, TbRefresh } from "react-icons/tb";
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
+import { ColdIcon } from "../../components/ColdIcon";
 import { useTodayWater, useWeeklyWater, useWorkoutToday, addWater, undoLastWater, computeStatus } from "./useWater";
 import { useSetting } from "../../hooks/useSettings";
 import { useTokens } from "../../hooks/useTokens";
@@ -110,7 +111,7 @@ export function WaterPage() {
 
         {entries.length === 0 ? (
           <EmptyState
-            icon={<TbDroplet />}
+            icon={<ColdIcon glyph="droplet" size={80} />}
             title="Nothing logged yet today"
             hint="Tap one of the quick buttons above to log your first sip."
             actionLabel="Add 500 ml"

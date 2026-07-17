@@ -15,9 +15,12 @@ export function Skeleton({ height = 16, width = "100%", radius = 6, style }: Pro
       aria-hidden
       style={{
         height, width, borderRadius: radius,
-        background: "linear-gradient(90deg, var(--surface) 0%, var(--border) 50%, var(--surface) 100%)",
+        // UI #2 — red-tinted shimmer instead of the old grey. Even loading
+        // states now feel gothic. `var(--ember-inner)` sits between the
+        // two surface tones so the wave still reads on both light + dark.
+        background: "linear-gradient(90deg, var(--surface) 0%, var(--ember-inner) 50%, var(--surface) 100%)",
         backgroundSize: "200% 100%",
-        animation: "zenith-shimmer 1.4s linear infinite",
+        animation: "zenith-shimmer 1.6s linear infinite",
         ...style,
       }}
     />

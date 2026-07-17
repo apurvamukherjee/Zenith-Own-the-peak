@@ -18,7 +18,16 @@ export function EmptyState({ icon, title, hint, actionLabel, onAction }: Props) 
       textAlign: "center", padding: "36px 16px", color: "var(--ink-soft)",
       gap: 8,
     }}>
-      {icon && <div style={{ fontSize: 32, opacity: 0.7, color: "var(--accent)" }}>{icon}</div>}
+      {icon && (
+        <div style={{
+          color: "var(--accent)",
+          opacity: 0.65,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          width: 96, height: 96, marginBottom: 4,
+        }}>
+          {icon}
+        </div>
+      )}
       <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{title}</div>
       {hint && <div style={{ fontSize: 12, maxWidth: 280 }}>{hint}</div>}
       {actionLabel && onAction && (

@@ -1,7 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Spin } from "antd";
+import { BloodDrop } from "./BloodDrop";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 
 const SessionLogger = lazy(() => import("../features/gym/SessionLogger").then((m) => ({ default: m.SessionLogger })));
@@ -20,7 +20,7 @@ const HallOfFrame = lazy(() => import("../features/achievements/HallOfFrame").th
 const SettingsPage = lazy(() => import("../features/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 const QuickLogPage = lazy(() => import("../features/quick/QuickLogPage").then((m) => ({ default: m.QuickLogPage })));
 
-const Fallback = <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><Spin /></div>;
+const Fallback = <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><BloodDrop size={32} /></div>;
 
 function NotFound() {
   return (

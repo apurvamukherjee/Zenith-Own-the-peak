@@ -2,11 +2,12 @@ import { useState } from "react";
 import {
   Card, Button, Collapse, Progress, Input, Modal, Tag, App, Segmented,
 } from "antd";
-import { TbBook2, TbBrandYoutube, TbClock, TbFileText, TbPlus, TbTrash } from "react-icons/tb";
+import { TbBrandYoutube, TbClock, TbFileText, TbPlus, TbTrash } from "react-icons/tb";
 import { BarChart, Bar, XAxis, ResponsiveContainer } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
+import { ColdIcon } from "../../components/ColdIcon";
 import type { StudyItemDto, StudyPathDto, StudyStatus, StudySource } from "../../db/types";
 import {
   usePaths, useItems, useWeeklyStudy, addPath, deletePath, addItem, cycleStatus,
@@ -52,7 +53,7 @@ export function StudyPage() {
 
       {paths.length === 0 ? (
         <EmptyState
-          icon={<TbBook2 />}
+          icon={<ColdIcon glyph="tome" size={80} />}
           title="No learning paths yet"
           hint="Add a YouTube playlist, course, or book — then break it into topics and track your way through."
           actionLabel="Create your first path"

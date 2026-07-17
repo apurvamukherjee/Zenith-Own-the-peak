@@ -14,12 +14,12 @@ const items: { to: string; label: string; Icon: IconType }[] = [
 export function BottomNav() {
   return (
     <nav
+      className="altar-nav"
       style={{
         position: "sticky", bottom: 0, zIndex: 10,
         display: "flex", justifyContent: "space-around",
         background: "var(--nav-bg)",
         backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-        borderTop: "1px solid var(--border)",
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >

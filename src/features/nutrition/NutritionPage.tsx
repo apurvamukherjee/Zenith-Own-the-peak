@@ -4,7 +4,7 @@ import {
   Tag, App, Empty, Row, Col, Switch, Popconfirm, Checkbox,
 } from "antd";
 import {
-  TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbToolsKitchen2, TbBookmark,
+  TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbBookmark,
   TbCopy, TbDroplet, TbStack2, TbX,
 } from "react-icons/tb";
 import dayjs from "dayjs";
@@ -12,6 +12,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
+import { ColdIcon } from "../../components/ColdIcon";
 import { db } from "../../db/db";
 import type { MealDto, ScheduleKind } from "../../db/types";
 import {
@@ -234,7 +235,7 @@ export function NutritionPage() {
         <div style={{ padding: "8px 12px 12px" }}>
         {meals.length === 0 ? (
           <EmptyState
-            icon={<TbToolsKitchen2 />}
+            icon={<ColdIcon glyph="blade-fork" size={80} />}
             title="No meals logged yet today"
             hint="Tap Add food to log from the catalog, or Same as yesterday to repeat."
             actionLabel="Add food"

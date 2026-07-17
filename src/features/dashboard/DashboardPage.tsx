@@ -334,7 +334,7 @@ export function DashboardPage() {
 
       {/* Training hero card */}
       <Link to="/workout" style={{ color: "inherit", display: "block", flex: "0 0 auto" }}>
-        <div className="hero-grad metal-shadow" style={{
+        <div className="hero-grad metal-shadow ember-corner" style={{
           borderRadius: 16, padding: "12px 16px", position: "relative", overflow: "hidden",
         }}>
           <svg viewBox="0 0 120 120" width="80" height="80" style={{ position: "absolute", right: -4, bottom: -10, opacity: 0.1 }}>

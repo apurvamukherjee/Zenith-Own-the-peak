@@ -1,4 +1,4 @@
-import { TbGasStation } from "react-icons/tb";
+import {  } from "react-icons/tb";
 import { useState } from "react";
 import { Card, InputNumber, DatePicker, Button, Statistic, Row, Col, App, Alert } from "antd";
 import { TbPlus, TbTrash } from "react-icons/tb";
@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
+import { ColdIcon } from "../../components/ColdIcon";
 import { useFuel, addFuel, deleteFuel, computeRows, fuelStats } from "./useFuel";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
@@ -80,7 +81,7 @@ export function FuelPage() {
       <Card title="History" size="small">
         {rows.length === 0 ? (
           <EmptyState
-            icon={<TbGasStation />}
+            icon={<ColdIcon glyph="road" size={80} />}
             title="No fill-ups logged"
             hint="Log your first full-tank fill above. Mileage starts from the second fill."
           />

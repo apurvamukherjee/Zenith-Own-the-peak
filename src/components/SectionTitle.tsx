@@ -1,17 +1,17 @@
 import type { ReactNode } from "react";
 
+// The section header used across every feature page.
+// The eyebrow ("TODAY'S TRAINING", "MEALS", etc.) is set in Cinzel via the
+// `.gothic-eyebrow` global class — same font as the splash wordmark, so every
+// page carries the gothic mood forward without any per-call styling.
 export function SectionTitle({ eyebrow, title, right }: {
   eyebrow?: string; title: string; right?: ReactNode;
 }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 14 }}>
       <div>
-        {eyebrow && (
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "var(--violet)" }}>
-            {eyebrow}
-          </div>
-        )}
-        <h2 className="display" style={{ margin: "2px 0 0", fontSize: 26, fontWeight: 800 }}>{title}</h2>
+        {eyebrow && <div className="gothic-eyebrow">{eyebrow}</div>}
+        <h2 className="display" style={{ margin: "4px 0 0", fontSize: 26, fontWeight: 800 }}>{title}</h2>
       </div>
       {right}
     </div>
