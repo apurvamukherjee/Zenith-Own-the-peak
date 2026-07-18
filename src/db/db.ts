@@ -5,7 +5,7 @@ import type {
   StudyPathDto, StudyItemDto, StudySessionDto, FuelDto, SettingDto,
   ScheduleDto, ScheduleLogDto, MealDto, GoalDayDto, DayPhotoDto, StreakFreezeDto,
   QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
-  AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto,
+  AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -38,6 +38,7 @@ class ZenithDB extends Dexie {
   foods!: Table<FoodDto, number>;
   mealTemplateItems!: Table<MealTemplateItemDto, number>;
   usageHistory!: Table<UsageHistoryDto, string>;
+  xpEvents!: Table<XpEventDto, number>;
 
   constructor() {
     super("zenith");
@@ -93,6 +94,15 @@ class ZenithDB extends Dexie {
     this.version(8).stores({
       usageHistory: "&key, updatedAt",
     });
+    // v9: XP events — every action that earns XP writes one row here.
+    // Keeping events rather than a single total gives us an auditable log
+    // and lets us recompute the level/total from scratch at any time.
+    // action: short string key (e.g. "set", "pr", "streak_day", "badge_gold").
+    // xp: the amount granted for that event (positive int).
+    // weekKey: ISO week string "YYYY-Www" so weekly XP is fast to query.
+    this.version(9).stores({
+      xpEvents: "++id, action, weekKey, createdAt",
+    });
   }
 }
 
@@ -106,7 +116,7 @@ for (const table of db.tables) {
 }
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 8, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 9, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

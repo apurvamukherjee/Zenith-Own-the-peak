@@ -11,12 +11,14 @@ import { db } from "../../db/db";
 import { useTokens } from "../../hooks/useTokens";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useTodayWater, useWorkoutToday, addWater } from "../water/useWater";
+import { useTodaySession, useTodayDayId } from "../gym/useGym";
 import { useRecentSleep } from "../sleep/useSleep";
 import { computeUnifiedStreak, isFreezeAvailable, useStreakFreeze as useFreezeAction } from "../../lib/streak.utils";
 import { computeTodayScore } from "../../lib/todayScore";
 import { useMonthScores } from "../calendar/useCalendar";
 import { fmtDuration, todayKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
+import { useXP } from "../../hooks/useXP";
 import { isDevilsHour, isZenithHour, isPalindromeDate, isHardcoreActive, isSabbathActive } from "../../lib/easterEggs";
 import { playBellDing } from "../../lib/audio";
 
@@ -90,6 +92,8 @@ export function DashboardPage() {
   const trained = useWorkoutToday();
   const sleep = useRecentSleep(2);
   const lastSleep = [...sleep].reverse().find(Boolean);
+  const todayDayId = useTodayDayId();
+  const todaySession = useTodaySession(todayDayId);
 
   const [streak, setStreak] = useState(0);
   const [score, setScore] = useState({ score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 });
@@ -411,6 +415,8 @@ export function DashboardPage() {
             Ready when you are
           </div>
         )}
+        {/* Level badge — Phase 5 XP system */}
+        <LevelBadge />
       </motion.div>
 
       {/* Mini calendar streak strip — last 7 days */}
@@ -432,6 +438,7 @@ export function DashboardPage() {
             <div>
               <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, fontWeight: 600 }}>
                 {todayDay ? "Today's training" : "Rest day"}
+                {todaySession?.durationMin ? ` · ${todaySession.durationMin}min` : ""}
               </div>
               <div className="display" style={{ color: "#fff", fontSize: 20, fontWeight: 800 }}>
                 {todayDay?.name ?? "Recovery"}
@@ -573,6 +580,48 @@ function Pill({ done, label, icon }: { done: boolean; label: string; icon: React
       opacity: done ? 1 : 0.75,
     }}>
       {icon} {label} {done && "✓"}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEVEL BADGE — compact XP chip below the discipline ring
+// ─────────────────────────────────────────────────────────────────────────────
+function LevelBadge() {
+  const { totalXP, level, next, progress } = useXP();
+  if (totalXP === 0) return null; // hide on fresh install until first XP earned
+  const xpToNext = next ? next.xpRequired - level.xpRequired : 0;
+  const xpInLevel = next ? totalXP - level.xpRequired : 0;
+  return (
+    <div style={{ marginTop: 10, display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 5,
+        background: "var(--surface)", borderRadius: 24,
+        border: "1px solid var(--ember-inner)",
+        padding: "3px 10px 3px 7px",
+      }}>
+        <span style={{
+          fontFamily: '"Cinzel", serif', fontWeight: 800, fontSize: 10,
+          color: "var(--accent)", letterSpacing: "0.05em",
+        }}>Lv.{level.level}</span>
+        <span style={{ fontSize: 10, color: "var(--ink-soft)", letterSpacing: "0.03em" }}>
+          {level.name}
+        </span>
+      </div>
+      {next && (
+        <div style={{ width: 90, height: 3, background: "var(--border)", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{
+            height: "100%", background: "var(--accent)", borderRadius: 2,
+            width: `${Math.round(progress * 100)}%`,
+            transition: "width 600ms ease-out",
+          }} />
+        </div>
+      )}
+      {next && (
+        <div style={{ fontSize: 9, color: "var(--ink-soft)", opacity: 0.6 }}>
+          {xpInLevel} / {xpToNext} XP → {next.name}
+        </div>
+      )}
     </div>
   );
 }

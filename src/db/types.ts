@@ -194,3 +194,15 @@ export interface UsageHistoryDto {
   value: number;
   updatedAt: number;
 }
+
+// ---- XP system (Phase 5) ----
+export interface XpEventDto {
+  id?: number;
+  action: string;    // "set" | "pr" | "streak_day" | "water_goal" | "discipline_80"
+                     // | "discipline_100" | "perfect_week" | "sleep" | "meal"
+                     // | "badge_bronze" | "badge_silver" | "badge_gold"
+                     // | "badge_iron" | "badge_mythic" | "session_done"
+  xp: number;
+  weekKey: string;   // "2025-W12" — for fast weekly XP aggregation
+  createdAt: number;
+}

@@ -8,6 +8,7 @@ import { ColdIcon } from "../../components/ColdIcon";
 import { prettyDate } from "../../lib/date.utils";
 import { TIER_META, TIER_RANK, GROUP_LABEL, MYSTERY_COUNT, type AchGroup } from "../../lib/achievements";
 import { useAchievements, markAllSeen, type AchievementView } from "./useAchievements";
+import { useXP } from "../../hooks/useXP";
 
 const GROUP_ORDER: AchGroup[] = [
   "streak", "iron", "discipline", "water", "sleep", "mind", "road", "table", "body", "mystery",
@@ -105,6 +106,7 @@ function BadgeCard({ v, index }: { v: AchievementView; index: number }) {
 
 export function HallOfFrame() {
   const { views, unlockedCount, total, ready } = useAchievements();
+  const { totalXP, weekXP, level, next, progress: lvProgress } = useXP();
 
   useEffect(() => { void markAllSeen(); }, []);
 
@@ -128,6 +130,33 @@ export function HallOfFrame() {
         </div>
         <div style={{ marginTop: 14 }}>
           <Progress percent={pct} showInfo={false} strokeColor="#fff" trailColor="rgba(255,255,255,0.22)" />
+        </div>
+
+        {/* XP + Level section */}
+        <div style={{ marginTop: 16, padding: "12px 14px", background: "rgba(0,0,0,0.25)", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <div>
+              <span style={{ fontFamily: '"Cinzel", serif', fontWeight: 800, fontSize: 16, letterSpacing: "0.06em" }}>
+                Lv.{level.level} — {level.name}
+              </span>
+              {next && (
+                <span style={{ fontSize: 10, opacity: 0.65, marginLeft: 8 }}>→ {next.name}</span>
+              )}
+            </div>
+            <div style={{ textAlign: "right", fontSize: 11, opacity: 0.8 }}>
+              <div style={{ fontWeight: 700 }}>{totalXP.toLocaleString()} XP</div>
+              <div style={{ opacity: 0.65 }}>+{weekXP} this week</div>
+            </div>
+          </div>
+          {next && (
+            <div style={{ height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{
+                height: "100%", background: "#fff", borderRadius: 2,
+                width: `${Math.round(lvProgress * 100)}%`,
+                transition: "width 800ms cubic-bezier(0.22,1,0.36,1)",
+              }} />
+            </div>
+          )}
         </div>
       </div>
 

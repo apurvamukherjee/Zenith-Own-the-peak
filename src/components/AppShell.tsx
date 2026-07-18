@@ -1,4 +1,4 @@
-import { useRef, lazy, Suspense } from "react";
+import { useRef, lazy, Suspense, useEffect, useState, useCallback } from "react";
 import { AppBar } from "./AppBar";
 import { BottomNav } from "./BottomNav";
 import { AnimatedRoutes } from "./AnimatedRoutes";
@@ -11,28 +11,40 @@ import { PeakFlash } from "./PeakFlash";
 import { BirthdayConfetti } from "./BirthdayConfetti";
 import { DramaticIntro } from "./DramaticIntro";
 import { CommandPaletteHost } from "./CommandPalette";
+import { LevelUpOverlay } from "./LevelUpOverlay";
 import { useSetting } from "../hooks/useSettings";
 import { useReminderEngine } from "../features/reminders/useReminderEngine";
 import { useAchievementEngine } from "../features/achievements/useAchievements";
 import { useScrollRestore } from "../hooks/useScrollRestore";
 import { useEasterEggs } from "../hooks/useEasterEggs";
+import { useXPEngine } from "../hooks/useXPEngine";
+import { unlockAudio } from "../lib/audio";
 
-// The DebugPanel is fenced behind IDDQD entry so we can afford to
-// lazy-load it — zero cost for the 99% of users who never trigger it.
 const DebugPanel = lazy(() => import("./DebugPanel").then((m) => ({ default: m.DebugPanel })));
 
 export function AppShell() {
   useReminderEngine();
   useAchievementEngine();
+
+  // Phase 5 XP engine — grants XP on every mutation, fires level-up callback.
+  const [levelUp, setLevelUp] = useState<{ level: number; name: string } | null>(null);
+  const onLevelUp = useCallback((level: number, name: string) => {
+    setLevelUp({ level, name });
+  }, []);
+  useXPEngine(onLevelUp);
+
+  // WebAudio warm-up on first gesture.
+  useEffect(() => {
+    const on = () => { unlockAudio(); };
+    window.addEventListener("pointerdown", on, { once: true });
+    return () => window.removeEventListener("pointerdown", on);
+  }, []);
+
   const bgImage = useSetting("bgImage");
   const bgBlur = useSetting("bgBlur");
   const bgOpacity = useSetting("bgOpacity");
-
   const mainRef = useRef<HTMLElement | null>(null);
   useScrollRestore(mainRef);
-
-  // Master easter-egg orchestrator: one global keydown listener, one focus
-  // handler, and a couple of state slots we surface as overlays below.
   const eggs = useEasterEggs();
 
   return (
@@ -61,6 +73,13 @@ export function AppShell() {
       <BirthdayConfetti />
       <DramaticIntro />
       <CommandPaletteHost />
+      {levelUp && (
+        <LevelUpOverlay
+          level={levelUp.level}
+          name={levelUp.name}
+          onDone={() => setLevelUp(null)}
+        />
+      )}
       {eggs.showDebug && (
         <Suspense fallback={null}>
           <DebugPanel open={eggs.showDebug} onClose={eggs.closeDebug} />
