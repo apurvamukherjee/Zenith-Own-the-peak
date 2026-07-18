@@ -48,6 +48,8 @@ export type Effort = "easy" | "good" | "hard" | "failed";
 
 export interface WorkoutSessionDto {
   id?: number; date: string; weekKey: string; dayId: number; notes?: string; createdAt: number;
+  // Phase 4B: auto-timed duration in minutes, set when session ends / user navigates away.
+  durationMin?: number;
 }
 export interface WorkoutSetDto {
   id?: number; sessionId: number; date: string; exerciseId: number; exerciseName: string;
