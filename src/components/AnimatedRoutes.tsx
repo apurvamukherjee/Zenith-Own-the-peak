@@ -19,6 +19,7 @@ const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then((m
 const HallOfFrame = lazy(() => import("../features/achievements/HallOfFrame").then((m) => ({ default: m.HallOfFrame })));
 const SettingsPage = lazy(() => import("../features/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 const QuickLogPage = lazy(() => import("../features/quick/QuickLogPage").then((m) => ({ default: m.QuickLogPage })));
+const LeaderboardPage = lazy(() => import("../features/leaderboard/LeaderboardPage").then((m) => ({ default: m.LeaderboardPage })));
 
 const Fallback = <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><BloodDrop size={32} /></div>;
 
@@ -59,6 +60,7 @@ export function AnimatedRoutes() {
             <Route path="hall" element={<HallOfFrame />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="quick" element={<QuickLogPage />} />
+            <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

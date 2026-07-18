@@ -4,6 +4,7 @@ import { supabase, supabaseConfigured } from "../../lib/supabase";
 import { exportAll, importAll, db } from "../../db/db";
 import { onMutation } from "../../lib/mutations";
 import { useSetting, setSetting } from "../../hooks/useSettings";
+import { ensureProfile, pushWeeklySnapshot } from "../../lib/social";
 
 type Status = "idle" | "syncing" | "error";
 
@@ -14,6 +15,9 @@ export function useSync() {
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [lastBackupAt, setLastBackupAt] = useState<string | null>(null);
+  // Fix #1 — ticks every time a backup completes successfully. UI watches
+  // this to fire a green pulse dot ("still alive, cloud saw the change").
+  const [lastBackupTick, setLastBackupTick] = useState(0);
   const autoBackup = useSetting("autoBackup");
   const pushTimer = useRef<number | null>(null);
 
@@ -36,9 +40,14 @@ export function useSync() {
       });
       if (error) throw error;
       setLastBackupAt(new Date().toISOString());
+      setLastBackupTick((t) => t + 1);
       // lifetime counter (read-modify-write; drives the "Vault" achievement)
       const cur = await db.settings.get("backupCount");
       await setSetting("backupCount", Number(cur?.value ?? 0) + 1);
+      // Phase 5: ensure profile exists + push weekly leaderboard snapshot
+      const name = String((await db.settings.get("name"))?.value ?? "Anonymous");
+      await ensureProfile(session.user.id, name).catch(() => {});
+      await pushWeeklySnapshot(session.user.id).catch(() => {});
       setStatus("idle");
     } catch {
       setStatus("error");
@@ -82,6 +91,7 @@ export function useSync() {
     session,
     status,
     lastBackupAt,
+    lastBackupTick,
     autoBackup: Number(autoBackup) === 1,
     setAutoBackup: (v: boolean) => setSetting("autoBackup", v ? 1 : 0),
     backupNow,

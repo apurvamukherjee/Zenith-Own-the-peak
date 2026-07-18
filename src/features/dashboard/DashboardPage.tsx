@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Progress, Button, App } from "antd";
-import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbShare2, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee } from "react-icons/tb";
+import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbShare2, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee, TbTrophy } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import { motion } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
@@ -310,6 +310,7 @@ export function DashboardPage() {
             </div>
           </div>
           <Link to="/glance"><Button type="text" size="small" icon={<TbShare2 size={18} />} aria-label="Share card" /></Link>
+          <Link to="/leaderboard"><Button type="text" size="small" icon={<TbTrophy size={18} />} aria-label="Leaderboard" /></Link>
           <Link to="/settings"><Button type="text" size="small" icon={<TbSettings size={18} />} aria-label="Settings" /></Link>
         </div>
       </div>
