@@ -15,7 +15,7 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 ![PWA](https://img.shields.io/badge/Offline-first-000000)
 ![License](https://img.shields.io/badge/license-MIT-informational)
 
-**Phase 2 — Live**
+**Phase 5 — Live** · XP leveling + social leaderboard
 
 </div>
 
@@ -23,9 +23,12 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 
 ## ✨ Highlights
 
-- 🏋️ **Two-screen gym engine** — a minimal Session Logger for the gym (progress bar, +/− weight/reps, tap to complete) and a full Workout Planner for the couch (56-exercise library, custom days, weekly schedule)
+- 🏋️ **Two-screen gym engine** — a minimal Session Logger for the gym (progress bar, +/− weight/reps, tap to complete) and a full Workout Planner for the couch (125-exercise library, custom days, weekly schedule, supersets)
 - 📊 **Discipline score** — one ring on Home that tells you if today is on track (water + training + sleep + protein, averaged)
 - 📅 **Discipline calendar** — month grid colored by daily score with per-metric filters, streak freeze, workout backfill, on-this-day comparisons, goal countdowns, photo pins, range stats, and a GitHub-style year heatmap
+- ⚡ **XP + Levels** — every action earns XP. 21 levels from Recruit to Zenith. Cinematic level-up overlay.
+- 🏆 **84 achievement badges** — 5 tiers (bronze → mythic), 17 mystery, earned by real milestones
+- 🏅 **Social leaderboard** — follow friends by share code, compete on weekly discipline %, streak, volume. See each other's top badges.
 - 🌅 **Time-aware greeting** — 7 time-of-day slots with matching icons, taglines, and evolving gradients from dawn to late night
 - 💬 **Motivation deck** — swipeable quote cards you can add/edit/favorite by category (gym / study / life)
 - 🏆 **Hall of Frame** — 69 unlockable achievements (7 hidden "mystery" badges), bronze→mythic tiers, cold custom vector medallions; locked ones stay visible with a one-line objective so you always know what's next

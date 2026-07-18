@@ -139,54 +139,78 @@ export function LeaderboardPage() {
       {!loading && entries.map((e, i) => {
         const rank = i + 1;
         const levelDef = LEVELS.find((l) => l.level === e.level) ?? LEVELS[0];
+        const TIER_COLOR: Record<string, string> = {
+          mythic: "#ff2740", platinum: "#a8a2b0", gold: "#f6b93b", silver: "#c0c0c0", bronze: "#cd7f32",
+        };
         return (
           <motion.div key={e.userId}
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             style={{
-              display: "flex", alignItems: "center", gap: 10,
               padding: "10px 12px", marginBottom: 6,
               background: e.isMe ? "var(--ember-inner)" : "var(--surface)",
               borderRadius: 12,
               border: e.isMe ? "1px solid var(--accent)" : "1px solid var(--border)",
             }}
           >
-            {/* Rank */}
-            <div style={{
-              width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 800, fontSize: 14,
-              background: rank <= 3 ? "var(--accent)" : "var(--border)",
-              color: rank <= 3 ? "#fff" : "var(--ink-soft)",
-            }}>
-              {rank}
-            </div>
-
-            {/* Name + level */}
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {/* Rank */}
               <div style={{
-                fontWeight: 700, fontSize: 14,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                fontWeight: 800, fontSize: 14, flexShrink: 0,
+                background: rank <= 3 ? "var(--accent)" : "var(--border)",
+                color: rank <= 3 ? "#fff" : "var(--ink-soft)",
               }}>
-                {e.displayName} {e.isMe && <Tag color="red" style={{ margin: "0 0 0 4px", fontSize: 10, borderRadius: 6 }}>you</Tag>}
+                {rank}
               </div>
-              <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>
-                Lv.{e.level} {levelDef.name}
+
+              {/* Name + level */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontWeight: 700, fontSize: 14,
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>
+                  {e.displayName} {e.isMe && <Tag color="red" style={{ margin: "0 0 0 4px", fontSize: 10, borderRadius: 6 }}>you</Tag>}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>
+                  Lv.{e.level} {levelDef.name} · {e.badgeCount} badges
+                </div>
               </div>
+
+              {/* Stats */}
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontWeight: 800, fontSize: 16, color: "var(--accent)" }}>{e.discipline}%</div>
+                <div style={{ fontSize: 10, color: "var(--ink-soft)", display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                  <span><TbFlame size={10} style={{ verticalAlign: "-1px" }} /> {e.streak}</span>
+                  <span><TbBarbell size={10} style={{ verticalAlign: "-1px" }} /> {(e.volumeKg / 1000).toFixed(1)}t</span>
+                </div>
+              </div>
+
+              {/* Unfollow (not self) */}
+              {!e.isMe && (
+                <Button type="text" size="small" danger icon={<TbUserMinus size={14} />}
+                  onClick={() => handleUnfollow(e.userId)} style={{ padding: 4 }} />
+              )}
             </div>
 
-            {/* Stats */}
-            <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <div style={{ fontWeight: 800, fontSize: 16, color: "var(--accent)" }}>{e.discipline}%</div>
-              <div style={{ fontSize: 10, color: "var(--ink-soft)", display: "flex", gap: 6, justifyContent: "flex-end" }}>
-                <span><TbFlame size={10} style={{ verticalAlign: "-1px" }} /> {e.streak}</span>
-                <span><TbBarbell size={10} style={{ verticalAlign: "-1px" }} /> {(e.volumeKg / 1000).toFixed(1)}t</span>
+            {/* Top badges row — visible for everyone */}
+            {e.topBadges.length > 0 && (
+              <div style={{
+                display: "flex", gap: 6, marginTop: 8, paddingTop: 8,
+                borderTop: "1px solid var(--border)", flexWrap: "wrap",
+              }}>
+                {e.topBadges.map((b) => (
+                  <span key={b.id} style={{
+                    fontSize: 10, fontWeight: 700, padding: "2px 8px",
+                    borderRadius: 6, letterSpacing: "0.03em",
+                    background: `${TIER_COLOR[b.tier] ?? "var(--border)"}20`,
+                    color: TIER_COLOR[b.tier] ?? "var(--ink-soft)",
+                    border: `1px solid ${TIER_COLOR[b.tier] ?? "var(--border)"}40`,
+                  }}>
+                    {b.name}
+                  </span>
+                ))}
               </div>
-            </div>
-
-            {/* Unfollow (not self) */}
-            {!e.isMe && (
-              <Button type="text" size="small" danger icon={<TbUserMinus size={14} />}
-                onClick={() => handleUnfollow(e.userId)} style={{ padding: 4 }} />
             )}
           </motion.div>
         );

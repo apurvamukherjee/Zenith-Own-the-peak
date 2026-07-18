@@ -84,10 +84,24 @@ export async function pushWeeklySnapshot(userId: string): Promise<void> {
     xp_earned: weekXP,
   }, { onConflict: "user_id,week_key" });
 
-  // Update profile level
+  // Update profile level + top badges
+  const allBadges = await db.achievements.toArray();
+  const tierRank: Record<string, number> = { mythic: 5, platinum: 4, gold: 3, silver: 2, bronze: 1 };
+  // Import achievement definitions to get names + tiers
+  const { ACHIEVEMENTS } = await import("./achievements");
+  const badgeViews = allBadges.map((b) => {
+    const def = ACHIEVEMENTS.find((a) => a.id === b.id);
+    return def ? { id: def.id, name: def.name, tier: def.tier } : null;
+  }).filter(Boolean) as { id: string; name: string; tier: string }[];
+  // Sort by tier (highest first), take top 6
+  badgeViews.sort((a, b) => (tierRank[b.tier] ?? 0) - (tierRank[a.tier] ?? 0));
+  const topBadges = badgeViews.slice(0, 6);
+
   await supabase.from("profiles").update({
     level: level.level,
     total_xp: totalXP,
+    top_badges: topBadges,
+    badge_count: allBadges.length,
     updated_at: new Date().toISOString(),
   }).eq("user_id", userId);
 }
@@ -121,7 +135,7 @@ export async function getLeaderboard(myUserId: string): Promise<LeaderboardEntry
 
   // Get profiles
   const { data: profiles } = await supabase
-    .from("profiles").select("user_id, display_name, level, total_xp, share_code").in("user_id", allIds);
+    .from("profiles").select("user_id, display_name, level, total_xp, share_code, top_badges, badge_count").in("user_id", allIds);
 
   // Get weekly scores
   const { data: scores } = await supabase
@@ -139,6 +153,8 @@ export async function getLeaderboard(myUserId: string): Promise<LeaderboardEntry
       volumeKg: s?.volume_kg ?? 0,
       xpEarned: s?.xp_earned ?? 0,
       isMe: p.user_id === myUserId,
+      topBadges: (p.top_badges ?? []) as { id: string; name: string; tier: string }[],
+      badgeCount: p.badge_count ?? 0,
     };
   });
 
@@ -157,6 +173,8 @@ export interface LeaderboardEntry {
   volumeKg: number;
   xpEarned: number;
   isMe: boolean;
+  topBadges: { id: string; name: string; tier: string }[];
+  badgeCount: number;
 }
 
 /** Unfollow a user. */

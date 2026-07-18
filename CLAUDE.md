@@ -1,16 +1,17 @@
-# CLAUDE.md — Zenith Phase 1 (Final)
+# CLAUDE.md — Zenith (through Phase 5)
 
 ## What this is
 
 **Zenith — "Own the peak."** A local-first personal tracker for a 22-year-old
 lifter/student in West Bengal. Tracks gym training, nutrition, sleep, water,
 study, and bike fuel in one app. Gothic dark theme (black + red) is the default.
+Phase 5 adds XP leveling + social leaderboard via Supabase.
 
 Brand: **Zenith** · tagline **"Own the peak"** · signature **"by Apurva"**
 
 ## Stack
 
-React 19 + TypeScript (strict) + Vite 5 + Ant Design 5 + Dexie (IndexedDB) +
+React 19 + TypeScript (strict) + Vite 5 + Ant Design 5 + Dexie (IndexedDB v9) +
 Framer Motion + Recharts + react-icons (Tabler `react-icons/tb`) + React Router 6
 + dayjs + optional @supabase/supabase-js. **Zero @ant-design/icons** — everything
 uses Tabler.
@@ -28,13 +29,13 @@ npm run build   # must be clean before any change is considered done
 ```
 UI (features/*/*.tsx)        ← never touches Dexie directly
   └─ data hooks (use*.ts)    ← ONLY place Dexie is read/written
-       └─ db (src/db/db.ts)  ← typed tables, versioned schema, export/import
+       └─ db (src/db/db.ts)  ← typed tables, versioned schema v9, export/import
 ```
 
 Mutation bus (`lib/mutations.ts`) fires on every Dexie write → cloud auto-backup
-debounces a push. Adding a new table auto-inherits this.
+debounces a push → XP engine grants XP → achievement engine checks badges.
 
-## Routes (15 total + 404)
+## Routes (18 total + 404)
 
 | Path | Page | Tab? |
 |------|------|------|
@@ -53,6 +54,8 @@ debounces a push. Adding a new table auto-inherits this.
 | `/quotes` | QuotesPage (Motivation) | no |
 | `/hall` | HallOfFrame (achievements) | no |
 | `/settings` | SettingsPage | no |
+| `/quick` | QuickLogPage | no |
+| `/leaderboard` | LeaderboardPage | no |
 
 Plus a `*` catch-all → 404 page (in `AnimatedRoutes.tsx`).
 
@@ -424,3 +427,37 @@ Schema bumped to **v4** with 4 new tables:
 - Every table access still routed through Dexie's mutation hooks so `bumpMutation`
   still triggers auto-backup and achievements. All new tables (`foods`,
   `mealTemplateItems`) are included in `exportAll()` via `db.tables` iteration.
+
+## Phase 5 — XP + Social Leaderboard
+
+### Schema v9
+- `xpEvents` table: `++id, action, weekKey, createdAt` — every XP grant is one row
+
+### Supabase tables (4 new, run via SQL Editor)
+- `profiles` — user_id, display_name, share_code, level, total_xp, top_badges (jsonb), badge_count, public
+- `weekly_scores` — user_id + week_key composite PK, discipline_avg, streak_end, volume_kg, xp_earned
+- `follows` — follower_id + followed_id composite PK (asymmetric)
+- `activities` — event log for future feed (user_id, kind, payload jsonb, created_at)
+
+### New files
+- `src/lib/xp.ts` — XP rates, 21-level curve, `grantXP()`, `isoWeek()`, `xpToLevel()`
+- `src/lib/social.ts` — `ensureProfile()`, `pushWeeklySnapshot()`, `followByCode()`, `getLeaderboard()`
+- `src/hooks/useXP.ts` — live Dexie query for XP totals/level
+- `src/hooks/useXPEngine.ts` — mutation-bus listener, deduped XP grants per day
+- `src/components/LevelUpOverlay.tsx` — 2.8s cinematic level-up screen
+- `src/features/leaderboard/LeaderboardPage.tsx` — ranked list, follow-by-code, badge display
+
+### How leaderboard works
+1. User signs in via Cloud Sync (existing OTP flow)
+2. First backup auto-creates `profiles` row with `ZN-XXXX` share code
+3. Every backup also upserts `weekly_scores` + updates profile level/XP/badges
+4. User shares code → friend pastes it → `follows` row created → leaderboard shows both
+5. Top 6 badges (by tier: mythic→iron→gold→silver→bronze) visible to followers
+6. Scores sort by discipline_avg desc, then volume_kg as tiebreaker
+
+### Settings additions
+- `shareCode` — cached locally, mirrors Supabase `profiles.share_code`
+
+### Privacy
+Friends see: name, level, weekly stats, top 6 badges, badge count.
+Friends never see: raw logs, specific weights, meal data, mystery badge names before unlock.
