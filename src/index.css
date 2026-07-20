@@ -51,7 +51,41 @@ body {
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
+  /* Global no-select: kills accidental text selection on long-press/drag
+     across cards, calendar cells, buttons, etc. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
+/* Re-enable selection where users actually type or need to copy */
+input, textarea, [contenteditable="true"], pre, code, .selectable {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+/* antd Modal body text should be selectable (descriptions, notes) */
+.ant-modal-body { user-select: text !important; -webkit-user-select: text !important; }
+
+/* Frosted glass card — used by task list cards. Translucent bg + backdrop blur
+   creates a frosted depth effect that reads as premium on dark surfaces.
+   The color-accent glow behind the icon comes from a pseudo-element. */
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+[data-theme="dark"] .glass-card {
+  background: rgba(26, 16, 19, 0.65);
+  box-shadow: 0 4px 20px -6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+:root .glass-card {
+  background: rgba(255, 250, 250, 0.7);
+  box-shadow: 0 4px 16px -6px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.glass-card:active { transform: scale(0.97); }
 
 /* Smooth dark/light switch: animate color-family properties on theme change
    instead of an instant token swap. Scoped to `.theme-ready` (added after first

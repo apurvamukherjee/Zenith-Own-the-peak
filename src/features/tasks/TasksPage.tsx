@@ -6,7 +6,7 @@ import {
   TbPlus, TbCheck, TbCalendar, 
   TbTrash, TbMapPin, TbUser, TbPhone, TbNotes, TbFlag,
   TbBriefcase, TbHome, TbBarbell, TbShoppingCart, TbCash, TbPill,
-  TbShoppingBag, TbClock,
+  TbShoppingBag, TbClock, TbMotorbike,
 } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
@@ -23,7 +23,7 @@ import { prettyDate } from "../../lib/date.utils";
 import type { TaskDto, TaskListDto } from "../../db/types";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
-  TbBriefcase, TbHome, TbBarbell, TbShoppingCart, TbCash, TbPill, TbShoppingBag,
+  TbBriefcase, TbHome, TbBarbell, TbShoppingCart, TbCash, TbPill, TbShoppingBag, TbMotorbike,
 };
 
 const PRIORITY_LABEL: Record<number, { label: string; color: string }> = {
@@ -137,24 +137,60 @@ function TaskHub() {
         </AnimatePresence>
       </div>
 
-      {/* List cards grid */}
+      {/* List cards grid — frosted glass with icon glow */}
       <div style={{ marginBottom: 20 }}>
-        <span className="gothic-eyebrow" style={{ display: "block", marginBottom: 8 }}>LISTS</span>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+        <span className="gothic-eyebrow" style={{ display: "block", marginBottom: 10 }}>LISTS</span>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
           {lists.map((l) => {
             const Icon = ICON_MAP[l.icon] ?? TbFlag;
             const count = counts.get(l.id) ?? 0;
             return (
               <Link key={l.id} to={`/tasks?list=${l.id}`} style={{ textDecoration: "none" }}>
-                <div style={{
-                  background: "var(--surface)", borderRadius: 12, padding: "12px 8px",
-                  textAlign: "center", border: "1px solid var(--border)",
-                  borderLeft: `3px solid ${l.color}`,
-                }}>
-                  <Icon size={18} style={{ color: l.color, marginBottom: 4 }} />
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink)", marginBottom: 2,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.name}</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: count > 0 ? l.color : "var(--ink-soft)" }}>{count}</div>
+                <div className="glass-card" style={{ padding: "16px 14px", display: "flex", alignItems: "center", gap: 12 }}>
+                  {/* Icon with colored glow behind it */}
+                  <div style={{
+                    position: "relative", width: 44, height: 44, flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {/* Glow */}
+                    <div style={{
+                      position: "absolute", inset: -4,
+                      background: `radial-gradient(circle, ${l.color}40 0%, transparent 70%)`,
+                      borderRadius: "50%", filter: "blur(4px)",
+                    }} />
+                    {/* Icon ring */}
+                    <div style={{
+                      position: "relative", width: 44, height: 44, borderRadius: 12,
+                      background: `${l.color}18`,
+                      border: `1px solid ${l.color}30`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <Icon size={22} style={{ color: l.color }} />
+                    </div>
+                  </div>
+
+                  {/* Text */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 13, fontWeight: 700, color: "var(--ink)",
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>{l.name}</div>
+                    <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 1 }}>
+                      {count > 0 ? `${count} active` : "No tasks"}
+                    </div>
+                  </div>
+
+                  {/* Count badge */}
+                  {count > 0 && (
+                    <div style={{
+                      width: 28, height: 28, borderRadius: 8,
+                      background: `${l.color}20`, color: l.color,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontWeight: 800, fontSize: 14, flexShrink: 0,
+                    }}>
+                      {count}
+                    </div>
+                  )}
                 </div>
               </Link>
             );
