@@ -15,7 +15,7 @@ import { useDayDetail } from "./useCalendar";
 import { useSetting } from "../../hooks/useSettings";
 import { useBackClose } from "../../hooks/useBackClose";
 import { useTokens } from "../../hooks/useTokens";
-import { DayTimeline } from "./DayTimeline";
+import { DayTaskSheet } from "./DayTaskSheet";
 import { FocusMode } from "../../components/FocusMode";
 import { spawnRecurring } from "../tasks/useRecurringSpawner";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -276,8 +276,13 @@ export function CalendarPage() {
         Hold a day, then tap another to see stats for that range.
       </div>
 
-      {/* Day timeline — shows when a past day is selected */}
-      {selected && <DayTimeline date={selected} onFocus={setFocusTask} />}
+      {/* Day task sheet — bottom sheet with tasks, quick-add, swipe between days */}
+      <DayTaskSheet
+        date={selected}
+        onClose={() => setSelected(null)}
+        onDateChange={(d) => setSelected(d)}
+        onFocus={setFocusTask}
+      />
 
       {/* Focus mode overlay */}
       <FocusMode task={focusTask} onClose={() => setFocusTask(null)} />
@@ -295,7 +300,7 @@ export function CalendarPage() {
         </div>
       )}
 
-      {selected && <DayDetailModal date={selected} onClose={() => setSelected(null)} />}
+      {/* DayDetailModal replaced by DayTaskSheet above */}
 
       <Modal open={showSummary} onCancel={() => setShowSummary(false)} footer={null} title={`${monthLabel} summary`}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 8 }}>
@@ -351,7 +356,9 @@ function AddGoalModal({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-function DayDetailModal({ date, onClose }: { date: string; onClose: () => void }) {
+// Retained but no longer rendered in CalendarPage — replaced by DayTaskSheet.
+// Kept exported so it can be used elsewhere if needed (e.g. a detailed view for past days).
+export function DayDetailModal({ date, onClose }: { date: string; onClose: () => void }) {
   const { message, modal } = App.useApp();
   useBackClose(true, onClose);
   const detail = useDayDetail(date);
