@@ -18,6 +18,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/settings":  { title: "Settings",    rank: 1, tab: false },
   "/quick":     { title: "Quick log",   rank: 1, tab: false },
   "/leaderboard": { title: "Leaderboard", rank: 1, tab: false },
+  "/tasks":       { title: "Tasks",       rank: 1, tab: true },
 };
 
 export function metaFor(pathname: string): RouteMeta {

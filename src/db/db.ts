@@ -6,6 +6,7 @@ import type {
   ScheduleDto, ScheduleLogDto, MealDto, GoalDayDto, DayPhotoDto, StreakFreezeDto,
   QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
   AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
+  TaskDto, TaskListDto, RecurringRuleDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -39,6 +40,9 @@ class ZenithDB extends Dexie {
   mealTemplateItems!: Table<MealTemplateItemDto, number>;
   usageHistory!: Table<UsageHistoryDto, string>;
   xpEvents!: Table<XpEventDto, number>;
+  tasks!: Table<TaskDto, number>;
+  taskLists!: Table<TaskListDto, string>;
+  recurringRules!: Table<RecurringRuleDto, number>;
 
   constructor() {
     super("zenith");
@@ -103,6 +107,12 @@ class ZenithDB extends Dexie {
     this.version(9).stores({
       xpEvents: "++id, action, weekKey, createdAt",
     });
+    // v10: Tasks + Calendar system (Phase 6)
+    this.version(10).stores({
+      tasks: "++id, listId, status, date, priority, recurringRuleId, createdAt",
+      taskLists: "&id, order",
+      recurringRules: "++id, active",
+    });
   }
 }
 
@@ -116,7 +126,7 @@ for (const table of db.tables) {
 }
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 9, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 10, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }
