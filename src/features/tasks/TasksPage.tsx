@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button, Tag, App, Modal, Select } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -16,6 +16,7 @@ import {
   useTaskLists, useTodayTasks, useUpcomingTasks, useTaskCountByList,
   addTask, completeTask, deleteTask,
 } from "./useTasks";
+import { TaskListView } from "./TaskListView";
 import { parseTaskInput } from "../../lib/taskParser";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 import { prettyDate } from "../../lib/date.utils";
@@ -32,6 +33,14 @@ const PRIORITY_LABEL: Record<number, { label: string; color: string }> = {
 };
 
 export function TasksPage() {
+  // If ?list=X is in the URL, show the filtered list/kanban view instead of hub
+  const [params] = useSearchParams();
+  if (params.has("list")) return <TaskListView />;
+
+  return <TaskHub />;
+}
+
+function TaskHub() {
   const { message } = App.useApp();
   const lists = useTaskLists();
   const todayTasks = useTodayTasks();
