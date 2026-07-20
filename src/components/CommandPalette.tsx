@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input, Modal } from "antd";
 import {
   TbSearch, TbHome, TbBarbell, TbCalendar, TbSettings, TbMeat,
-  TbDroplet, TbMoon, TbBook2, TbGasStation, TbClipboardList, TbTrophy, TbBolt,
+  TbDroplet, TbMoon, TbBook2, TbGasStation, TbClipboardList, TbTrophy, TbBolt, TbCheckbox,
 } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/db";
@@ -28,9 +28,10 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const navigate = useNavigate();
   const [q, setQ] = useState("");
 
-  // Dynamic sources: exercises + foods. Names alone; the palette just navigates.
+  // Dynamic sources: exercises + foods + tasks. Names alone; the palette just navigates.
   const exercises = useLiveQuery(() => db.exercises.orderBy("name").toArray(), []) ?? [];
   const foods = useLiveQuery(() => db.foods.orderBy("name").toArray(), []) ?? [];
+  const tasks = useLiveQuery(() => db.tasks.where("status").anyOf(["todo", "in_progress"]).toArray(), []) ?? [];
 
   const commands: Command[] = useMemo(() => {
     const nav = (path: string) => () => { navigate(path); onClose(); };
@@ -69,8 +70,15 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
         icon: TbMeat, action: nav("/nutrition"), keywords: f.category ?? "",
       });
     }
+    for (const t of tasks.slice(0, 30)) {
+      base.push({
+        id: `task-${t.id}`, label: t.title, hint: `task · ${t.listId}`,
+        icon: TbCheckbox, action: nav(`/tasks?list=${t.listId}`),
+        keywords: (t.listId ?? "") + " " + (t.location ?? "") + " " + (t.description ?? ""),
+      });
+    }
     return base;
-  }, [exercises, foods, navigate, onClose]);
+  }, [exercises, foods, tasks, navigate, onClose]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();

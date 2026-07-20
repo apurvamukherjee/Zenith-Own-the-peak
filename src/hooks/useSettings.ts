@@ -27,6 +27,7 @@ export const DEFAULTS = {
   coachLogger: 0,
   coachPlanner: 0,
   coachNutrition: 0,
+  tasksMigrated: 0,     // 1 = existing schedules migrated to tasks
   // Reminders (times are HH:mm)
   remWater: 1,
   remWaterEveryH: 2,

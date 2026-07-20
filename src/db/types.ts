@@ -206,3 +206,63 @@ export interface XpEventDto {
   weekKey: string;   // "2025-W12" — for fast weekly XP aggregation
   createdAt: number;
 }
+
+// ---- Tasks + Calendar system (Phase 6) ----
+export type TaskStatus = "todo" | "in_progress" | "done" | "cancelled";
+export type TaskPriority = 1 | 2 | 3; // 1=urgent 2=normal 3=low
+
+export interface TaskDto {
+  id?: number;
+  title: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  listId: string;
+  createdAt: number;
+  updatedAt: number;
+  // Scheduling (optional — if date set, shows on calendar)
+  date?: string;          // YYYY-MM-DD
+  time?: string;          // HH:mm
+  endTime?: string;       // HH:mm (makes it a time-block vs point event)
+  // Recurrence
+  recurringRuleId?: number;
+  isRecurringInstance?: number; // 1 = spawned from rule
+  // Rich fields (all optional)
+  description?: string;
+  location?: string;
+  contactName?: string;
+  contactPhone?: string;
+  notes?: string;
+  // Reminder
+  remindAt?: number;
+  remindBefore?: number;  // minutes before date+time
+  // Dependencies
+  blockedBy?: number;
+  // Kanban
+  startedAt?: number;
+  completedAt?: number;
+}
+
+export interface TaskListDto {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+  order: number;
+  isDefault: number; // 1 = can't delete
+  createdAt: number;
+}
+
+export interface RecurringRuleDto {
+  id?: number;
+  frequency: "daily" | "weekly" | "monthly";
+  interval: number;
+  weekdays?: string;   // "1,3,5" for Mon/Wed/Fri
+  endDate?: string;
+  active: number;
+  templateTitle: string;
+  templateListId: string;
+  templatePriority: TaskPriority;
+  templateTime?: string;
+  templateEndTime?: string;
+  createdAt: number;
+}

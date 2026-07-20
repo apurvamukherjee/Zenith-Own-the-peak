@@ -1,12 +1,13 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-import { TbHome2, TbBarbell, TbApple, TbBook2, TbChartHistogram } from "react-icons/tb";
+import { TbHome2, TbBarbell, TbApple, TbBook2, TbChartHistogram, TbCheckbox } from "react-icons/tb";
 import type { IconType } from "react-icons";
 
 const items: { to: string; label: string; Icon: IconType }[] = [
   { to: "/", label: "Home", Icon: TbHome2 },
   { to: "/workout", label: "Train", Icon: TbBarbell },
   { to: "/nutrition", label: "Nutrition", Icon: TbApple },
+  { to: "/tasks", label: "Tasks", Icon: TbCheckbox },
   { to: "/study", label: "Learn", Icon: TbBook2 },
   { to: "/profile", label: "Stats", Icon: TbChartHistogram },
 ];

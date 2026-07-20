@@ -1,6 +1,7 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Modal, Button, InputNumber, Rate, App, Segmented, Input, Select } from "antd";
+import { Modal, Button, Rate, App, Segmented, Input, Select } from "antd";
+import { SmartInputNumber } from "../../components/SmartInputNumber";
 import { motion } from "framer-motion";
 import {
   TbChevronLeft, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbMeat, TbBook2,
@@ -14,6 +15,11 @@ import { useDayDetail } from "./useCalendar";
 import { useSetting } from "../../hooks/useSettings";
 import { useBackClose } from "../../hooks/useBackClose";
 import { useTokens } from "../../hooks/useTokens";
+import { DayTaskSheet } from "./DayTaskSheet";
+import { FocusMode } from "../../components/FocusMode";
+import { spawnRecurring } from "../tasks/useRecurringSpawner";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "../../db/db";
 import { addWater } from "../water/useWater";
 import { upsertSleep } from "../sleep/useSleep";
 import { fmtDuration, sleepDurationMin, todayKey } from "../../lib/date.utils";
@@ -66,6 +72,36 @@ export function CalendarPage() {
   const photoDates = usePhotoDatesInMonth(dates);
   const summary = useMonthSummary(dates, scoreMap);
   const upcomingGoals = useUpcomingGoals(3);
+
+  // Phase 6B — focus mode + task dots + recurring spawner
+  const [focusTask, setFocusTask] = useState<import("../../db/types").TaskDto | null>(null);
+
+  // Spawn recurring task instances for the visible month
+  useEffect(() => {
+    const firstDay = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+    const lastDay = `${year}-${String(month + 1).padStart(2, "0")}-${new Date(year, month + 1, 0).getDate()}`;
+    spawnRecurring(firstDay, lastDay).catch(() => {});
+  }, [year, month]);
+
+  // Task dots per day — grouped by list color (max 4 dots)
+  const taskDots = useLiveQuery(async () => {
+    const monthTasks = await db.tasks.where("date").between(
+      `${year}-${String(month + 1).padStart(2, "0")}-01`,
+      `${year}-${String(month + 1).padStart(2, "0")}-31`,
+      true, true,
+    ).toArray();
+    const lists = await db.taskLists.toArray();
+    const colorMap = new Map(lists.map((l) => [l.id, l.color]));
+    const dots = new Map<string, string[]>(); // date → unique colors
+    for (const t of monthTasks) {
+      if (!t.date || t.status === "cancelled") continue;
+      const arr = dots.get(t.date) ?? [];
+      const c = colorMap.get(t.listId) ?? "var(--accent)";
+      if (!arr.includes(c)) arr.push(c);
+      dots.set(t.date, arr.slice(0, 4)); // max 4 dots
+    }
+    return dots;
+  }, [year, month]) ?? new Map();
 
   const firstDow = new Date(year, month, 1).getDay();
   const monthLabel = dayjs(new Date(year, month, 1)).format("MMMM YYYY");
@@ -216,6 +252,15 @@ export function CalendarPage() {
               {dayNum}
               {hasGoal && <TbFlag size={9} style={{ position: "absolute", top: 2, right: 2 }} />}
               {hasPhoto && <TbCamera size={9} style={{ position: "absolute", bottom: 2, right: 2 }} />}
+              {/* Task dots — colored by list, max 4 */}
+              {(taskDots.get(c.date) ?? []).length > 0 && (
+                <div style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)",
+                  display: "flex", gap: 2 }}>
+                  {(taskDots.get(c.date) ?? []).map((color: string, i: number) => (
+                    <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: color }} />
+                  ))}
+                </div>
+              )}
             </motion.button>
           );
         })}
@@ -231,6 +276,17 @@ export function CalendarPage() {
         Hold a day, then tap another to see stats for that range.
       </div>
 
+      {/* Day task sheet — bottom sheet with tasks, quick-add, swipe between days */}
+      <DayTaskSheet
+        date={selected}
+        onClose={() => setSelected(null)}
+        onDateChange={(d) => setSelected(d)}
+        onFocus={setFocusTask}
+      />
+
+      {/* Focus mode overlay */}
+      <FocusMode task={focusTask} onClose={() => setFocusTask(null)} />
+
       {rangeStats && (
         <div style={{ position: "fixed", bottom: 76, left: 16, right: 16, background: "var(--surface)", borderRadius: 14,
           padding: "12px 16px", boxShadow: "0 8px 30px rgba(0,0,0,0.25)", border: "1px solid var(--border)", zIndex: 40 }}>
@@ -244,7 +300,7 @@ export function CalendarPage() {
         </div>
       )}
 
-      {selected && <DayDetailModal date={selected} onClose={() => setSelected(null)} />}
+      {/* DayDetailModal replaced by DayTaskSheet above */}
 
       <Modal open={showSummary} onCancel={() => setShowSummary(false)} footer={null} title={`${monthLabel} summary`}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 8 }}>
@@ -300,7 +356,9 @@ function AddGoalModal({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-function DayDetailModal({ date, onClose }: { date: string; onClose: () => void }) {
+// Retained but no longer rendered in CalendarPage — replaced by DayTaskSheet.
+// Kept exported so it can be used elsewhere if needed (e.g. a detailed view for past days).
+export function DayDetailModal({ date, onClose }: { date: string; onClose: () => void }) {
   const { message, modal } = App.useApp();
   useBackClose(true, onClose);
   const detail = useDayDetail(date);
@@ -403,7 +461,7 @@ function DayDetailModal({ date, onClose }: { date: string; onClose: () => void }
               {isToday ? "Quick add" : "Missed something? Backfill it"}
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              <InputNumber inputMode="decimal" placeholder="ml to add" value={waterAdd} onChange={(v) => setWaterAdd(v ?? undefined)}
+              <SmartInputNumber placeholder="ml to add" value={waterAdd} onChange={(v) => setWaterAdd(v == null ? undefined : Number(v))}
                 style={{ flex: 1 }} min={0} step={50} />
               <Button type="primary" onClick={saveWater}>Add water</Button>
             </div>
