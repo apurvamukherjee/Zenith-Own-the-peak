@@ -66,7 +66,8 @@ export function SyncCard() {
           {codeSent && (
             <>
               <div style={{ fontSize: 12, color: "var(--ink-soft)", padding: "4px 0" }}>
-                We emailed you a sign-in link and a 6-digit code. Tap the link on this device, or paste the code below.
+                We emailed you a sign-in link and a 6-digit code. Tapping the link on this
+                device signs you in automatically — or paste the code below instead.
               </div>
               <Input placeholder="6-digit code from email" value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" />
             </>

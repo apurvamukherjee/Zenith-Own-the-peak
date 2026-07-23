@@ -20,6 +20,7 @@ export function useSync() {
   const [lastBackupTick, setLastBackupTick] = useState(0);
   const autoBackup = useSetting("autoBackup");
   const pushTimer = useRef<number | null>(null);
+  const hasSyncedThisSession = useRef(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -73,6 +74,14 @@ export function useSync() {
     }
   }, [session]);
 
+  // First sync on sign-in: push immediately so profile/leaderboard/backup
+  // exist right away instead of waiting for the next local edit + debounce.
+  useEffect(() => {
+    if (!session || hasSyncedThisSession.current) return;
+    hasSyncedThisSession.current = true;
+    void backupNow();
+  }, [session, backupNow]);
+
   // Auto-backup: debounce a push a few seconds after the last change.
   useEffect(() => {
     if (!supabase || !session || Number(autoBackup) !== 1) return;
@@ -97,7 +106,10 @@ export function useSync() {
     backupNow,
     restore,
     sendCode: (email: string) =>
-      supabase?.auth.signInWithOtp({ email, options: { shouldCreateUser: true } }),
+      supabase?.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true, emailRedirectTo: window.location.origin },
+      }),
     verifyCode: (email: string, token: string) =>
       supabase?.auth.verifyOtp({ email, token, type: "email" }),
     signOut: () => supabase?.auth.signOut(),
