@@ -1,13 +1,12 @@
 # Zenith Leaderboard — Setup & Usage Guide
 
-## One-time Supabase setup
+## One-time setup
 
-You already ran the 4 tables. Just need 2 more columns. Run in **Supabase SQL Editor**:
-
-```sql
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS top_badges jsonb DEFAULT '[]'::jsonb;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS badge_count int DEFAULT 0;
-```
+Cloud sync now runs on **Convex** (migrated from Supabase — see CLAUDE.md
+"Phase 5.1"). The `profiles` table already has `topBadges`/`badgeCount`
+fields baked into `convex/schema.ts` — there's no manual SQL step anymore.
+Just run `npx convex dev` once (see `DEPLOYMENT.md` part A) and it pushes the
+schema for you.
 
 ## For you and your friends — step by step
 

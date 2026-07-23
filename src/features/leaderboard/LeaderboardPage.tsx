@@ -1,61 +1,73 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Input, App, Tag } from "antd";
 import { TbUserPlus, TbFlame, TbBarbell, TbCopy, TbUserMinus } from "react-icons/tb";
 import { motion } from "framer-motion";
+import { useQuery, useMutation } from "convex/react";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { SkeletonList } from "../../components/Skeleton";
 import { EmptyState } from "../../components/EmptyState";
 import { ColdIcon } from "../../components/ColdIcon";
 import { useSync } from "../sync/useSync";
+import { convexConfigured } from "../../lib/convexClient";
 import { useSetting } from "../../hooks/useSettings";
-import { getLeaderboard, followByCode, unfollowUser, type LeaderboardEntry } from "../../lib/social";
+import { api } from "../../../convex/_generated/api";
 import { isoWeek } from "../../lib/xp";
 import { LEVELS } from "../../lib/xp";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 
+// Convex hooks require a ConvexAuthProvider in the tree, which main.tsx only
+// mounts when configured — so useSync()/useQuery() must not run otherwise.
 export function LeaderboardPage() {
+  if (!convexConfigured) {
+    return (
+      <PageTransition>
+        <SectionTitle eyebrow="Compete" title="Leaderboard" />
+        <EmptyState
+          icon={<ColdIcon glyph="peak" size={80} />}
+          title="Cloud sync not configured"
+          hint="Set up Convex (see DEPLOYMENT.md) to enable the friends leaderboard."
+        />
+      </PageTransition>
+    );
+  }
+  return <LeaderboardPageInner />;
+}
+
+function LeaderboardPageInner() {
   const { message } = App.useApp();
   const sync = useSync();
   const shareCode = String(useSetting("shareCode" as any) || "");
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [addCode, setAddCode] = useState("");
   const [addOpen, setAddOpen] = useState(false);
 
-  const userId = sync.session?.user?.id;
+  const followByCode = useMutation(api.social.followByCode);
+  const unfollowUser = useMutation(api.social.unfollowUser);
+
+  // Reactive — updates live whenever a followed friend's score changes, no
+  // manual refetch needed after follow/unfollow.
+  const rawEntries = useQuery(api.social.getLeaderboard, sync.session ? {} : "skip");
+  const loading = Boolean(sync.session) && rawEntries === undefined;
+  const entries = rawEntries ?? [];
+
   const weekKey = isoWeek();
 
-  useEffect(() => {
-    if (!userId) { setLoading(false); return; }
-    setLoading(true);
-    getLeaderboard(userId).then((data) => {
-      setEntries(data);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, [userId, sync.lastBackupTick]);
-
   async function handleFollow() {
-    if (!userId || !addCode.trim()) return;
-    const name = await followByCode(userId, addCode.trim());
+    if (!addCode.trim()) return;
+    const name = await followByCode({ code: addCode.trim() });
     if (name) {
       hapticSuccess();
       message.success(`Now following ${name}`);
       setAddCode("");
       setAddOpen(false);
-      // Refresh
-      const data = await getLeaderboard(userId);
-      setEntries(data);
     } else {
       message.error("Code not found — check the spelling");
     }
   }
 
-  async function handleUnfollow(targetId: string) {
-    if (!userId) return;
-    await unfollowUser(userId, targetId);
+  async function handleUnfollow(targetId: (typeof entries)[number]["userId"]) {
+    await unfollowUser({ targetUserId: targetId });
     hapticLight();
-    setEntries((prev) => prev.filter((e) => e.userId !== targetId));
     message.info("Unfollowed");
   }
 

@@ -5,7 +5,8 @@
 **Zenith — "Own the peak."** A local-first personal tracker for a 22-year-old
 lifter/student in West Bengal. Tracks gym training, nutrition, sleep, water,
 study, and bike fuel in one app. Gothic dark theme (black + red) is the default.
-Phase 5 adds XP leveling + social leaderboard via Supabase.
+Phase 5 adds XP leveling + social leaderboard via Convex (migrated from
+Supabase in Phase 5.1).
 
 Brand: **Zenith** · tagline **"Own the peak"** · signature **"by Apurva"**
 
@@ -13,8 +14,8 @@ Brand: **Zenith** · tagline **"Own the peak"** · signature **"by Apurva"**
 
 React 19 + TypeScript (strict) + Vite 5 + Ant Design 5 + Dexie (IndexedDB v9) +
 Framer Motion + Recharts + react-icons (Tabler `react-icons/tb`) + React Router 6
-+ dayjs + optional @supabase/supabase-js. **Zero @ant-design/icons** — everything
-uses Tabler.
++ dayjs + optional Convex (`convex` + `@convex-dev/auth`, backend in `convex/`).
+**Zero @ant-design/icons** — everything uses Tabler.
 
 ## Run / build
 
@@ -72,6 +73,10 @@ still **inlined into ProfilePage**, not a separate route.
 
 ## Directory map
 
+`convex/` sits at the repo root, a sibling of `src/` — schema.ts, auth.ts,
+social.ts, backups.ts (see Phase 5.1). `convex/_generated/` is CLI-generated
+and committed, not hand-edited.
+
 ```
 src/
   db/types.ts          DTOs (all tables)
@@ -83,7 +88,7 @@ src/
     date.utils.ts, workout.utils.ts, image.utils.ts
     mutations.ts         Write pub/sub → cloud auto-backup
     notifications.ts     Unified reminders (Capacitor native + web fallback)
-    supabase.ts          Optional Supabase client
+    convexClient.ts      Optional Convex client (`convexConfigured` flag, mirrors old supabase.ts pattern)
     haptics.ts           Capacitor haptics + navigator.vibrate fallback
     streak.utils.ts      Unified cross-module day streak
     todayScore.ts        Discipline score (water% + session + sleep + protein)
@@ -120,7 +125,7 @@ src/
     glance/              Screenshot-friendly share card
     onboarding/          3-screen first-launch flow
     reminders/           App-wide reminder engine + settings card
-    sync/                Supabase cloud backup card
+    sync/                Convex cloud backup card (useSync.ts + SyncCard.tsx)
     review/              useWeeklyReview.ts (hook only, rendered in ProfilePage)
 ```
 
@@ -165,8 +170,10 @@ Rule: style prop → CSS var. SVG/Progress attribute → `useTokens()`.
 
 Full instructions in `DEPLOYMENT.md`. Short version:
 - **Vercel**: import repo, auto-detects Vite, `vercel.json` handles SPA rewrites.
-- **Supabase**: one `backups` table with RLS; email OTP needs `{{ .Token }}` in
-  the Magic Link template.
+- **Convex**: `npx convex dev` for a free local dev deployment (zero login);
+  `npx convex login && npx convex deploy` for production, wired into the
+  Vercel build command. Email OTP delivery needs a Resend API key set via
+  `npx convex env set AUTH_RESEND_KEY ...`.
 - **Capacitor**: `web-dir=dist`, `@capacitor/local-notifications` for real push.
 
 ## Non-negotiables
@@ -433,30 +440,63 @@ Schema bumped to **v4** with 4 new tables:
 ### Schema v9
 - `xpEvents` table: `++id, action, weekKey, createdAt` — every XP grant is one row
 
-### Supabase tables (4 new, run via SQL Editor)
-- `profiles` — user_id, display_name, share_code, level, total_xp, top_badges (jsonb), badge_count, public
-- `weekly_scores` — user_id + week_key composite PK, discipline_avg, streak_end, volume_kg, xp_earned
-- `follows` — follower_id + followed_id composite PK (asymmetric)
-- `activities` — event log for future feed (user_id, kind, payload jsonb, created_at)
+### Phase 5.1 — migrated from Supabase to Convex (2026-07)
+Cloud sync/leaderboard now runs on **Convex** instead of Supabase — schema and
+backend logic live as versioned TypeScript in `convex/`, pushed via
+`npx convex dev`/`deploy`, instead of hand-written SQL + RLS policies in a
+dashboard. Auth is `@convex-dev/auth` with a custom email-OTP provider
+(`convex/ResendOTP.ts`, delivery via Resend) — same "send code → verify code"
+UX as before, but with no magic-link/redirect step to misconfigure. Clean
+cutover; no data ever lived in Supabase in production, so nothing was migrated.
 
-### New files
-- `src/lib/xp.ts` — XP rates, 21-level curve, `grantXP()`, `isoWeek()`, `xpToLevel()`
-- `src/lib/social.ts` — `ensureProfile()`, `pushWeeklySnapshot()`, `followByCode()`, `getLeaderboard()`
-- `src/hooks/useXP.ts` — live Dexie query for XP totals/level
-- `src/hooks/useXPEngine.ts` — mutation-bus listener, deduped XP grants per day
-- `src/components/LevelUpOverlay.tsx` — 2.8s cinematic level-up screen
-- `src/features/leaderboard/LeaderboardPage.tsx` — ranked list, follow-by-code, badge display
+**Convex tables** (`convex/schema.ts`, plus `@convex-dev/auth`'s own `users`/
+`authAccounts`/etc.):
+- `profiles` — userId, displayName, shareCode, level, totalXp, topBadges (array), badgeCount, public, updatedAt
+- `weeklyScores` — userId + weekKey (indexed, not a DB-level composite key), disciplineAvg, streakEnd, volumeKg, xpEarned
+- `follows` — followerId, followedId (asymmetric)
+- `backups` — userId, storageId, updatedAt — the full local export lives in **Convex file storage**, not this row; a plain document field risks Convex's ~1MiB doc cap once `dayPhotos` (dataURL images) accumulate. `backups` only ever holds a pointer.
+
+The `activities` table from the original Phase 5 plan ("event log for future
+feed") was never actually built and wasn't recreated in Convex — nothing in
+`src/` consumes it.
+
+**No client-supplied user IDs.** Every `convex/social.ts` / `convex/backups.ts`
+function derives the caller from `ctx.auth.getUserIdentity()` (via
+`getAuthUserId`) server-side instead of trusting a `userId` argument — there's
+no RLS-equivalent policy layer to hand-write, the function just doesn't accept
+the arg.
+
+### New/changed files
+- `src/lib/xp.ts` — XP rates, 21-level curve, `grantXP()`, `isoWeek()`, `xpToLevel()` (unchanged, purely local)
+- `convex/schema.ts`, `convex/auth.ts`, `convex/auth.config.ts`, `convex/ResendOTP.ts`, `convex/http.ts` — Convex Auth + email-OTP wiring
+- `convex/social.ts` — `ensureProfile`, `pushWeeklySnapshot`, `followByCode`, `unfollowUser`, `getLeaderboard` (mutations/query; replaces old `src/lib/social.ts`)
+- `convex/backups.ts` — `generateUploadUrl`, `saveBackup`, `getBackup` (file-storage backup flow)
+- `convex/users.ts` — `viewer` query (Convex Auth has no built-in "current user" lookup)
+- `src/lib/convexClient.ts` — `ConvexReactClient` instance + `convexConfigured` flag (mirrors the old `supabaseConfigured` "runs fully local if env var absent" pattern)
+- `src/features/sync/useSync.ts` — now wraps `useConvexAuth`/`useAuthActions`/Convex mutations instead of the Supabase JS client; the weekly-stats aggregation (discipline/streak/volume/XP/top-badges) still runs client-side from Dexie inside `backupNow()`, since Convex functions can't see IndexedDB — only persistence moved server-side
+- `src/hooks/useXP.ts` — live Dexie query for XP totals/level (unchanged)
+- `src/hooks/useXPEngine.ts` — mutation-bus listener, deduped XP grants per day (unchanged)
+- `src/components/LevelUpOverlay.tsx` — 2.8s cinematic level-up screen (unchanged)
+- `src/features/leaderboard/LeaderboardPage.tsx` — ranked list, follow-by-code, badge display; leaderboard is now **reactively live** via `useQuery(api.social.getLeaderboard)` instead of a manual fetch keyed off a backup tick
+
+**Guard pattern:** Convex hooks (`useQuery`/`useMutation`/`useAuthActions`)
+throw if called outside a `ConvexAuthProvider`, and `main.tsx` only mounts
+that provider when `convexConfigured` is true (so a fully-local install never
+even attempts a network call). `SyncCard.tsx` and `LeaderboardPage.tsx` both
+therefore check `convexConfigured` **before** rendering the child component
+that calls `useSync()`/Convex hooks — never call those hooks unconditionally
+at the top level of an always-mounted component.
 
 ### How leaderboard works
-1. User signs in via Cloud Sync (existing OTP flow)
-2. First backup auto-creates `profiles` row with `ZN-XXXX` share code
-3. Every backup also upserts `weekly_scores` + updates profile level/XP/badges
-4. User shares code → friend pastes it → `follows` row created → leaderboard shows both
+1. User signs in via Cloud Sync (email OTP via Resend)
+2. First backup auto-creates a `profiles` row with a `ZN-XXXX` share code
+3. Every backup also upserts `weeklyScores` + updates profile level/XP/badges
+4. User shares code → friend pastes it → `follows` row created → leaderboard shows both, live
 5. Top 6 badges (by tier: mythic→iron→gold→silver→bronze) visible to followers
 6. Scores sort by discipline_avg desc, then volume_kg as tiebreaker
 
 ### Settings additions
-- `shareCode` — cached locally, mirrors Supabase `profiles.share_code`
+- `shareCode` — cached locally, mirrors Convex `profiles.shareCode`
 
 ### Privacy
 Friends see: name, level, weekly stats, top 6 badges, badge count.

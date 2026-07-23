@@ -37,8 +37,10 @@ Two Phase-2 additions ride these same seams with no new plumbing:
 4. Auth slots in at the app root (a provider around `<AppShell />`); hooks read the
    token from context.
 
-Recommended when you're ready: **Supabase** or a small **Node + Express + Mongoose +
-Zod** service (matches the DTO-first pattern), fronted by TanStack Query for caching.
+Recommended when you're ready: **Convex** (what Phase 5's cloud sync/leaderboard
+already uses — see `convex/` and `CLAUDE.md`) or a small **Node + Express +
+Mongoose + Zod** service (matches the DTO-first pattern), fronted by TanStack
+Query for caching.
 
 ## Native wrapper (Capacitor)
 

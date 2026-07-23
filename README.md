@@ -35,7 +35,7 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 - 🖤 **Gothic dark mode** — black + aggressive red by default, with a one-tap Light toggle
 - ⚡ **Quick-Log FAB** — floating action button on every screen, one tap to log water, meals, or jump to any tracker
 - 🎨 **Make it yours** — custom profile picture, wallpaper with blur & opacity controls
-- ☁️ **Optional cloud sync** — Supabase backup with email-code login, auto-push on change
+- ☁️ **Optional cloud sync** — Convex backup with email-code login, auto-push on change
 - 🔔 **Smart reminders** — adaptive copy ("you're 700ml behind"), native push via Capacitor
 - 📴 **Works anywhere** — offline, installable, phone-ready, zero backend required
 - 💾 **You own the data** — one-tap JSON backup & restore
@@ -61,7 +61,7 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 
 ## 🛠 Tech stack
 
-**React 19** · **TypeScript (strict)** · **Vite 5** · **Ant Design 5** · **Dexie (IndexedDB)** · **Framer Motion** · **Recharts** · **react-icons (Tabler)** · **React Router 6** · **dayjs** · optional **Supabase**
+**React 19** · **TypeScript (strict)** · **Vite 5** · **Ant Design 5** · **Dexie (IndexedDB)** · **Framer Motion** · **Recharts** · **react-icons (Tabler)** · **React Router 6** · **dayjs** · optional **Convex**
 
 ## 🚀 Quick start
 
@@ -78,7 +78,7 @@ On your phone (same Wi-Fi), open the **Network** URL.
 npm run build      # → /dist
 ```
 
-Import on **Vercel** → framework **Vite** → deploy. Full Supabase + Vercel setup in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
+Import on **Vercel** → framework **Vite** → deploy. Full Convex + Vercel setup in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 ## 📲 Native app (Capacitor)
 
@@ -100,7 +100,7 @@ Full context for contributors: [`CLAUDE.md`](./CLAUDE.md)
 
 ## 🔒 Privacy
 
-100% on-device. No analytics, no account required. Cloud sync is optional and encrypted per-user via Supabase RLS.
+100% on-device. No analytics, no account required. Cloud sync is optional and isolated per-user by Convex functions that derive your identity server-side — there's no client-supplied ID to spoof.
 
 ## 📄 License
 
