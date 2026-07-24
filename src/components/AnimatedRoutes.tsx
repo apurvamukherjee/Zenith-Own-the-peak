@@ -27,6 +27,7 @@ const Fallback = <div style={{ display: "flex", justifyContent: "center", paddin
 function NotFound() {
   return (
     <div style={{ textAlign: "center", padding: "64px 24px" }}>
+      <img src="/logo-mark.png" alt="" width={40} height={40} style={{ objectFit: "contain", marginBottom: 8, opacity: 0.85 }} />
       <div className="display" style={{ fontSize: 52, fontWeight: 800, color: "var(--accent)", lineHeight: 1 }}>404</div>
       <div style={{ fontSize: 15, color: "var(--ink-soft)", margin: "10px 0 20px" }}>
         There's no peak here. That path doesn't exist.

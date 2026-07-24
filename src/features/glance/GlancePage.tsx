@@ -62,8 +62,9 @@ export function GlancePage() {
         <TbFlame /> {streak}-day streak
       </div>
 
-      <div style={{ marginTop: "auto", fontSize: 11, letterSpacing: 2, opacity: 0.5 }}>
-        ZENITH · OWN THE PEAK
+      <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 6, opacity: 0.6 }}>
+        <img src="/logo-mark.png" alt="" width={14} height={14} style={{ objectFit: "contain" }} />
+        <span style={{ fontSize: 11, letterSpacing: 2 }}>ZENITH · OWN THE PEAK</span>
       </div>
     </div>
   );

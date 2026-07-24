@@ -30,6 +30,9 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
     <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "var(--bg)",
       display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 24 }}>
       <div style={{ maxWidth: 360, width: "100%" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+          <img src="/logo-mark.png" alt="Zenith" width={44} height={44} style={{ objectFit: "contain" }} />
+        </div>
         {/* Progress dots */}
         <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 28 }}>
           {steps.map((_, i) => (

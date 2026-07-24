@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { TbMountain } from "react-icons/tb";
 
 // Gothic splash — 3.8s cinematic intro.
 // Feel: cold-blood black bg, monumental gothic wordmark (Cinzel), two brief
@@ -86,7 +85,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           />
         </svg>
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <TbMountain size={42} strokeWidth={1.5} style={{ color: "#f3eef2" }} />
+          <img src="/logo-mark.png" alt="" width={48} height={48} style={{ objectFit: "contain" }} />
         </div>
       </motion.div>
 

@@ -73,20 +73,36 @@ git remote add origin https://github.com/YOU/zenith.git
 git push -u origin main
 ```
 
-### 2. Import on Vercel
+### 2. Get your Production deployment's URL + deploy key
+In the Convex dashboard, switch the deployment picker (top of the page) to
+**Production** — this creates the Production deployment for the project if it
+doesn't exist yet.
+1. Its **Health** page shows a **Cloud URL** — copy it (same field you
+   highlighted for the Development deployment earlier, just on Production).
+2. **Project Settings → Deploy Keys** → generate a **Production** deploy key
+   — copy it too.
+3. Set the Resend key on this deployment (separate from your dev one):
+   ```
+   npx convex env set AUTH_RESEND_KEY re_your_key_here --prod
+   ```
+
+### 3. Import on Vercel
 1. https://vercel.com → **Add New → Project** → import the repo.
-2. Framework preset is auto-detected as **Vite** (output `dist`), but change
-   the **Build Command** so it also pushes your Convex functions on every
-   deploy:
+2. Framework preset auto-detects as **Vite** — leave the Build Command as
+   default (`npm run build`)... but override it anyway so it also pushes your
+   Convex functions on every deploy:
    ```
    npx convex deploy --cmd 'npm run build'
    ```
-3. **Environment Variables** → add:
-   - `VITE_CONVEX_URL` — your production deployment URL from `npx convex deploy`
-   - `CONVEX_DEPLOY_KEY` — generate one in the Convex dashboard under
-     **Settings → Deploy Keys**; this is what lets the Vercel build push
-     `convex/` without an interactive login
+3. **Environment Variables** → add both, pasted directly from step 2:
+   - `VITE_CONVEX_URL` — the Production Cloud URL
+   - `CONVEX_DEPLOY_KEY` — the Production deploy key
 4. **Deploy.**
+
+Since `VITE_CONVEX_URL` is a static value here rather than injected per-build,
+re-paste it if you ever regenerate/rotate the Production deployment — it
+won't happen from ordinary `convex deploy` pushes, only if you delete and
+recreate the deployment itself.
 
 `vercel.json` already rewrites all routes to `index.html`, so deep links and
 refreshes work. Opening the deployed URL on your phone is the most reliable test.
