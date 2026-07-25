@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Progress, Tag, Segmented } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft } from "react-icons/tb";
+import { TbCheck, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX } from "react-icons/tb";
 import { RestTimer } from "../../components/RestTimer";
 import { PageTransition } from "../../components/PageTransition";
 import { useTokens } from "../../hooks/useTokens";
@@ -71,15 +71,55 @@ function SetRow({
   const [r, setR] = useState(baseR);
   useEffect(() => { if (!logged) { setW(baseW); setR(baseR); } }, [baseW, baseR, logged]);
 
+  // Drop set: optional extra weight-drop stages performed right after the
+  // primary w/r above, no rest between. Logged as ONE WorkoutSetDto row.
+  const [dropMode, setDropMode] = useState(false);
+  const [stages, setStages] = useState<{ weightKg: number; reps: number }[]>([]);
+  function toggleDropMode() {
+    setDropMode((v) => {
+      const next = !v;
+      if (next && stages.length === 0) {
+        setStages([{ weightKg: Math.max(0, w - 10), reps: r }]);
+      }
+      return next;
+    });
+  }
+  function addStage() {
+    const last = stages[stages.length - 1] ?? { weightKg: w, reps: r };
+    setStages((s) => [...s, { weightKg: Math.max(0, last.weightKg - 10), reps: last.reps }]);
+  }
+  function updateStage(i: number, patch: Partial<{ weightKg: number; reps: number }>) {
+    setStages((s) => s.map((stage, idx) => (idx === i ? { ...stage, ...patch } : stage)));
+  }
+  function removeStage(i: number) {
+    setStages((s) => s.filter((_, idx) => idx !== i));
+  }
+
   if (logged) {
+    const drops = logged.dropStages ?? [];
     return (
       <motion.div initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }}
-        style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px",
+        style={{ padding: "6px 10px",
           background: logged.isPR ? "rgba(255,176,32,0.12)" : "rgba(18,179,161,0.10)",
           borderRadius: 10, marginBottom: 4 }}>
-        <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
-        <span style={{ flex: 1, fontWeight: 700 }}>{logged.weightKg}kg × {logged.reps}</span>
-        {logged.isPR && <TbTrophy style={{ color: t.gold }} />}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
+          <span style={{ flex: 1, fontWeight: 700 }}>{logged.weightKg}kg × {logged.reps}</span>
+          {drops.length > 0 && (
+            <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.5, color: "var(--accent)",
+              background: "rgba(255,39,64,0.12)", borderRadius: 999, padding: "1px 6px" }}>DROP</span>
+          )}
+          {logged.isPR && <TbTrophy style={{ color: t.gold }} />}
+        </div>
+        {drops.length > 0 && (
+          <div style={{ marginLeft: 30, marginTop: 2 }}>
+            {drops.map((stage, i) => (
+              <div key={i} style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 600 }}>
+                ↓ {stage.weightKg}kg × {stage.reps}
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
     );
   }
@@ -91,9 +131,11 @@ function SetRow({
     // rest-timer completion beep would be silent on the first ring.
     unlockAudio();
     const sid = await getSessionId();
+    const validStages = dropMode ? stages.filter((s) => s.weightKg > 0 && s.reps > 0) : [];
     try {
       const { isPR, e1rm } = await logSet({
         sessionId: sid, exerciseId, exerciseName, setIndex, weightKg: w, reps: r,
+        dropStages: validStages.length > 0 ? validStages : undefined,
       });
       // Record for predictive autofill next time this exercise is picked.
       void recordUsage(`weight:${exerciseId}`, w);
@@ -115,19 +157,53 @@ function SetRow({
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-      <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
-      <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-        <Button size="small" type="text" aria-label="Decrease weight" icon={<TbMinus />} onClick={() => setW(Math.max(0, w - 2.5))} />
-        <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{w}<span style={{ fontSize: 10 }}>kg</span></span>
-        <Button size="small" type="text" aria-label="Increase weight" icon={<TbPlus />} onClick={() => setW(w + 2.5)} />
+    <div style={{ marginBottom: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+          <Button size="small" type="text" aria-label="Decrease weight" icon={<TbMinus />} onClick={() => setW(Math.max(0, w - 2.5))} />
+          <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{w}<span style={{ fontSize: 10 }}>kg</span></span>
+          <Button size="small" type="text" aria-label="Increase weight" icon={<TbPlus />} onClick={() => setW(w + 2.5)} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Button size="small" type="text" aria-label="Decrease reps" icon={<TbMinus />} onClick={() => setR(Math.max(1, r - 1))} />
+          <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center" }}>{r}</span>
+          <Button size="small" type="text" aria-label="Increase reps" icon={<TbPlus />} onClick={() => setR(r + 1)} />
+        </div>
+        <Button
+          size="small" type={dropMode ? "primary" : "text"} danger={dropMode}
+          icon={<TbArrowBarDown />} aria-label="Toggle drop set" onClick={toggleDropMode}
+          style={{ borderRadius: 10 }}
+        />
+        <Button type="primary" size="small" icon={<TbCheck />} aria-label="Complete set" onClick={complete} style={{ borderRadius: 10 }} />
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Button size="small" type="text" aria-label="Decrease reps" icon={<TbMinus />} onClick={() => setR(Math.max(1, r - 1))} />
-        <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center" }}>{r}</span>
-        <Button size="small" type="text" aria-label="Increase reps" icon={<TbPlus />} onClick={() => setR(r + 1)} />
-      </div>
-      <Button type="primary" size="small" icon={<TbCheck />} aria-label="Complete set" onClick={complete} style={{ borderRadius: 10 }} />
+      {dropMode && (
+        <div style={{ marginLeft: 28, marginTop: 4, paddingLeft: 8, borderLeft: "2px dashed var(--accent)" }}>
+          {stages.map((stage, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <span style={{ fontSize: 10, color: "var(--ink-soft)", width: 14 }}>↓{i + 1}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+                <Button size="small" type="text" aria-label="Decrease drop weight" icon={<TbMinus />}
+                  onClick={() => updateStage(i, { weightKg: Math.max(0, stage.weightKg - 2.5) })} />
+                <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center", fontSize: 12 }}>{stage.weightKg}<span style={{ fontSize: 9 }}>kg</span></span>
+                <Button size="small" type="text" aria-label="Increase drop weight" icon={<TbPlus />}
+                  onClick={() => updateStage(i, { weightKg: stage.weightKg + 2.5 })} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Button size="small" type="text" aria-label="Decrease drop reps" icon={<TbMinus />}
+                  onClick={() => updateStage(i, { reps: Math.max(1, stage.reps - 1) })} />
+                <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center", fontSize: 12 }}>{stage.reps}</span>
+                <Button size="small" type="text" aria-label="Increase drop reps" icon={<TbPlus />}
+                  onClick={() => updateStage(i, { reps: stage.reps + 1 })} />
+              </div>
+              <Button size="small" type="text" danger icon={<TbX />} aria-label="Remove drop stage" onClick={() => removeStage(i)} />
+            </div>
+          ))}
+          <Button size="small" type="dashed" icon={<TbPlus />} onClick={addStage} style={{ borderRadius: 8, fontSize: 11 }}>
+            Add drop
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import type { DayExerciseDto, WorkoutDayDto, WorkoutSetDto, Effort } from "../../db/types";
+import type { DayExerciseDto, WorkoutDayDto, WorkoutSetDto, Effort, DropStageDto } from "../../db/types";
 import { estimate1RM, bestE1RM } from "../../lib/workout.utils";
 import { todayKey, weekKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
@@ -75,6 +75,10 @@ export async function ensureSession(dayId: number): Promise<number> {
 export async function logSet(params: {
   sessionId: number; exerciseId: number; exerciseName: string;
   setIndex: number; weightKg: number; reps: number; effort?: Effort;
+  // Drop set: additional weight-drop stages performed right after the primary
+  // weightKg/reps above, no rest between. PR/e1RM are still computed off the
+  // primary (top) weight — that's the number that matters for strength.
+  dropStages?: DropStageDto[];
 }): Promise<{ isPR: boolean; e1rm: number }> {
   const e1rm = estimate1RM(params.weightKg, params.reps);
   const priorBest = bestE1RM(

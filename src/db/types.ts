@@ -51,10 +51,16 @@ export interface WorkoutSessionDto {
   // Phase 4B: auto-timed duration in minutes, set when session ends / user navigates away.
   durationMin?: number;
 }
+// A drop set: one logged set (weightKg/reps above = the top/primary stage)
+// followed by one or more weight-drop stages performed back-to-back with no
+// rest between them. `dropStages` is undefined/omitted for ordinary sets.
+export interface DropStageDto { weightKg: number; reps: number; }
+
 export interface WorkoutSetDto {
   id?: number; sessionId: number; date: string; exerciseId: number; exerciseName: string;
   setIndex: number; weightKg: number; reps: number; e1rm: number; isPR: boolean;
   effort?: Effort; createdAt: number;
+  dropStages?: DropStageDto[];
 }
 
 export interface BodyweightDto { id?: number; date: string; kg: number; }
