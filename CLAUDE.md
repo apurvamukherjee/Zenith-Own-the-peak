@@ -1,4 +1,4 @@
-# CLAUDE.md — Zenith (through Phase 5)
+# CLAUDE.md — Zenith (through Phase 9)
 
 ## What this is
 
@@ -6,7 +6,9 @@
 lifter/student in West Bengal. Tracks gym training, nutrition, sleep, water,
 study, and bike fuel in one app. Gothic dark theme (black + red) is the default.
 Phase 5 adds XP leveling + social leaderboard via Convex (migrated from
-Supabase in Phase 5.1).
+Supabase in Phase 5.1). Phases 6–9 rebuilt the Calendar into a full
+Google-Calendar-style Month/Week/Day surface with a unified Tasks/Events
+system underneath it — see the dedicated section near the end of this file.
 
 Brand: **Zenith** · tagline **"Own the peak"** · signature **"by Apurva"**
 
@@ -30,13 +32,13 @@ npm run build   # must be clean before any change is considered done
 ```
 UI (features/*/*.tsx)        ← never touches Dexie directly
   └─ data hooks (use*.ts)    ← ONLY place Dexie is read/written
-       └─ db (src/db/db.ts)  ← typed tables, versioned schema v9, export/import
+       └─ db (src/db/db.ts)  ← typed tables, versioned schema v10, export/import
 ```
 
 Mutation bus (`lib/mutations.ts`) fires on every Dexie write → cloud auto-backup
 debounces a push → XP engine grants XP → achievement engine checks badges.
 
-## Routes (18 total + 404)
+## Routes (19 total + 404)
 
 | Path | Page | Tab? |
 |------|------|------|
@@ -50,13 +52,14 @@ debounces a push → XP engine grants XP → achievement engine checks badges.
 | `/water` | WaterPage | no |
 | `/sleep` | SleepPage | no |
 | `/fuel` | FuelPage | no |
-| `/calendar` | CalendarPage | no |
+| `/calendar` | CalendarPage (Phase 6–9: Month/Week/Day, see dedicated section) | no |
 | `/glance` | GlancePage | no |
 | `/quotes` | QuotesPage (Motivation) | no |
 | `/hall` | HallOfFrame (achievements) | no |
 | `/settings` | SettingsPage | no |
 | `/quick` | QuickLogPage | no |
 | `/leaderboard` | LeaderboardPage | no |
+| `/tasks` | TasksPage (Phase 6 — standalone task manager, shares tables with Calendar) | marked `tab:true` in `ROUTE_META` but not one of BottomNav's 5 slots |
 
 Plus a `*` catch-all → 404 page (in `AnimatedRoutes.tsx`).
 
@@ -118,15 +121,17 @@ src/
     sleep/               Bed/wake, quality, debt
     study/               Learning paths, topic backlog, time logging
     fuel/                Bike mileage (full-to-full), monthly spend
-    nutrition/           Meals, macros, supplement schedule
+    nutrition/           Meals, macros; supplement/med/meal reminders now live in tasks/ (Phase 7)
     profile/             Stats (read-only insights) + weekly review (merged)
     settings/            SettingsPage: profile+targets, appearance, reminders, sync, backup
     achievements/        Hall of Frame page + useAchievements (list + engine + unseen)
     glance/              Screenshot-friendly share card
     onboarding/          3-screen first-launch flow
-    reminders/           App-wide reminder engine + settings card
+    reminders/           App-wide reminder engine (repeating) + per-event reminder sync (Phase 8) + settings card
     sync/                Convex cloud backup card (useSync.ts + SyncCard.tsx)
     review/              useWeeklyReview.ts (hook only, rendered in ProfilePage)
+    tasks/               Unified Tasks/Events system (Phase 6) — see Phase 6–9 section below
+    calendar/            Month/Week/Day calendar UI (Phase 1.1 onward, rebuilt Phase 7–9) — see below
 ```
 
 ## Theming
@@ -501,3 +506,142 @@ at the top level of an always-mounted component.
 ### Privacy
 Friends see: name, level, weekly stats, top 6 badges, badge count.
 Friends never see: raw logs, specific weights, meal data, mystery badge names before unlock.
+
+## Phase 6–9 — Tasks/Events system + Calendar rebuild (2026-07)
+
+Phase 6 shipped in code without ever being documented here — the gap surfaced
+mid-Phase-7 when a stray `migrateSchedulesToTasks()` was found already
+half-migrating nutrition schedules into it. Phases 7–9 then rebuilt the
+Calendar on top of it into a full Month/Week/Day surface. All four are
+recorded together since they're one continuous arc on one data model.
+
+### Phase 6 — Tasks/Events system (schema v10, undocumented until now)
+- New tables: `tasks` (`++id, listId, status, date, priority, recurringRuleId, createdAt`),
+  `taskLists` (`&id, order`), `recurringRules` (`++id, active`).
+- `TaskDto` is deliberately rich: `date`/`time`/`endTime` (optional — presence of
+  `date` is what makes something calendar-visible), `recurringRuleId` +
+  `isRecurringInstance` for recurrence, `location`/`contactName`/`contactPhone`/
+  `notes`/`description`, `remindAt`/`remindBefore`, `blockedBy`, kanban
+  timestamps. Most fields stayed unused by any UI until Phases 8–9 built one.
+- `spawnRecurring(startDate, endDate)` (`features/tasks/useRecurringSpawner.ts`)
+  materializes real `TaskDto` rows from active `RecurringRuleDto`s for a date
+  window — idempotent (checks for an existing instance per rule+date first),
+  called from `CalendarPage`'s month-view effect and from anywhere that needs
+  a specific date to exist sooner (e.g. `addSchedule` in Phase 7).
+- `TasksPage.tsx` (`/tasks`) + `TaskListView.tsx`/`KanbanView.tsx` — a
+  standalone task manager, independent of the Calendar, sharing the same
+  tables. `parseTaskInput()` (`lib/taskParser.ts`) does natural-language
+  quick-add ("gym tomorrow 7am") — date/time/priority/location/recurrence
+  extraction, offline, zero dependencies beyond dayjs.
+- `FocusMode.tsx` (fullscreen countdown for a time-blocked task) already
+  special-cased `listId === "study" || "learn"` for a "Start studying" CTA —
+  Phase 9 finally seeded a `study` list (see below); it had never existed.
+
+### Phase 7 — Calendar unification (meds/supplements, gym days, Month/Week/Day)
+- **Meds/supplements/meal reminders → real calendar events.** `db.schedules`/
+  `db.scheduleLogs` (the old flat, non-calendar reminder store) are frozen —
+  still declared in `db.ts` for backup/export continuity, never written to
+  again. `useNutrition.ts`'s `useSchedules`/`addSchedule`/`deleteSchedule`/
+  `markDone` keep the exact same `ScheduleDto`-shaped public API (so
+  `NutritionPage.tsx` needed zero changes) but are backed by `db.recurringRules`
+  + `db.tasks` on three dedicated lists: `medicine`, `supplement`, `mealtime`
+  (`config/seedTaskLists.ts`). `useReminderEngine.ts`'s supplement-time source
+  was repointed the same way. A `migrateSchedulesToTasks()` migration (guarded
+  by the `tasksMigratedV2` setting) does the one-time conversion and also
+  cleans up a broken v1 attempt that had dumped everything into the generic
+  `health` list with dose baked into the title string.
+- **Gym days are a synthetic overlay, not real rows.** `useGymOverlay.ts`
+  derives planned/done gym days purely from `db.weekSchedule` (the Planner's
+  weekday→dayId map) + `db.workoutSessions` — nothing is ever written, so it
+  can't drift from the Planner. Rendered as a chip (`DayTimeline`/
+  `DayTaskSheet`) or a colored side-strip (Month view cells). Tapping it:
+  today+undone → `/workout`; past+undone → one-tap `backfillSession`;
+  done → toast only; future → "nothing to log yet" toast.
+- **Month/Week/Day view switcher.** Month view cells dropped the old
+  full-cell discipline-score fill for a neutral background + a thin bottom
+  score bar + task-list-colored dots + the gym side-strip, freeing the cell
+  for real event indicators. `WeekView.tsx` (new) and `DayTimeline.tsx`
+  (existed since Phase 6, was never imported anywhere until now) share hour-grid
+  primitives from `features/calendar/timeGrid.tsx` (`HOUR_H`/`SNAP`/
+  `START_HOUR`/`END_HOUR`, `HourGridLines`, `NowIndicator`, `TimeBlock`) so
+  both stay pixel-identical. `TimeBlock` supports drag-to-reschedule (`drag="y"`,
+  15-min snap) from Phase 7 on.
+
+### Phase 8 — Authoring (create/edit anything, meal-plan-to-log, real reminders)
+- **`EventEditorSheet.tsx`** is the one create/edit surface for everything —
+  type presets (Workout/Med/Supplement/Meal/Study/Personal/more via a list
+  picker), date, optional time-block, recurrence (daily/weekly-with-weekday-
+  picker/monthly — **create-mode only**, editing a spawned instance only ever
+  touches that single row; `stopRecurringSeries()` in
+  `useRecurringSpawner.ts` deactivates a rule and removes its future/undone
+  instances while keeping past/done ones as history), dose, location, notes,
+  priority, "remind me before." It replaced `TasksPage`'s old read-only
+  `TaskDetailModal` outright — every task-tap surface (TasksPage, the Month
+  day-peek sheet, Week/Day blocks) opens this same sheet now.
+- **Draw-to-create**: `TimeGridColumn` (`timeGrid.tsx`) wraps each day column
+  in Week/Day view. Long-press (400ms, matching Month view's existing
+  long-press-range threshold) then drag stakes out a time range and opens
+  the editor prefilled; a plain quick tap (no hold) instead fires
+  `onEmptyTap` (Week view uses it to drill into Day view). The threshold
+  exists specifically so normal vertical scrolling never misfires into
+  creating an event.
+- **Meal-plan-to-log**: completing a `mealtime`-list task dated today opens
+  `FoodPickerModal` (which gained a `date` prop) instead of just marking
+  done — `useMealCompletion()` (`features/calendar/`) is the shared hook
+  behind this, used identically in `CalendarPage`, `DayTaskSheet`, and
+  `TasksPage` so the behavior can't drift between them.
+- **Generalized reminders**: `TaskDto.remindBefore` / `RecurringRuleDto.
+  templateRemindBefore` feed `useTaskReminderSync()` (`features/reminders/`,
+  mounted in `AppShell` beside `useReminderEngine`), which schedules real
+  one-off notifications for anything with a time + "remind me" — native via
+  `LocalNotifications.schedule({schedule:{at:Date}})` (reserved id range
+  `TASK_REMINDER_ID_BASE = 20000+`, so re-syncing it can never cancel the
+  older *repeating* daily reminders, which live below that id and get
+  re-synced independently by `applyNativeReminders`), or a 30s-tick web
+  fallback. Gated by a new `remEvents` setting, toggle in `RemindersCard`.
+- **TimeBlock interaction split**: Day view (wide enough) gets a quick-complete
+  checkbox distinct from tap-to-edit; Week view (compact, ~64px columns) has
+  no room for both, so every tap there opens the editor instead — a
+  deliberate trade-off, not an oversight.
+
+### Phase 9 — Polish (resize, layers, search, all-day events, ICS export)
+- **Resize**: a small handle at a `TimeBlock`'s bottom edge (Day view only,
+  non-done) drags to change `endTime` only, independent of the existing
+  move-drag on the same element — it's a nested `motion.div` with its own
+  `drag="y"` that stops pointerdown propagation so the parent's drag
+  recognizer doesn't also engage.
+- **Layers**: `CalendarLayersSheet.tsx` — independent show/hide checkboxes
+  per task list, plus "Gym days" and "Discipline score," threaded as
+  `visibleListIds`/`showGym`/`showScore` props into Month cells, `WeekView`,
+  and `DayTimeline`. Local state, resets on reload like the rest of the
+  calendar's view state.
+- **Search**: `CalendarSearchSheet.tsx` scans every task's title/location/
+  notes (not just the visible date range — Month/Week/Day only ever query a
+  narrow window) and jumps to Day view on the result's date.
+- **All-day / multi-day events**: `TaskDto.allDay`/`spanEnd` (+
+  `RecurringRuleDto.templateAllDay` for non-multi-day recurring all-day
+  events — multi-day recurrence wasn't supported, judged too niche).
+  `useAllDayEvents.ts` maps each date in a range to the all-day tasks
+  active on it. Rendered as a top strip on Month cells, a banner row above
+  the hour grid in Week/Day. **`goalDays` was deliberately left alone** —
+  it already has its own good countdown-chip UX; folding it into the
+  generic task model would have cost more polish than it gained.
+- **ICS export** (`lib/icsExport.ts`): exports real `db.tasks` rows over the
+  next 180 days as VEVENTs — recurring items are covered for free since
+  `spawnRecurring` already materializes each occurrence as a concrete dated
+  row, so no RRULE construction/edge cases were needed. `navigator.share`
+  with a file if supported, else a plain Blob download link. One-way only;
+  no import, no two-way sync.
+- **Drag-and-drop reschedule in Month view was *not* built** — Month cells
+  only ever show colored dots (a few px each), not full event chips, so
+  there's nothing practical to grab. The `EventEditorSheet`'s date field
+  (editable in Phase 8 already) covers the same outcome via tap instead of
+  drag.
+- **Cleanup**: `CalendarPage.tsx`'s dead `DayDetailModal`/`Row` (superseded
+  by `DayTaskSheet` back in Phase 7, but left in place until Phase 8's
+  replacement functionality actually existed) is now deleted, along with the
+  water/sleep-backfill/streak-freeze imports that only it used.
+- No schema version bump across any of Phase 7–9 — every new field
+  (`dose`, `remindBefore`, `allDay`, `spanEnd`, the `templateX` rule fields)
+  is optional and unindexed; only genuinely new indexes or tables require
+  bumping `db.ts`'s version.

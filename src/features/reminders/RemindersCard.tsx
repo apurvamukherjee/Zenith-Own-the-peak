@@ -33,6 +33,7 @@ export function RemindersCard() {
   const remSession = Number(useSetting("remSession")) === 1;
   const remSessionAt = String(useSetting("remSessionAt"));
   const remSupps = Number(useSetting("remSupps")) === 1;
+  const remEvents = Number(useSetting("remEvents")) === 1;
 
   async function enable() {
     const ok = await requestNotificationPermission();
@@ -68,6 +69,9 @@ export function RemindersCard() {
       <Divider style={{ margin: "4px 0" }} />
       <Row label="Supplement / med times" hint="From your Nutrition schedule"
         checked={remSupps} onChange={(v) => setSetting("remSupps", v ? 1 : 0)} />
+      <Divider style={{ margin: "4px 0" }} />
+      <Row label="Event reminders" hint="Anything you schedule with a 'Remind me' toggle on the calendar"
+        checked={remEvents} onChange={(v) => setSetting("remEvents", v ? 1 : 0)} />
     </Card>
   );
 }

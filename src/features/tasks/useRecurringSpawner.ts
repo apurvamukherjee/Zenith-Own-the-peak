@@ -1,6 +1,7 @@
 import { db } from "../../db/db";
 import type { TaskDto } from "../../db/types";
 import dayjs from "dayjs";
+import { todayKey } from "../../lib/date.utils";
 
 // Spawn-on-view: when a date range becomes visible, create real TaskDto rows
 // for any recurring rules that should have instances in that range.
@@ -55,6 +56,9 @@ export async function spawnRecurring(startDate: string, endDate: string): Promis
         date,
         time: rule.templateTime,
         endTime: rule.templateEndTime,
+        dose: rule.templateDose,
+        remindBefore: rule.templateRemindBefore,
+        allDay: rule.templateAllDay,
         recurringRuleId: rule.id,
         isRecurringInstance: 1,
         createdAt: now,
@@ -62,4 +66,16 @@ export async function spawnRecurring(startDate: string, endDate: string): Promis
       } as TaskDto);
     }
   }
+}
+
+// Stops a repeating series going forward: deactivates the rule (so
+// spawnRecurring stops materializing new instances) and removes any
+// already-spawned future/undone instances. Past and completed instances are
+// left alone as history.
+export async function stopRecurringSeries(ruleId: number): Promise<void> {
+  await db.recurringRules.update(ruleId, { active: 0 });
+  const today = todayKey();
+  const instances = await db.tasks.where("recurringRuleId").equals(ruleId).toArray();
+  const toRemove = instances.filter((t) => (t.date ?? "") >= today && t.status !== "done");
+  await db.tasks.bulkDelete(toRemove.map((t) => t.id!));
 }

@@ -20,10 +20,10 @@ export function useReminderEngine(): ReminderConfig {
   const wakingWindowH = useSetting("wakingWindowH");
 
   const suppSchedules = useLiveQuery(async () => {
-    const rows = await db.schedules.toArray();
-    return rows
-      .filter((s) => s.kind !== "meal")
-      .map((s) => ({ id: s.id ?? 0, label: s.label, time: s.time }));
+    const rules = await db.recurringRules.toArray();
+    return rules
+      .filter((r) => r.active && (r.templateListId === "medicine" || r.templateListId === "supplement"))
+      .map((r) => ({ id: r.id ?? 0, label: r.templateTitle, time: r.templateTime ?? "09:00" }));
   }, []) ?? [];
 
   const config: ReminderConfig = {

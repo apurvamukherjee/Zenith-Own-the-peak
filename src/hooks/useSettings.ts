@@ -36,6 +36,7 @@ export const DEFAULTS = {
   remSupps: 1,
   remSession: 1,
   remSessionAt: "18:00",
+  remEvents: 1,         // 1 = fire per-event reminders set via the calendar's "Remind me" toggle
   // Phase-3 accessibility + motion
   highContrast: 0,        // 1 = WCAG-AAA gradient-free skin
   reduceMotion: 0,        // 1 = user-forced motion reduction on top of OS preference

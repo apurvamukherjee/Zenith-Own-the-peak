@@ -14,6 +14,7 @@ import { CommandPaletteHost } from "./CommandPalette";
 import { LevelUpOverlay } from "./LevelUpOverlay";
 import { useSetting } from "../hooks/useSettings";
 import { useReminderEngine } from "../features/reminders/useReminderEngine";
+import { useTaskReminderSync } from "../features/reminders/useTaskReminderSync";
 import { useAchievementEngine } from "../features/achievements/useAchievements";
 import { useScrollRestore } from "../hooks/useScrollRestore";
 import { useEasterEggs } from "../hooks/useEasterEggs";
@@ -24,6 +25,7 @@ const DebugPanel = lazy(() => import("./DebugPanel").then((m) => ({ default: m.D
 
 export function AppShell() {
   useReminderEngine();
+  useTaskReminderSync();
   useAchievementEngine();
 
   // Phase 5 XP engine — grants XP on every mutation, fires level-up callback.

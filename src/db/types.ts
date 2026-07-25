@@ -229,6 +229,11 @@ export interface TaskDto {
   date?: string;          // YYYY-MM-DD
   time?: string;          // HH:mm
   endTime?: string;       // HH:mm (makes it a time-block vs point event)
+  // Phase 9 — all-day / multi-day events. allDay:1 means `time`/`endTime` are
+  // ignored for rendering; spanEnd (if set) makes it multi-day, inclusive of
+  // both `date` and `spanEnd`.
+  allDay?: number;        // 1 = all-day event
+  spanEnd?: string;       // YYYY-MM-DD, inclusive — only meaningful when allDay:1
   // Recurrence
   recurringRuleId?: number;
   isRecurringInstance?: number; // 1 = spawned from rule
@@ -238,6 +243,7 @@ export interface TaskDto {
   contactName?: string;
   contactPhone?: string;
   notes?: string;
+  dose?: string;           // for medicine/supplement list items, e.g. "500mg"
   // Reminder
   remindAt?: number;
   remindBefore?: number;  // minutes before date+time
@@ -270,5 +276,8 @@ export interface RecurringRuleDto {
   templatePriority: TaskPriority;
   templateTime?: string;
   templateEndTime?: string;
+  templateDose?: string;   // carried onto spawned instances' `dose` field
+  templateRemindBefore?: number; // carried onto spawned instances' `remindBefore` field
+  templateAllDay?: number;       // carried onto spawned instances' `allDay` field
   createdAt: number;
 }

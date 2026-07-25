@@ -69,6 +69,12 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return p === "granted";
 }
 
+// Repeating daily reminders (planReminders, ids 1000+) and one-off dated task
+// reminders (ids TASK_REMINDER_ID_BASE+) both live in the same native pending
+// queue, so each scheduler only ever cancels/rewrites notifications in its own
+// id range — otherwise re-syncing one would wipe out the other.
+export const TASK_REMINDER_ID_BASE = 20000;
+
 // Schedule all reminders as repeating daily native notifications.
 export async function applyNativeReminders(c: ReminderConfig): Promise<boolean> {
   const LN = await loadPlugin();
@@ -76,7 +82,8 @@ export async function applyNativeReminders(c: ReminderConfig): Promise<boolean> 
   const planned = planReminders(c);
   try {
     const pending = await LN.getPending();
-    if (pending.notifications?.length) await LN.cancel({ notifications: pending.notifications });
+    const ours = (pending.notifications ?? []).filter((n: { id: number }) => n.id < TASK_REMINDER_ID_BASE);
+    if (ours.length) await LN.cancel({ notifications: ours.map((n: { id: number }) => ({ id: n.id })) });
     await LN.schedule({
       notifications: planned.map((p) => {
         const [h, m] = p.at.split(":").map(Number);
@@ -87,6 +94,54 @@ export async function applyNativeReminders(c: ReminderConfig): Promise<boolean> 
   } catch {
     return false;
   }
+}
+
+export interface OneOffReminder { id: number; title: string; body: string; at: Date }
+
+// Schedule one-off (non-repeating) native notifications for specific dated
+// calendar events with a "remind me" time set — distinct from the repeating
+// time-of-day reminders above.
+export async function applyOneOffReminders(reminders: OneOffReminder[]): Promise<boolean> {
+  const LN = await loadPlugin();
+  if (!LN) return false;
+  try {
+    const pending = await LN.getPending();
+    const ours = (pending.notifications ?? []).filter((n: { id: number }) => n.id >= TASK_REMINDER_ID_BASE);
+    if (ours.length) await LN.cancel({ notifications: ours.map((n: { id: number }) => ({ id: n.id })) });
+    if (reminders.length) {
+      await LN.schedule({
+        notifications: reminders.map((r) => ({
+          id: r.id, title: r.title, body: r.body, schedule: { at: r.at, allowWhileIdle: true },
+        })),
+      });
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Web fallback for one-off task reminders: checked every 30s, fires once a
+// reminder's moment has arrived (and hasn't been missed by more than 2
+// minutes, so a stale one from before the tab was opened doesn't fire late).
+export function startTaskReminderWebLoop(getReminders: () => OneOffReminder[]): () => void {
+  const fired = new Set<number>();
+  const tick = () => {
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const now = Date.now();
+    for (const r of getReminders()) {
+      if (fired.has(r.id)) continue;
+      const diffMs = r.at.getTime() - now;
+      if (diffMs <= 0 && diffMs > -120_000) {
+        new Notification(r.title, { body: r.body });
+        fired.add(r.id);
+      }
+    }
+    if (fired.size > 500) fired.clear();
+  };
+  const iv = window.setInterval(tick, 30000);
+  tick();
+  return () => window.clearInterval(iv);
 }
 
 // Web fallback: fire due reminders while the tab is open (checked each minute).

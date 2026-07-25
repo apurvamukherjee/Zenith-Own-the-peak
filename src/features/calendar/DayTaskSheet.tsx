@@ -3,30 +3,51 @@ import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Button } from "antd";
 import {
   TbCheck, TbPlus, TbClock, TbMapPin, TbAlertTriangle,
-  TbChevronLeft, TbChevronRight, TbFocus2,
+  TbChevronLeft, TbChevronRight, TbFocus2, TbBarbell, TbAdjustmentsHorizontal,
 } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import dayjs from "dayjs";
 import { db } from "../../db/db";
-import { useTaskLists, addTask, completeTask } from "../tasks/useTasks";
+import { useTaskLists, addTask } from "../tasks/useTasks";
 import { parseTaskInput } from "../../lib/taskParser";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
+import { useGymOverlay } from "./useGymOverlay";
+import { useMealCompletion } from "./useMealCompletion";
+import { EventEditorSheet } from "./EventEditorSheet";
+import { FoodPickerModal } from "../nutrition/FoodPickerModal";
+import { useTokens } from "../../hooks/useTokens";
 import type { TaskDto } from "../../db/types";
+
+function inferMealType() {
+  const h = new Date().getHours();
+  if (h < 11) return "breakfast" as const;
+  if (h < 15) return "lunch" as const;
+  if (h < 21) return "dinner" as const;
+  return "snack" as const;
+}
 
 interface Props {
   date: string | null;
   onClose: () => void;
   onDateChange: (date: string) => void;
   onFocus?: (task: TaskDto) => void;
+  onGymTap?: (date: string, dayId: number, done: boolean) => void;
 }
 
 const SWIPE_THRESHOLD = 80;
 const VELOCITY_THRESHOLD = 300;
 
-export function DayTaskSheet({ date, onClose, onDateChange, onFocus }: Props) {
+export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }: Props) {
+  const t = useTokens();
   const lists = useTaskLists();
   const listMap = useMemo(() => new Map(lists.map((l) => [l.id, l])), [lists]);
   const [input, setInput] = useState("");
+  const gymDates = useMemo(() => (date ? [date] : []), [date]);
+  const gymOverlay = useGymOverlay(gymDates);
+  const gym = date ? gymOverlay.get(date) : undefined;
+  const meal = useMealCompletion();
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorTask, setEditorTask] = useState<TaskDto | undefined>(undefined);
 
   // Preload: selected day + adjacent days
   const prev = date ? dayjs(date).subtract(1, "day").format("YYYY-MM-DD") : "";
@@ -81,9 +102,14 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus }: Props) {
     setInput("");
   }
 
-  async function handleComplete(id: number) {
+  function handleComplete(task: TaskDto) {
     hapticLight();
-    await completeTask(id);
+    meal.tryComplete(task);
+  }
+
+  function openEditor(task?: TaskDto) {
+    setEditorTask(task);
+    setEditorOpen(true);
   }
 
   // Swipe left/right to change day
@@ -181,6 +207,22 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus }: Props) {
           )}
         </motion.div>
 
+        {/* Gym-day overlay chip — synthetic, derived from the planned split */}
+        {gym && (
+          <div style={{ padding: "8px 16px 0" }}>
+            <button onClick={() => date && onGymTap?.(date, gym.dayId, gym.done)} style={{
+              display: "flex", alignItems: "center", gap: 8, width: "100%",
+              background: `${gym.done ? t.teal : t.accent}22`,
+              border: `1px solid ${gym.done ? t.teal : t.accent}40`,
+              borderRadius: 10, padding: "8px 12px", cursor: "pointer", textAlign: "left",
+            }}>
+              <TbBarbell size={15} style={{ color: gym.done ? t.teal : t.accent }} />
+              <span style={{ flex: 1, fontSize: 12, fontWeight: 700 }}>{gym.dayName}</span>
+              <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{gym.done ? "Done ✓" : "Planned"}</span>
+            </button>
+          </div>
+        )}
+
         {/* Quick add */}
         <div style={{ padding: "8px 16px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", gap: 8 }}>
@@ -194,6 +236,8 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus }: Props) {
               }} />
             <Button type="primary" size="small" icon={<TbPlus />}
               onClick={handleQuickAdd} disabled={!input.trim()} style={{ borderRadius: 8 }} />
+            <Button size="small" icon={<TbAdjustmentsHorizontal />} aria-label="More options"
+              onClick={() => openEditor(undefined)} style={{ borderRadius: 8 }} />
           </div>
         </div>
 
@@ -233,7 +277,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus }: Props) {
                   opacity: done ? 0.45 : 1,
                 }}>
                 {/* Checkbox */}
-                <button onClick={() => !done && task.id && handleComplete(task.id)}
+                <button onClick={(e) => { e.stopPropagation(); if (!done) handleComplete(task); }}
                   style={{
                     width: 22, height: 22, borderRadius: 6, flexShrink: 0,
                     border: `2px solid ${done ? "var(--teal)" : (task.priority === 1 ? "#ff2740" : "var(--ink-soft)")}`,
@@ -244,8 +288,8 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus }: Props) {
                   {done && <TbCheck size={12} style={{ color: "#fff" }} />}
                 </button>
 
-                {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Content — tap to edit */}
+                <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => openEditor(task)}>
                   <div style={{
                     fontSize: 13, fontWeight: 600,
                     textDecoration: done ? "line-through" : "none",
@@ -279,6 +323,21 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus }: Props) {
           })}
         </div>
       </motion.div>
+
+      <EventEditorSheet
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        task={editorTask}
+        defaultDate={date ?? undefined}
+        onComplete={meal.tryComplete}
+      />
+      <FoodPickerModal
+        open={!!meal.foodPickerTask}
+        onClose={meal.closeFoodPicker}
+        date={meal.foodPickerTask?.date}
+        defaultMealType={inferMealType()}
+        title="Log this meal"
+      />
     </AnimatePresence>
   );
 }

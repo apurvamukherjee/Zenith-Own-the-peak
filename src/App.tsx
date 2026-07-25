@@ -60,11 +60,10 @@ export default function App() {
 
   // Seed exercise library + default PPL on first launch — MUST complete before rendering
   useEffect(() => {
-    Promise.all([
-      seedIfEmpty(),
-      seedTaskLists(),
-      migrateSchedulesToTasks(),
-    ]).then(() => setSeeded(true)).catch(() => setSeeded(true));
+    Promise.all([seedIfEmpty(), seedTaskLists()])
+      .then(() => migrateSchedulesToTasks())
+      .then(() => setSeeded(true))
+      .catch(() => setSeeded(true));
   }, []);
 
   // Show onboarding after splash+seed if not yet onboarded

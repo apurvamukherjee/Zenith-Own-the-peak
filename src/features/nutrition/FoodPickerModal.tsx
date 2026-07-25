@@ -24,9 +24,10 @@ interface Props {
   onPick?: (food: FoodDto, amount: number) => void;
   defaultMealType?: MealType;
   title?: string;
+  date?: string; // defaults to today; used when logging against a specific planned-meal date
 }
 
-export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "breakfast", title = "Add food" }: Props) {
+export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "breakfast", title = "Add food", date }: Props) {
   const { message } = App.useApp();
   useBackClose(open, onClose);
 
@@ -62,7 +63,7 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
       onClose();
       return;
     }
-    await logFood(selected, amount, mealType, todayKey(), nowHHMM());
+    await logFood(selected, amount, mealType, date ?? todayKey(), nowHHMM());
     // Record the last-used grams for this food id so next tap suggests it.
     if (selected.id != null) void recordUsage(`grams:${selected.id}`, amount);
     hapticLight();

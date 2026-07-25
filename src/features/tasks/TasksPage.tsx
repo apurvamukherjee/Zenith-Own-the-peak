@@ -1,12 +1,12 @@
 import { useState, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Button, Tag, App, Modal, Select } from "antd";
+import { Button, Tag, App, Select } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  TbPlus, TbCheck, TbCalendar, 
-  TbTrash, TbMapPin, TbUser, TbPhone, TbNotes, TbFlag,
+  TbPlus, TbCheck, TbCalendar, TbFlag,
+  TbMapPin, TbUser,
   TbBriefcase, TbHome, TbBarbell, TbShoppingCart, TbCash, TbPill,
-  TbShoppingBag, TbClock, TbMotorbike,
+  TbShoppingBag, TbClock, TbMotorbike, TbCapsule, TbToolsKitchen2, TbBook2,
 } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
@@ -14,16 +14,28 @@ import { EmptyState } from "../../components/EmptyState";
 import { ColdIcon } from "../../components/ColdIcon";
 import {
   useTaskLists, useTodayTasks, useUpcomingTasks, useTaskCountByList,
-  addTask, completeTask, deleteTask,
+  addTask,
 } from "./useTasks";
 import { TaskListView } from "./TaskListView";
 import { parseTaskInput } from "../../lib/taskParser";
-import { hapticLight, hapticSuccess } from "../../lib/haptics";
+import { hapticSuccess } from "../../lib/haptics";
 import { prettyDate } from "../../lib/date.utils";
+import { EventEditorSheet } from "../calendar/EventEditorSheet";
+import { FoodPickerModal } from "../nutrition/FoodPickerModal";
+import { useMealCompletion } from "../calendar/useMealCompletion";
 import type { TaskDto, TaskListDto } from "../../db/types";
+
+function inferMealType() {
+  const h = new Date().getHours();
+  if (h < 11) return "breakfast" as const;
+  if (h < 15) return "lunch" as const;
+  if (h < 21) return "dinner" as const;
+  return "snack" as const;
+}
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
   TbBriefcase, TbHome, TbBarbell, TbShoppingCart, TbCash, TbPill, TbShoppingBag, TbMotorbike,
+  TbCapsule, TbToolsKitchen2, TbBook2,
 };
 
 const PRIORITY_LABEL: Record<number, { label: string; color: string }> = {
@@ -48,8 +60,15 @@ function TaskHub() {
   const counts = useTaskCountByList();
   const [input, setInput] = useState("");
   const [selectedList, setSelectedList] = useState("daily");
-  const [detailTask, setDetailTask] = useState<TaskDto | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorTask, setEditorTask] = useState<TaskDto | undefined>(undefined);
+  const meal = useMealCompletion();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  function openEditor(task?: TaskDto) {
+    setEditorTask(task);
+    setEditorOpen(true);
+  }
 
   async function handleQuickAdd() {
     const text = input.trim();
@@ -68,11 +87,6 @@ function TaskHub() {
     hapticSuccess();
     setInput("");
     message.success("Task added");
-  }
-
-  async function handleComplete(id: number) {
-    hapticLight();
-    await completeTask(id);
   }
 
   return (
@@ -103,6 +117,11 @@ function TaskHub() {
         <Button type="primary" size="small" icon={<TbPlus />} onClick={handleQuickAdd}
           disabled={!input.trim()} style={{ borderRadius: 10 }} />
       </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -10, marginBottom: 12 }}>
+        <Button size="small" type="text" onClick={() => openEditor(undefined)} style={{ fontSize: 12, color: "var(--ink-soft)" }}>
+          More options (date, recurrence, reminders)…
+        </Button>
+      </div>
 
       {/* Live parse preview */}
       {input.trim().length > 3 && (() => {
@@ -131,8 +150,8 @@ function TaskHub() {
         )}
         <AnimatePresence>
           {todayTasks.map((t) => (
-            <TaskRow key={t.id} task={t} lists={lists} onComplete={handleComplete}
-              onTap={() => setDetailTask(t)} />
+            <TaskRow key={t.id} task={t} lists={lists} onComplete={meal.tryComplete}
+              onTap={() => openEditor(t)} />
           ))}
         </AnimatePresence>
       </div>
@@ -205,8 +224,8 @@ function TaskHub() {
             UPCOMING ({upcoming.length})
           </span>
           {upcoming.slice(0, 10).map((t) => (
-            <TaskRow key={t.id} task={t} lists={lists} onComplete={handleComplete}
-              onTap={() => setDetailTask(t)} showDate />
+            <TaskRow key={t.id} task={t} lists={lists} onComplete={meal.tryComplete}
+              onTap={() => openEditor(t)} showDate />
           ))}
           {upcoming.length > 10 && (
             <div style={{ fontSize: 11, color: "var(--ink-soft)", textAlign: "center", padding: 8 }}>
@@ -216,15 +235,17 @@ function TaskHub() {
         </div>
       )}
 
-      {/* Task detail modal */}
-      <TaskDetailModal task={detailTask} lists={lists} onClose={() => setDetailTask(null)} />
+      {/* Unified event editor — also the "task detail" view (tap any row) */}
+      <EventEditorSheet open={editorOpen} onClose={() => setEditorOpen(false)} task={editorTask} onComplete={meal.tryComplete} />
+      <FoodPickerModal open={!!meal.foodPickerTask} onClose={meal.closeFoodPicker}
+        date={meal.foodPickerTask?.date} defaultMealType={inferMealType()} title="Log this meal" />
     </PageTransition>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 function TaskRow({ task, lists, onComplete, onTap, showDate }: {
-  task: TaskDto; lists: TaskListDto[]; onComplete: (id: number) => void;
+  task: TaskDto; lists: TaskListDto[]; onComplete: (task: TaskDto) => void;
   onTap: () => void; showDate?: boolean;
 }) {
   const list = lists.find((l) => l.id === task.listId);
@@ -243,7 +264,7 @@ function TaskRow({ task, lists, onComplete, onTap, showDate }: {
       }}
     >
       {/* Checkbox */}
-      <button onClick={(e) => { e.stopPropagation(); if (task.id) onComplete(task.id); }}
+      <button onClick={(e) => { e.stopPropagation(); onComplete(task); }}
         style={{
           width: 22, height: 22, borderRadius: 6, border: `2px solid ${pri.color}`,
           background: done ? pri.color : "transparent", cursor: "pointer",
@@ -275,76 +296,5 @@ function TaskRow({ task, lists, onComplete, onTap, showDate }: {
         {list?.name ?? "—"}
       </Tag>
     </motion.div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-function TaskDetailModal({ task, lists, onClose }: {
-  task: TaskDto | null; lists: TaskListDto[]; onClose: () => void;
-}) {
-  const { message } = App.useApp();
-  if (!task) return null;
-  const pri = PRIORITY_LABEL[task.priority] ?? PRIORITY_LABEL[2];
-
-  return (
-    <Modal open={!!task} onCancel={onClose} footer={null} title={null}
-      styles={{ body: { padding: "16px 18px" } }}>
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>{task.title}</div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <Tag color={task.priority === 1 ? "red" : task.priority === 3 ? "green" : "default"}
-            style={{ borderRadius: 6 }}>{pri.label}</Tag>
-          <Tag style={{ borderRadius: 6 }}>{lists.find((l) => l.id === task.listId)?.name}</Tag>
-          {task.status === "done" && <Tag color="green" style={{ borderRadius: 6 }}>Done</Tag>}
-        </div>
-      </div>
-
-      {task.date && (
-        <div style={{ fontSize: 13, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-          <TbCalendar size={14} /> {prettyDate(task.date)}
-          {task.time && <span> · {task.time}{task.endTime ? ` – ${task.endTime}` : ""}</span>}
-        </div>
-      )}
-      {task.location && (
-        <div style={{ fontSize: 13, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-          <TbMapPin size={14} /> {task.location}
-        </div>
-      )}
-      {task.contactName && (
-        <div style={{ fontSize: 13, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-          <TbUser size={14} /> {task.contactName}
-          {task.contactPhone && (
-            <a href={`tel:${task.contactPhone}`} style={{ color: "var(--accent)" }}>
-              <TbPhone size={14} /> {task.contactPhone}
-            </a>
-          )}
-        </div>
-      )}
-      {task.description && (
-        <div style={{ fontSize: 13, marginBottom: 8, padding: "8px 10px", background: "var(--bg)", borderRadius: 8, whiteSpace: "pre-wrap" }}>
-          {task.description}
-        </div>
-      )}
-      {task.notes && (
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", fontStyle: "italic", marginBottom: 8, padding: "6px 10px", background: "var(--bg)", borderRadius: 8, whiteSpace: "pre-wrap" }}>
-          <TbNotes size={12} style={{ verticalAlign: "-1px" }} /> {task.notes}
-        </div>
-      )}
-
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        {task.status !== "done" && (
-          <Button type="primary" icon={<TbCheck />} onClick={async () => {
-            if (task.id) { await completeTask(task.id); hapticSuccess(); onClose(); }
-          }} style={{ flex: 1 }}>
-            Complete
-          </Button>
-        )}
-        <Button danger icon={<TbTrash />} onClick={async () => {
-          if (task.id) { await deleteTask(task.id); hapticLight(); onClose(); message.info("Deleted"); }
-        }}>
-          Delete
-        </Button>
-      </div>
-    </Modal>
   );
 }

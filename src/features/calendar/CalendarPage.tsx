@@ -1,42 +1,64 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Modal, Button, Rate, App, Segmented, Input, Select } from "antd";
-import { SmartInputNumber } from "../../components/SmartInputNumber";
-import { motion } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Modal, Button, App, Segmented, Input } from "antd";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import {
-  TbChevronLeft, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbMeat, TbBook2,
-  TbGasStation, TbSnowflake, TbFlag, TbCamera, TbShare, TbX, TbTrash,
+  TbChevronLeft, TbChevronRight, TbFlag, TbCamera, TbShare, TbX,
+  TbCalendarMonth, TbCalendarWeek, TbCalendarEvent, TbPlus, TbSearch,
+  TbStack2, TbFileExport,
 } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
-import { TimeSelect } from "../../components/TimeSelect";
 import { useMonthScores as useRawMonthScores } from "./useCalendar";
-import { useDayDetail } from "./useCalendar";
 import { useSetting } from "../../hooks/useSettings";
 import { useBackClose } from "../../hooks/useBackClose";
 import { useTokens } from "../../hooks/useTokens";
 import { DayTaskSheet } from "./DayTaskSheet";
+import { DayTimeline } from "./DayTimeline";
+import { WeekView } from "./WeekView";
+import { useGymOverlay } from "./useGymOverlay";
+import { useAllDayEvents } from "./useAllDayEvents";
+import { EventEditorSheet } from "./EventEditorSheet";
+import { useMealCompletion } from "./useMealCompletion";
+import { CalendarLayersSheet } from "./CalendarLayersSheet";
+import { CalendarSearchSheet } from "./CalendarSearchSheet";
+import { FoodPickerModal } from "../nutrition/FoodPickerModal";
 import { FocusMode } from "../../components/FocusMode";
 import { spawnRecurring } from "../tasks/useRecurringSpawner";
+import { useTaskLists } from "../tasks/useTasks";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import { addWater } from "../water/useWater";
-import { upsertSleep } from "../sleep/useSleep";
-import { fmtDuration, sleepDurationMin, todayKey } from "../../lib/date.utils";
-import { filteredValue, type ScoreFilter, onThisDayComparisons } from "../../lib/dayScore";
-import { useStreakFreeze, isFreezeAvailable } from "../../lib/streak.utils";
+import { todayKey } from "../../lib/date.utils";
+import { filteredValue, type ScoreFilter } from "../../lib/dayScore";
 import { useMonthSummary } from "./useMonthSummary";
 import { useGoalsForMonth, useUpcomingGoals, addGoalDay, daysUntil } from "./useGoalDays";
-import { useDayPhoto, usePhotoDatesInMonth, setDayPhoto, removeDayPhoto } from "./useDayPhoto";
-import { fileToDataURL } from "../../lib/image.utils";
-import { useWorkoutDays, backfillSession } from "../gym/useGym";
+import { usePhotoDatesInMonth } from "./useDayPhoto";
+import { backfillSession } from "../gym/useGym";
+import { buildICS, exportICS } from "../../lib/icsExport";
+import type { TaskDto } from "../../db/types";
 import dayjs from "dayjs";
+
+function inferMealType() {
+  const h = new Date().getHours();
+  if (h < 11) return "breakfast" as const;
+  if (h < 15) return "lunch" as const;
+  if (h < 21) return "dinner" as const;
+  return "snack" as const;
+}
 
 const WEEKDAY_HEADERS = ["S", "M", "T", "W", "T", "F", "S"];
 const FILTERS: { label: string; value: ScoreFilter }[] = [
   { label: "All", value: "blended" }, { label: "Water", value: "water" },
   { label: "Sleep", value: "sleep" }, { label: "Train", value: "session" }, { label: "Protein", value: "protein" },
 ];
+type ViewMode = "month" | "week" | "day";
+const VIEW_OPTIONS: { label: React.ReactNode; value: ViewMode }[] = [
+  { label: <TbCalendarMonth size={15} />, value: "month" },
+  { label: <TbCalendarWeek size={15} />, value: "week" },
+  { label: <TbCalendarEvent size={15} />, value: "day" },
+];
+const SWIPE_THRESHOLD = 70;
+const VELOCITY_THRESHOLD = 300;
 
 function colorFor(pct: number, hasAny: boolean, t: { teal: string; gold: string }): string {
   if (!hasAny) return "var(--border)";
@@ -45,9 +67,16 @@ function colorFor(pct: number, hasAny: boolean, t: { teal: string; gold: string 
   return "#ff5c7a";
 }
 
+const slideVariants = {
+  enter: (dir: number) => ({ opacity: 0, x: dir >= 0 ? 28 : -28 }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir: number) => ({ opacity: 0, x: dir >= 0 ? -28 : 28 }),
+};
+
 export function CalendarPage() {
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const t = useTokens();
+  const nav = useNavigate();
   const waterGoal = useSetting("waterGoalMl");
   const proteinTarget = useSetting("proteinTargetG");
   const now = new Date();
@@ -55,12 +84,15 @@ export function CalendarPage() {
   const navState = location.state as { year?: number; month?: number } | null;
   const [year, setYear] = useState(navState?.year ?? now.getFullYear());
   const [month, setMonth] = useState(navState?.month ?? now.getMonth());
+  const [view, setView] = useState<ViewMode>("month");
+  const [viewDate, setViewDate] = useState(todayKey());
+  const [direction, setDirection] = useState(1);
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState<ScoreFilter>("blended");
   const [showSummary, setShowSummary] = useState(false);
   const [showGoalAdd, setShowGoalAdd] = useState(false);
 
-  // Range select (long-press start, tap end)
+  // Range select (long-press start, tap end) — Month view only
   const [rangeStart, setRangeStart] = useState<string | null>(null);
   const [rangeEnd, setRangeEnd] = useState<string | null>(null);
   const pressTimer = useRef<number | null>(null);
@@ -72,9 +104,59 @@ export function CalendarPage() {
   const photoDates = usePhotoDatesInMonth(dates);
   const summary = useMonthSummary(dates, scoreMap);
   const upcomingGoals = useUpcomingGoals(3);
+  const gymOverlay = useGymOverlay(dates);
+  const allDayEvents = useAllDayEvents(dates);
 
   // Phase 6B — focus mode + task dots + recurring spawner
-  const [focusTask, setFocusTask] = useState<import("../../db/types").TaskDto | null>(null);
+  const [focusTask, setFocusTask] = useState<TaskDto | null>(null);
+  // Phase 8 — unified event editor + meal-plan-to-log completion
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorTask, setEditorTask] = useState<TaskDto | undefined>(undefined);
+  const [editorDefaults, setEditorDefaults] = useState<{ date?: string; time?: string; endTime?: string }>({});
+  const mealFlow = useMealCompletion();
+
+  // Phase 9 — layers (show/hide by list + gym + discipline score) + search
+  const taskLists = useTaskLists();
+  const [hiddenLists, setHiddenLists] = useState<Set<string>>(new Set());
+  const [showGymLayer, setShowGymLayer] = useState(true);
+  const [showScoreLayer, setShowScoreLayer] = useState(true);
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const visibleListIds = useMemo(
+    () => new Set(taskLists.map((l) => l.id).filter((id) => !hiddenLists.has(id))),
+    [taskLists, hiddenLists],
+  );
+  const listColorMap = useMemo(() => new Map(taskLists.map((l) => [l.id, l.color])), [taskLists]);
+  function toggleListLayer(id: string) {
+    setHiddenLists((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  function jumpToSearchResult(task: TaskDto) {
+    setSearchOpen(false);
+    if (!task.date) return;
+    setViewDate(task.date);
+    setView("day");
+  }
+  async function handleExportICS() {
+    const start = todayKey();
+    const end = dayjs().add(180, "day").format("YYYY-MM-DD");
+    const tasks = await db.tasks.where("date").between(start, end, true, true).toArray();
+    const ics = buildICS(tasks.filter((tsk) => tsk.status !== "cancelled"));
+    await exportICS("zenith-calendar.ics", ics);
+    message.success("Calendar exported");
+  }
+
+  function openEditor(task?: TaskDto, defaults?: { date?: string; time?: string; endTime?: string }) {
+    setEditorTask(task);
+    setEditorDefaults(defaults ?? {});
+    setEditorOpen(true);
+  }
+  function handleCreateAt(date: string, time: string, endTime: string) {
+    openEditor(undefined, { date, time, endTime });
+  }
 
   // Spawn recurring task instances for the visible month
   useEffect(() => {
@@ -94,20 +176,37 @@ export function CalendarPage() {
     const colorMap = new Map(lists.map((l) => [l.id, l.color]));
     const dots = new Map<string, string[]>(); // date → unique colors
     for (const t of monthTasks) {
-      if (!t.date || t.status === "cancelled") continue;
+      if (!t.date || t.status === "cancelled" || t.allDay) continue;
+      if (!visibleListIds.has(t.listId)) continue;
       const arr = dots.get(t.date) ?? [];
       const c = colorMap.get(t.listId) ?? "var(--accent)";
       if (!arr.includes(c)) arr.push(c);
       dots.set(t.date, arr.slice(0, 4)); // max 4 dots
     }
     return dots;
-  }, [year, month]) ?? new Map();
+  }, [year, month, visibleListIds]) ?? new Map();
 
   const firstDow = new Date(year, month, 1).getDay();
   const monthLabel = dayjs(new Date(year, month, 1)).format("MMMM YYYY");
+  const weekStart = useMemo(() => {
+    const d = dayjs(viewDate);
+    return d.subtract(d.day(), "day").format("YYYY-MM-DD");
+  }, [viewDate]);
+  const weekLabel = `${dayjs(weekStart).format("D MMM")} – ${dayjs(weekStart).add(6, "day").format("D MMM YYYY")}`;
+  const dayLabel = dayjs(viewDate).format("dddd, D MMMM");
 
-  function prevMonth() { if (month === 0) { setYear(year - 1); setMonth(11); } else setMonth(month - 1); }
-  function nextMonth() { if (month === 11) { setYear(year + 1); setMonth(0); } else setMonth(month + 1); }
+  function prevMonth() { setDirection(-1); if (month === 0) { setYear(year - 1); setMonth(11); } else setMonth(month - 1); }
+  function nextMonth() { setDirection(1); if (month === 11) { setYear(year + 1); setMonth(0); } else setMonth(month + 1); }
+  function stepPeriod(dir: 1 | -1) {
+    setDirection(dir);
+    if (view === "month") { dir === 1 ? nextMonth() : prevMonth(); }
+    else if (view === "week") setViewDate((d) => dayjs(d).add(dir * 7, "day").format("YYYY-MM-DD"));
+    else setViewDate((d) => dayjs(d).add(dir, "day").format("YYYY-MM-DD"));
+  }
+  function changeView(v: ViewMode) {
+    if (v !== "month" && selected) setViewDate(selected);
+    setView(v);
+  }
 
   function handlePressStart(date: string) {
     pressTimer.current = window.setTimeout(() => {
@@ -123,6 +222,26 @@ export function CalendarPage() {
     if (rangeStart && !rangeEnd) { setRangeEnd(date); return; }
     if (rangeStart && rangeEnd) { setRangeStart(null); setRangeEnd(null); }
     setSelected(date);
+  }
+
+  // Drag-to-swipe for Week/Day views (Month view keeps its own long-press
+  // range-select gesture, so it isn't wrapped in a competing drag handler).
+  function handlePeriodDrag(_: unknown, info: PanInfo) {
+    if (info.offset.x < -SWIPE_THRESHOLD || info.velocity.x < -VELOCITY_THRESHOLD) stepPeriod(1);
+    else if (info.offset.x > SWIPE_THRESHOLD || info.velocity.x > VELOCITY_THRESHOLD) stepPeriod(-1);
+  }
+
+  async function handleGymTap(date: string, dayId: number, done: boolean) {
+    if (done) { message.success("Session already logged for this day ✓"); return; }
+    const today = todayKey();
+    if (date > today) { message.info("Planned — nothing to log yet."); return; }
+    if (date === today) { nav("/workout"); return; }
+    modal.confirm({
+      title: "Backfill this session?",
+      content: "Logs all planned sets at your program's target weight/reps for this date.",
+      okText: "Backfill",
+      onOk: async () => { await backfillSession(date, dayId); message.success("Session backfilled"); },
+    });
   }
 
   const rangeStats = useMemo(() => {
@@ -144,6 +263,9 @@ export function CalendarPage() {
     }
   }
 
+  const periodKey = view === "month" ? `month-${year}-${month}` : view === "week" ? `week-${weekStart}` : `day-${viewDate}`;
+  const headerLabel = view === "month" ? monthLabel : view === "week" ? weekLabel : dayLabel;
+
   return (
     <PageTransition>
       <SectionTitle eyebrow="Calendar" title="Your discipline, day by day" />
@@ -162,132 +284,231 @@ export function CalendarPage() {
         </div>
       )}
 
-      {/* Month nav + filter + actions */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <Button type="text" icon={<TbChevronLeft />} onClick={prevMonth} aria-label="Previous month" />
-        <button onClick={() => setShowSummary(true)} style={{
-          background: "none", border: "none",
-          fontFamily: '"Cinzel", "Plus Jakarta Sans", serif',
-          fontWeight: 700, fontSize: 15, letterSpacing: "0.14em",
-          textTransform: "uppercase", cursor: "pointer", color: "var(--ink)",
-        }}>
-          {monthLabel}
-        </button>
-        <Button type="text" icon={<TbChevronRight />} onClick={nextMonth} aria-label="Next month" />
-      </div>
-
-      {/* Weekly strip — this week zoomed */}
-      <div style={{ background: "var(--surface)", borderRadius: 10, padding: "8px 12px", marginBottom: 10 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>This week</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
-          {(() => {
-            const today = new Date();
-            const dow = today.getDay();
-            const weekStart = new Date(today); weekStart.setDate(today.getDate() - dow);
-            const week = Array.from({ length: 7 }, (_, i) => {
-              const d = new Date(weekStart); d.setDate(weekStart.getDate() + i);
-              return d.toISOString().slice(0, 10);
-            });
-            return week.map((iso) => {
-              const cell = rawCells.find((c) => c.date === iso);
-              const pct = cell ? filteredValue(cell, filter) : 0;
-              const bg = cell?.hasAny ? colorFor(pct, cell.hasAny, t) : "var(--surface)";
-              const bgImage = cell?.hasAny ? "none" : "radial-gradient(circle at 50% 50%, var(--ember-inner) 1px, transparent 1px)";
-              return (
-                <div key={iso} style={{
-                  aspectRatio: "1", borderRadius: 6, background: bg,
-                  backgroundImage: bgImage, backgroundSize: "6px 6px",
-                  opacity: cell?.isFuture ? 0.25 : 1,
-                  border: cell?.isToday ? `2px solid ${t.accent}` : "none",
-                }} />
-              );
-            });
-          })()}
+      {/* View switcher + layers/search/export/new-event */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 6, marginBottom: 10 }}>
+        <div />
+        <Segmented size="small" value={view} onChange={(v) => changeView(v as ViewMode)} options={VIEW_OPTIONS} />
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 4 }}>
+          <Button size="small" type="text" icon={<TbSearch size={15} />} aria-label="Search" onClick={() => setSearchOpen(true)} />
+          <Button size="small" type="text" icon={<TbStack2 size={15} />} aria-label="Layers" onClick={() => setLayersOpen(true)} />
+          <Button size="small" type="text" icon={<TbFileExport size={15} />} aria-label="Export calendar" onClick={handleExportICS} />
+          <Button size="small" type="primary" icon={<TbPlus size={15} />} aria-label="New event"
+            onClick={() => openEditor(undefined, { date: view === "day" ? viewDate : view === "week" ? weekStart : (selected ?? todayKey()) })} />
         </div>
       </div>
 
-      <Segmented block size="small" value={filter} onChange={(v) => setFilter(v as ScoreFilter)}
-        options={FILTERS} style={{ marginBottom: 10 }} />
-
-      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-        <Button size="small" icon={<TbFlag />} onClick={() => setShowGoalAdd(true)}>Add goal</Button>
-        <Button size="small" icon={<TbShare />} onClick={exportMonth}>Share month</Button>
+      {/* Period nav + label */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <Button type="text" icon={<TbChevronLeft />} onClick={() => stepPeriod(-1)} aria-label="Previous" />
+        <button onClick={() => view === "month" && setShowSummary(true)} style={{
+          background: "none", border: "none",
+          fontFamily: '"Cinzel", "Plus Jakarta Sans", serif',
+          fontWeight: 700, fontSize: view === "month" ? 15 : 13, letterSpacing: "0.1em",
+          textTransform: "uppercase", cursor: view === "month" ? "pointer" : "default", color: "var(--ink)",
+        }}>
+          {headerLabel}
+        </button>
+        <Button type="text" icon={<TbChevronRight />} onClick={() => stepPeriod(1)} aria-label="Next" />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 6 }}>
-        {WEEKDAY_HEADERS.map((d, i) => (
-          <div key={i} style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>{d}</div>
-        ))}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
-        {Array.from({ length: firstDow }, (_, i) => <div key={`pad-${i}`} />)}
-        {rawCells.map((c) => {
-          const dayNum = Number(c.date.slice(-2));
-          const pct = filteredValue(c, filter);
-          const inRange = rangeStart && rangeEnd && c.date >= [rangeStart, rangeEnd].sort()[0] && c.date <= [rangeStart, rangeEnd].sort()[1];
-          const hasGoal = goals.some((g) => g.date === c.date);
-          const hasPhoto = photoDates.has(c.date);
-          return (
-            <motion.button
-              key={c.date}
-              whileTap={{ scale: 0.9 }}
-              onPointerDown={() => !c.isFuture && handlePressStart(c.date)}
-              onPointerUp={handlePressEnd}
-              onPointerLeave={handlePressEnd}
-              onClick={() => handleTap(c.date, c.isFuture)}
-              disabled={c.isFuture}
-              style={{
-                position: "relative", aspectRatio: "1", borderRadius: 10,
-                border: c.isToday ? `2px solid ${t.accent}` : inRange ? `2px solid ${t.gold}` : "1px solid var(--border)",
-                background: c.hasAny ? colorFor(pct, c.hasAny, t) : "var(--surface)",
-                backgroundImage: c.hasAny ? "none" : "radial-gradient(circle at 50% 50%, var(--ember-inner) 1px, transparent 1px)",
-                backgroundSize: "6px 6px",
-                opacity: c.isFuture ? 0.25 : c.hasAny ? 0.9 : 1,
-                color: c.hasAny ? "#fff" : "var(--ink-soft)",
-                fontWeight: 700, fontSize: 12, cursor: c.isFuture ? "default" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              {dayNum}
-              {hasGoal && <TbFlag size={9} style={{ position: "absolute", top: 2, right: 2 }} />}
-              {hasPhoto && <TbCamera size={9} style={{ position: "absolute", bottom: 2, right: 2 }} />}
-              {/* Task dots — colored by list, max 4 */}
-              {(taskDots.get(c.date) ?? []).length > 0 && (
-                <div style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)",
-                  display: "flex", gap: 2 }}>
-                  {(taskDots.get(c.date) ?? []).map((color: string, i: number) => (
-                    <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: color }} />
-                  ))}
+      <AnimatePresence mode="wait" custom={direction} initial={false}>
+        <motion.div
+          key={periodKey}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter" animate="center" exit="exit"
+          transition={{ type: "spring", stiffness: 320, damping: 32 }}
+          drag={view !== "month" ? "x" : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.3}
+          onDragEnd={view !== "month" ? handlePeriodDrag : undefined}
+        >
+          {view === "month" && (
+            <>
+              {/* Weekly strip — this week zoomed */}
+              <div style={{ background: "var(--surface)", borderRadius: 10, padding: "8px 12px", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>This week</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+                  {(() => {
+                    const today = new Date();
+                    const dow = today.getDay();
+                    const wStart = new Date(today); wStart.setDate(today.getDate() - dow);
+                    const week = Array.from({ length: 7 }, (_, i) => {
+                      const d = new Date(wStart); d.setDate(wStart.getDate() + i);
+                      return d.toISOString().slice(0, 10);
+                    });
+                    return week.map((iso) => {
+                      const cell = rawCells.find((c) => c.date === iso);
+                      const pct = cell ? filteredValue(cell, filter) : 0;
+                      const bg = cell?.hasAny ? colorFor(pct, cell.hasAny, t) : "var(--surface)";
+                      const bgImage = cell?.hasAny ? "none" : "radial-gradient(circle at 50% 50%, var(--ember-inner) 1px, transparent 1px)";
+                      return (
+                        <div key={iso} style={{
+                          aspectRatio: "1", borderRadius: 6, background: bg,
+                          backgroundImage: bgImage, backgroundSize: "6px 6px",
+                          opacity: cell?.isFuture ? 0.25 : 1,
+                          border: cell?.isToday ? `2px solid ${t.accent}` : "none",
+                        }} />
+                      );
+                    });
+                  })()}
                 </div>
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
+              </div>
 
-      <div style={{ display: "flex", gap: 12, marginTop: 16, fontSize: 11, color: "var(--ink-soft)", flexWrap: "wrap" }}>
-        <Legend color={t.teal} label="Strong (75%+)" />
-        <Legend color={t.gold} label="Okay (40–74%)" />
-        <Legend color="#ff5c7a" label="Rough (<40%)" />
-        <Legend color="var(--surface)" label="No data" bordered />
-      </div>
-      <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 6 }}>
-        Hold a day, then tap another to see stats for that range.
-      </div>
+              <Segmented block size="small" value={filter} onChange={(v) => setFilter(v as ScoreFilter)}
+                options={FILTERS} style={{ marginBottom: 10 }} />
 
-      {/* Day task sheet — bottom sheet with tasks, quick-add, swipe between days */}
-      <DayTaskSheet
-        date={selected}
-        onClose={() => setSelected(null)}
-        onDateChange={(d) => setSelected(d)}
-        onFocus={setFocusTask}
-      />
+              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                <Button size="small" icon={<TbFlag />} onClick={() => setShowGoalAdd(true)}>Add goal</Button>
+                <Button size="small" icon={<TbShare />} onClick={exportMonth}>Share month</Button>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 6 }}>
+                {WEEKDAY_HEADERS.map((d, i) => (
+                  <div key={i} style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>{d}</div>
+                ))}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+                {Array.from({ length: firstDow }, (_, i) => <div key={`pad-${i}`} />)}
+                {rawCells.map((c, idx) => {
+                  const dayNum = Number(c.date.slice(-2));
+                  const pct = filteredValue(c, filter);
+                  const inRange = rangeStart && rangeEnd && c.date >= [rangeStart, rangeEnd].sort()[0] && c.date <= [rangeStart, rangeEnd].sort()[1];
+                  const hasGoal = goals.some((g) => g.date === c.date);
+                  const hasPhoto = photoDates.has(c.date);
+                  const gym = showGymLayer ? gymOverlay.get(c.date) : undefined;
+                  const barColor = showScoreLayer && c.hasAny ? colorFor(pct, true, t) : undefined;
+                  const allDayHere = (allDayEvents.get(c.date) ?? []).filter((tk) => visibleListIds.has(tk.listId));
+                  return (
+                    <motion.button
+                      key={c.date}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: Math.min(idx * 0.006, 0.22), type: "spring", stiffness: 420, damping: 28 }}
+                      whileTap={{ scale: 0.9 }}
+                      onPointerDown={() => !c.isFuture && handlePressStart(c.date)}
+                      onPointerUp={handlePressEnd}
+                      onPointerLeave={handlePressEnd}
+                      onClick={() => handleTap(c.date, c.isFuture)}
+                      disabled={c.isFuture}
+                      style={{
+                        position: "relative", aspectRatio: "1", borderRadius: 10, overflow: "hidden",
+                        border: c.isToday ? `2px solid ${t.accent}` : inRange ? `2px solid ${t.gold}` : "1px solid var(--border)",
+                        background: "var(--surface)",
+                        backgroundImage: !c.hasAny ? "radial-gradient(circle at 50% 50%, var(--ember-inner) 1px, transparent 1px)" : "none",
+                        backgroundSize: "6px 6px",
+                        opacity: c.isFuture ? 0.35 : 1,
+                        color: "var(--ink)",
+                        fontWeight: 700, fontSize: 12, cursor: c.isFuture ? "default" : "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}
+                    >
+                      {gym && (
+                        <div style={{
+                          position: "absolute", left: 0, top: 3, bottom: 3, width: 3, borderRadius: 2,
+                          background: gym.done ? t.teal : t.accent, opacity: gym.done ? 1 : 0.5,
+                        }} />
+                      )}
+                      {allDayHere.length > 0 && (
+                        <div style={{
+                          position: "absolute", top: 2, left: 10, right: 10, height: 3, borderRadius: 2,
+                          background: listColorMap.get(allDayHere[0].listId) ?? t.accent,
+                        }} />
+                      )}
+                      {dayNum}
+                      {hasGoal && <TbFlag size={9} style={{ position: "absolute", top: 2, right: 2 }} />}
+                      {hasPhoto && <TbCamera size={9} style={{ position: "absolute", bottom: 2, right: 2 }} />}
+                      {/* Task dots — colored by list, max 4 */}
+                      {(taskDots.get(c.date) ?? []).length > 0 && (
+                        <div style={{ position: "absolute", bottom: 6, left: "50%", transform: "translateX(-50%)",
+                          display: "flex", gap: 2 }}>
+                          {(taskDots.get(c.date) ?? []).map((color: string, i: number) => (
+                            <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: color }} />
+                          ))}
+                        </div>
+                      )}
+                      {barColor && (
+                        <div style={{ position: "absolute", left: 2, right: 2, bottom: 0, height: 3, borderRadius: "0 0 3px 3px", background: barColor }} />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: "flex", gap: 12, marginTop: 16, fontSize: 11, color: "var(--ink-soft)", flexWrap: "wrap" }}>
+                <Legend color={t.teal} label="Strong (75%+)" />
+                <Legend color={t.gold} label="Okay (40–74%)" />
+                <Legend color="#ff5c7a" label="Rough (<40%)" />
+                <Legend color="var(--surface)" label="No data" bordered />
+              </div>
+              <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 6 }}>
+                Hold a day, then tap another to see stats for that range.
+              </div>
+            </>
+          )}
+
+          {view === "week" && (
+            <WeekView weekStart={weekStart} onDayTap={(d) => { setViewDate(d); setView("day"); }} onFocus={setFocusTask}
+              onTapTask={(task) => openEditor(task)} onToggleDone={mealFlow.tryComplete} onCreateAt={handleCreateAt}
+              visibleListIds={visibleListIds} showGym={showGymLayer} />
+          )}
+
+          {view === "day" && (
+            <DayTimeline date={viewDate} onFocus={setFocusTask} onGymTap={handleGymTap}
+              onTapTask={(task) => openEditor(task)} onToggleDone={mealFlow.tryComplete} onCreateAt={handleCreateAt}
+              visibleListIds={visibleListIds} showGym={showGymLayer} />
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Day task sheet — bottom sheet with tasks, quick-add, swipe between days (Month view peek) */}
+      {view === "month" && (
+        <DayTaskSheet
+          date={selected}
+          onClose={() => setSelected(null)}
+          onDateChange={(d) => setSelected(d)}
+          onFocus={setFocusTask}
+          onGymTap={handleGymTap}
+        />
+      )}
 
       {/* Focus mode overlay */}
       <FocusMode task={focusTask} onClose={() => setFocusTask(null)} />
 
-      {rangeStats && (
+      {/* Unified event editor + meal-plan-to-log completion */}
+      <EventEditorSheet
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        task={editorTask}
+        defaultDate={editorDefaults.date}
+        defaultTime={editorDefaults.time}
+        defaultEndTime={editorDefaults.endTime}
+        onComplete={mealFlow.tryComplete}
+      />
+      <FoodPickerModal
+        open={!!mealFlow.foodPickerTask}
+        onClose={mealFlow.closeFoodPicker}
+        date={mealFlow.foodPickerTask?.date}
+        defaultMealType={inferMealType()}
+        title="Log this meal"
+      />
+
+      <CalendarLayersSheet
+        open={layersOpen}
+        onClose={() => setLayersOpen(false)}
+        lists={taskLists}
+        visibleLists={visibleListIds}
+        onToggleList={toggleListLayer}
+        showGym={showGymLayer}
+        onToggleGym={() => setShowGymLayer((v) => !v)}
+        showScore={showScoreLayer}
+        onToggleScore={() => setShowScoreLayer((v) => !v)}
+      />
+      <CalendarSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} onJumpTo={jumpToSearchResult} />
+
+      {view === "month" && rangeStats && (
         <div style={{ position: "fixed", bottom: 76, left: 16, right: 16, background: "var(--surface)", borderRadius: 14,
           padding: "12px 16px", boxShadow: "0 8px 30px rgba(0,0,0,0.25)", border: "1px solid var(--border)", zIndex: 40 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -356,165 +577,3 @@ function AddGoalModal({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-// Retained but no longer rendered in CalendarPage — replaced by DayTaskSheet.
-// Kept exported so it can be used elsewhere if needed (e.g. a detailed view for past days).
-export function DayDetailModal({ date, onClose }: { date: string; onClose: () => void }) {
-  const { message, modal } = App.useApp();
-  useBackClose(true, onClose);
-  const detail = useDayDetail(date);
-  const waterGoal = useSetting("waterGoalMl");
-  const proteinTarget = useSetting("proteinTargetG");
-  const isToday = date === todayKey();
-  const isPast = date < todayKey();
-  const [waterAdd, setWaterAdd] = useState<number>();
-  const [editSleep, setEditSleep] = useState(false);
-  const [sleepAt, setSleepAt] = useState("23:30");
-  const [wakeAt, setWakeAt] = useState("07:00");
-  const [quality, setQuality] = useState(3);
-  const [comparisons, setComparisons] = useState<Awaited<ReturnType<typeof onThisDayComparisons>>>([]);
-  const [freezeAvailable, setFreezeAvailable] = useState(false);
-  const photo = useDayPhoto(date);
-  const workoutDays = useWorkoutDays();
-  const [backfillDay, setBackfillDay] = useState<number>();
-  const photoInputRef = useRef<HTMLInputElement>(null);
-
-  useMemo(() => {
-    onThisDayComparisons(date, waterGoal, proteinTarget).then(setComparisons);
-    if (isPast && !detail?.sets) isFreezeAvailable(date).then(setFreezeAvailable);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date]);
-
-  async function saveWater() {
-    if (!waterAdd) return;
-    await addWater(waterAdd, date);
-    message.success(`+${waterAdd}ml added to ${dayjs(date).format("D MMM")}`);
-    setWaterAdd(undefined);
-  }
-  async function saveSleep() {
-    await upsertSleep({ date, sleepAt, wakeAt, quality });
-    message.success(`Sleep logged for ${dayjs(date).format("D MMM")}`);
-    setEditSleep(false);
-  }
-  async function doFreeze() {
-    const ok = await useStreakFreeze(date);
-    if (ok) { message.success("Streak freeze used — this day now counts."); setFreezeAvailable(false); }
-    else message.info("No freeze available this week (one per week).");
-  }
-  async function doBackfill() {
-    if (!backfillDay) return;
-    modal.confirm({
-      title: "Backfill this session?",
-      content: "Logs all planned sets at your program's target weight/reps for this date.",
-      onOk: async () => { await backfillSession(date, backfillDay); message.success("Session backfilled"); },
-    });
-  }
-  async function handlePhotoPick(file: File) {
-    const dataUrl = await fileToDataURL(file, 900, 0.8);
-    await setDayPhoto(date, dataUrl);
-    message.success("Photo saved");
-  }
-
-  return (
-    <Modal open onCancel={onClose} footer={null} title={dayjs(date).format("dddd, D MMMM")}>
-      {!detail ? <div style={{ color: "var(--ink-soft)" }}>Loading…</div> : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
-          <Row icon={<TbDroplet />} label="Water" value={`${(detail.waterMl / 1000).toFixed(2)}L`} />
-          <Row icon={<TbMoon />} label="Sleep" value={detail.sleepMin ? `${fmtDuration(detail.sleepMin)} · ${detail.sleepQuality}/5` : "Not logged"} />
-          <Row icon={<TbBarbell />} label="Training" value={detail.sets > 0 ? `${detail.sets} sets · ${detail.volume}kg` : "Rest / not logged"} />
-          <Row icon={<TbMeat />} label="Protein" value={`${detail.protein}g`} />
-          <Row icon={<TbBook2 />} label="Study" value={`${detail.studyMin} min`} />
-          {detail.fuelCost > 0 && <Row icon={<TbGasStation />} label="Fuel spend" value={`₹${detail.fuelCost}`} />}
-
-          {/* On this day comparison */}
-          {comparisons.some((c) => c.metrics) && (
-            <div style={{ background: "var(--bg)", borderRadius: 10, padding: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>On this day</div>
-              {comparisons.map((c) => c.metrics && (
-                <div key={c.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
-                  <span style={{ color: "var(--ink-soft)" }}>{c.label}</span>
-                  <span style={{ fontWeight: 700 }}>{c.metrics.score}% discipline</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Progress photo */}
-          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-              <TbCamera size={14} /> Progress photo
-            </div>
-            {photo ? (
-              <div style={{ position: "relative" }}>
-                <img src={photo.dataUrl} alt="Progress" style={{ width: "100%", borderRadius: 10, maxHeight: 200, objectFit: "cover" }} />
-                <Button size="small" danger icon={<TbTrash />} onClick={() => removeDayPhoto(date)}
-                  style={{ position: "absolute", top: 6, right: 6 }} />
-              </div>
-            ) : (
-              <Button block icon={<TbCamera />} onClick={() => photoInputRef.current?.click()}>Add photo</Button>
-            )}
-            <input ref={photoInputRef} type="file" accept="image/*" hidden
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoPick(f); e.target.value = ""; }} />
-          </div>
-
-          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 8 }}>
-              {isToday ? "Quick add" : "Missed something? Backfill it"}
-            </div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              <SmartInputNumber placeholder="ml to add" value={waterAdd} onChange={(v) => setWaterAdd(v == null ? undefined : Number(v))}
-                style={{ flex: 1 }} min={0} step={50} />
-              <Button type="primary" onClick={saveWater}>Add water</Button>
-            </div>
-
-            {!editSleep ? (
-              <Button block onClick={() => setEditSleep(true)} style={{ marginBottom: 10 }}>
-                {detail.sleepMin ? "Edit sleep for this day" : "Log sleep for this day"}
-              </Button>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, background: "var(--bg)", borderRadius: 10, padding: 10, marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>Slept</span>
-                  <TimeSelect value={sleepAt} onChange={setSleepAt} size="small" />
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>Woke</span>
-                  <TimeSelect value={wakeAt} onChange={setWakeAt} size="small" />
-                </div>
-                <div style={{ textAlign: "center", fontWeight: 700, color: "var(--accent)", fontSize: 13 }}>
-                  {fmtDuration(sleepDurationMin(sleepAt, wakeAt))}
-                </div>
-                <Rate value={quality} onChange={setQuality} style={{ fontSize: 16 }} />
-                <Button type="primary" block onClick={saveSleep}>Save</Button>
-              </div>
-            )}
-
-            {/* Backfill workout */}
-            {detail.sets === 0 && !isToday && (
-              <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-                <Select placeholder="Pick workout day" style={{ flex: 1 }} value={backfillDay}
-                  onChange={setBackfillDay}
-                  options={workoutDays.map((d) => ({ label: d.name, value: d.id! }))} />
-                <Button onClick={doBackfill} disabled={!backfillDay}>Backfill</Button>
-              </div>
-            )}
-
-            {/* Streak freeze */}
-            {isPast && detail.sets === 0 && detail.waterMl === 0 && !detail.sleepMin && freezeAvailable && (
-              <Button block icon={<TbSnowflake />} onClick={doFreeze}>Use streak freeze for this day</Button>
-            )}
-          </div>
-        </div>
-      )}
-    </Modal>
-  );
-}
-
-function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <span style={{ color: "var(--accent)" }}>{icon}</span>
-      <span style={{ flex: 1, fontSize: 13, color: "var(--ink-soft)" }}>{label}</span>
-      <span style={{ fontWeight: 700, fontSize: 13 }}>{value}</span>
-    </div>
-  );
-}
