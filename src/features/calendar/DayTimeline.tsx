@@ -6,6 +6,7 @@ import type { TaskDto } from "../../db/types";
 import { HOUR_H, START_HOUR, TOTAL_H, HourGridLines, NowIndicator, TimeBlock, TimeGridColumn, layoutDayTasks } from "./timeGrid";
 import { useGymOverlay } from "./useGymOverlay";
 import { useAllDayEvents } from "./useAllDayEvents";
+import { QuickBackfillBar } from "./QuickBackfillBar";
 import { TbBarbell } from "react-icons/tb";
 import { useTokens } from "../../hooks/useTokens";
 
@@ -75,6 +76,9 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
           <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{gym.done ? "Done ✓" : "Planned"}</span>
         </button>
       )}
+
+      {/* Backfill this day — water / meal / workout, no scheduled task needed */}
+      <QuickBackfillBar date={date} defaultDayId={gym?.dayId} />
 
       {/* All-day / multi-day events */}
       {allDayHere.length > 0 && (

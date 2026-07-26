@@ -13,6 +13,7 @@ import { parseTaskInput } from "../../lib/taskParser";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 import { useGymOverlay } from "./useGymOverlay";
 import { useMealCompletion } from "./useMealCompletion";
+import { QuickBackfillBar } from "./QuickBackfillBar";
 import { EventEditorSheet } from "./EventEditorSheet";
 import { FoodPickerModal } from "../nutrition/FoodPickerModal";
 import { useTokens } from "../../hooks/useTokens";
@@ -222,6 +223,11 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
             </button>
           </div>
         )}
+
+        {/* Backfill this day — water / meal / workout, no scheduled task needed */}
+        <div style={{ padding: "8px 16px 0" }}>
+          <QuickBackfillBar date={date} defaultDayId={gym?.dayId} />
+        </div>
 
         {/* Quick add */}
         <div style={{ padding: "8px 16px", borderBottom: "1px solid var(--border)" }}>

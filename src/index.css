@@ -433,7 +433,7 @@ html[data-contrast="high"] {
   --border: #ffffff;
 }
 html[data-contrast="high"] .hero-grad,
-html[data-contrast="high"] .ember-ring,
+html[data-contrast="high"] .ember-ring::before,
 html[data-contrast="high"] .avatar-grad {
   background: var(--accent) !important;
 }
