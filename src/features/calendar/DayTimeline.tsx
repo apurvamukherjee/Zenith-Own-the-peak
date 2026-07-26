@@ -3,7 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { useTaskLists } from "../../features/tasks/useTasks";
 import type { TaskDto } from "../../db/types";
-import { HOUR_H, START_HOUR, TOTAL_H, HourGridLines, NowIndicator, TimeBlock, TimeGridColumn } from "./timeGrid";
+import { HOUR_H, START_HOUR, TOTAL_H, HourGridLines, NowIndicator, TimeBlock, TimeGridColumn, layoutDayTasks } from "./timeGrid";
 import { useGymOverlay } from "./useGymOverlay";
 import { useAllDayEvents } from "./useAllDayEvents";
 import { TbBarbell } from "react-icons/tb";
@@ -51,6 +51,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
 
   // Split: timed tasks (have time field) vs unscheduled vs all-day
   const timed = visibleTasks.filter((tk) => tk.time && tk.status !== "cancelled" && !tk.allDay);
+  const timedLayout = useMemo(() => layoutDayTasks(timed), [timed]);
   const unscheduled = visibleTasks.filter((tk) => !tk.time && tk.status !== "cancelled" && tk.status !== "done" && !tk.allDay);
   const allDayHere = (allDayEvents.get(date) ?? []).filter((tk) => !visibleListIds || visibleListIds.has(tk.listId));
 
@@ -103,10 +104,14 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
         <TimeGridColumn date={date} onCreateAt={onCreateAt} style={{ height: TOTAL_H }}>
           <HourGridLines />
           <NowIndicator date={date} />
-          {timed.map((task) => (
-            <TimeBlock key={task.id} task={task} list={listMap.get(task.listId)}
-              onFocus={onFocus} onTap={onTapTask} onToggleDone={onToggleDone} />
-          ))}
+          {timed.map((task) => {
+            const pos = task.id != null ? timedLayout.get(task.id) : undefined;
+            return (
+              <TimeBlock key={task.id} task={task} list={listMap.get(task.listId)}
+                onFocus={onFocus} onTap={onTapTask} onToggleDone={onToggleDone}
+                col={pos?.col ?? 0} cols={pos?.cols ?? 1} />
+            );
+          })}
         </TimeGridColumn>
       </div>
 

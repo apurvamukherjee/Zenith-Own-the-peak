@@ -4,7 +4,7 @@
 // pixel-identical and a future timing tweak only has to happen once.
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent, ReactNode, CSSProperties } from "react";
-import { motion } from "framer-motion";
+import { motion, useDragControls } from "framer-motion";
 import { TbFocus2, TbGripVertical, TbCheck } from "react-icons/tb";
 import { updateTask } from "../tasks/useTasks";
 import type { TaskDto, TaskListDto } from "../../db/types";
@@ -75,6 +75,65 @@ function minutesToTime(mins: number): string {
 
 const LONG_PRESS_MS = 400;
 const MOVE_CANCEL_PX = 8;
+
+function taskSpan(t: TaskDto): [number, number] {
+  const [h, m] = (t.time ?? "09:00").split(":").map(Number);
+  const start = (h - START_HOUR) * 60 + m;
+  let end = start + 30;
+  if (t.endTime) {
+    const [eh, em] = t.endTime.split(":").map(Number);
+    end = Math.max(start + 15, (eh - START_HOUR) * 60 + em);
+  }
+  return [start, end];
+}
+
+// Google-Calendar-style side-by-side layout for tasks that overlap in time.
+// Greedy interval partitioning: sort by start, place each task in the first
+// column whose last task has already ended, opening a new column otherwise.
+// Overlapping tasks used to render exactly on top of each other (illegible
+// stacked text) — this gives each one a fair-width lane within its cluster.
+export function layoutDayTasks(tasks: TaskDto[]): Map<number, { col: number; cols: number }> {
+  const items = tasks
+    .filter((t) => t.id != null)
+    .map((t) => ({ t, span: taskSpan(t) }))
+    .sort((a, b) => a.span[0] - b.span[0] || a.span[1] - b.span[1]);
+
+  const result = new Map<number, { col: number; cols: number }>();
+  let cluster: typeof items = [];
+  let clusterEnd = -Infinity;
+
+  function flush() {
+    if (!cluster.length) return;
+    const colEnds: number[] = [];
+    const placed: { id: number; col: number }[] = [];
+    for (const item of cluster) {
+      let col = colEnds.findIndex((end) => end <= item.span[0]);
+      if (col === -1) {
+        col = colEnds.length;
+        colEnds.push(item.span[1]);
+      } else {
+        colEnds[col] = item.span[1];
+      }
+      placed.push({ id: item.t.id as number, col });
+    }
+    const cols = colEnds.length;
+    for (const { id, col } of placed) result.set(id, { col, cols });
+    cluster = [];
+  }
+
+  for (const item of items) {
+    if (cluster.length === 0 || item.span[0] < clusterEnd) {
+      cluster.push(item);
+      clusterEnd = Math.max(clusterEnd, item.span[1]);
+    } else {
+      flush();
+      cluster.push(item);
+      clusterEnd = item.span[1];
+    }
+  }
+  flush();
+  return result;
+}
 
 // Wraps one day's grid column (used once per day, including in WeekView's
 // 7-column layout). Long-press-then-drag on empty space stakes out a new
@@ -168,10 +227,25 @@ interface TimeBlockProps {
   insetLeft?: number;
   insetRight?: number;
   compact?: boolean;
+  col?: number;
+  cols?: number;
 }
 
-export function TimeBlock({ task, list, onFocus, onTap, onToggleDone, insetLeft = 48, insetRight = 8, compact = false }: TimeBlockProps) {
+// Dragging used to arm the instant a finger touched the block, which stole
+// every vertical scroll swipe that happened to start on a chip (nearly every
+// swipe, on a busy day) and misfired as a reschedule. Framer only locks out
+// native scrolling while its own drag listener is attached (dragListener,
+// checked in framer-motion's useHTMLProps), so instead we keep
+// dragListener={false} and arm a real drag manually via dragControls after a
+// deliberate long-press — mirroring TimeGridColumn's long-press-to-create
+// gesture so the whole calendar has one consistent "hold to act" rule. A
+// normal quick swipe never touches the timer, so scrolling passes straight
+// through to the browser untouched.
+export function TimeBlock({ task, list, onFocus, onTap, onToggleDone, insetLeft = 48, insetRight = 8, compact = false, col = 0, cols = 1 }: TimeBlockProps) {
   const [dragging, setDragging] = useState(false);
+  const dragControls = useDragControls();
+  const pressTimer = useRef<number | null>(null);
+  const startPos = useRef({ x: 0, y: 0 });
   const color = list?.color ?? "var(--accent)";
   const [h, m] = (task.time ?? "09:00").split(":").map(Number);
   const top = (h - START_HOUR) * 60 + m;
@@ -183,6 +257,28 @@ export function TimeBlock({ task, list, onFocus, onTap, onToggleDone, insetLeft 
   }
   const isBlock = height > 30;
   const done = task.status === "done";
+
+  function clearPressTimer() {
+    if (pressTimer.current) {
+      window.clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+  }
+  function handlePointerDown(e: ReactPointerEvent<HTMLDivElement>) {
+    startPos.current = { x: e.clientX, y: e.clientY };
+    const evt = e.nativeEvent;
+    pressTimer.current = window.setTimeout(() => {
+      pressTimer.current = null;
+      hapticLight();
+      dragControls.start(evt);
+    }, LONG_PRESS_MS);
+  }
+  function handlePointerMove(e: ReactPointerEvent<HTMLDivElement>) {
+    if (!pressTimer.current) return;
+    const dx = Math.abs(e.clientX - startPos.current.x);
+    const dy = Math.abs(e.clientY - startPos.current.y);
+    if (dx > MOVE_CANCEL_PX || dy > MOVE_CANCEL_PX) clearPressTimer();
+  }
 
   async function handleDragEnd(_: unknown, info: { offset: { y: number } }) {
     setDragging(false);
@@ -205,12 +301,26 @@ export function TimeBlock({ task, list, onFocus, onTap, onToggleDone, insetLeft 
     hapticLight();
   }
 
+  const leftStyle = cols > 1
+    ? `calc(${insetLeft}px + (100% - ${insetLeft + insetRight}px) * ${col / cols})`
+    : insetLeft;
+  const widthStyle = cols > 1
+    ? `calc((100% - ${insetLeft + insetRight}px) / ${cols} - 3px)`
+    : undefined;
+
   return (
     <motion.div
       layout
       drag="y"
+      dragListener={false}
+      dragControls={dragControls}
       dragMomentum={false}
       dragElastic={0}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={clearPressTimer}
+      onPointerLeave={clearPressTimer}
+      onPointerCancel={clearPressTimer}
       onDragStart={() => setDragging(true)}
       onDragEnd={handleDragEnd}
       onClick={() => onTap?.(task)}
@@ -218,7 +328,7 @@ export function TimeBlock({ task, list, onFocus, onTap, onToggleDone, insetLeft 
       transition={{ type: "spring", damping: 30, stiffness: 400 }}
       style={{
         position: "absolute",
-        top, left: insetLeft, right: insetRight,
+        top, left: leftStyle, right: cols > 1 ? undefined : insetRight, width: widthStyle,
         height: Math.max(20, height),
         background: done ? "var(--border)" : `${color}20`,
         borderLeft: `3px solid ${done ? "var(--ink-soft)" : color}`,

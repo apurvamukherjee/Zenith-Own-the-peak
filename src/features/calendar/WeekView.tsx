@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { db } from "../../db/db";
 import { useTaskLists } from "../tasks/useTasks";
 import type { TaskDto } from "../../db/types";
-import { HOUR_H, START_HOUR, TOTAL_H, HourGridLines, NowIndicator, TimeBlock, TimeGridColumn, isToday } from "./timeGrid";
+import { HOUR_H, START_HOUR, TOTAL_H, HourGridLines, NowIndicator, TimeBlock, TimeGridColumn, isToday, layoutDayTasks } from "./timeGrid";
 import { useGymOverlay } from "./useGymOverlay";
 import { useAllDayEvents } from "./useAllDayEvents";
 import { todayKey } from "../../lib/date.utils";
@@ -135,17 +135,25 @@ export function WeekView({ weekStart, onDayTap, onFocus, onTapTask, onToggleDone
             <div style={{ position: "sticky", left: 0, zIndex: 6, width: GUTTER, flexShrink: 0, background: "var(--surface)" }}>
               <HourGridLines />
             </div>
-            {dates.map((d) => (
-              <TimeGridColumn key={d} date={d} onCreateAt={onCreateAt} onEmptyTap={() => onDayTap(d)}
-                style={{ width: COL_W, flexShrink: 0, borderLeft: "1px solid var(--border)" }}>
-                <NowIndicator date={d} left={2} right={2} />
-                {(byDate.get(d) ?? []).map((t) => (
-                  <TimeBlock key={t.id} task={t} list={listMap.get(t.listId)} onFocus={onFocus}
-                    onTap={onTapTask} onToggleDone={onToggleDone}
-                    insetLeft={2} insetRight={2} compact />
-                ))}
-              </TimeGridColumn>
-            ))}
+            {dates.map((d) => {
+              const dayTasks = byDate.get(d) ?? [];
+              const layout = layoutDayTasks(dayTasks);
+              return (
+                <TimeGridColumn key={d} date={d} onCreateAt={onCreateAt} onEmptyTap={() => onDayTap(d)}
+                  style={{ width: COL_W, flexShrink: 0, borderLeft: "1px solid var(--border)" }}>
+                  <NowIndicator date={d} left={2} right={2} />
+                  {dayTasks.map((t) => {
+                    const pos = t.id != null ? layout.get(t.id) : undefined;
+                    return (
+                      <TimeBlock key={t.id} task={t} list={listMap.get(t.listId)} onFocus={onFocus}
+                        onTap={onTapTask} onToggleDone={onToggleDone}
+                        insetLeft={2} insetRight={2} compact
+                        col={pos?.col ?? 0} cols={pos?.cols ?? 1} />
+                    );
+                  })}
+                </TimeGridColumn>
+              );
+            })}
           </div>
         </div>
       </div>
