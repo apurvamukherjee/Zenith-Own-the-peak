@@ -13,7 +13,10 @@ export async function seedIfEmpty() {
   await seedQuotesIfEmpty();
 
   const count = await db.exercises.count();
-  if (count > 0) return; // already seeded
+  if (count > 0) {
+    await syncExerciseLibrary();
+    return; // already seeded
+  }
 
   // 1. Seed exercise library
   const ids = await db.exercises.bulkAdd(
@@ -99,4 +102,15 @@ export async function seedIfEmpty() {
     { weekday: 0, dayId: 0 }, // rest
   ];
   await db.weekSchedule.bulkAdd(schedule);
+}
+
+// Adds any exercises present in EXERCISE_LIBRARY (new app updates) that aren't
+// already in this install's db, matched by name. Runs on every launch after
+// the initial seed, so existing users' pre-made list stays current without
+// touching their custom exercises or day assignments.
+async function syncExerciseLibrary() {
+  const existingNames = new Set((await db.exercises.toArray()).map((e) => e.name));
+  const missing = EXERCISE_LIBRARY.filter((e) => !existingNames.has(e.name));
+  if (missing.length === 0) return;
+  await db.exercises.bulkAdd(missing.map((e) => ({ ...e, isCustom: 0 })));
 }

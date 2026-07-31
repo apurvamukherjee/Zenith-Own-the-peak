@@ -13,7 +13,7 @@ import {
   useWorkoutDays, useExerciseLibrary, useDayExercises, useWeekSchedule,
   addWorkoutDay, deleteWorkoutDay, cloneDay,
   addDayExercise, updateDayExercise, removeDayExercise, setWeekday,
-  toggleSupersetLink,
+  toggleSupersetLink, addCustomExercise,
 } from "./useGym";
 import { useOverloadSuggestions } from "./useOverloadSuggestions";
 
@@ -30,6 +30,12 @@ function DayCard({ dayId }: { dayId: number }) {
   const [filter, setFilter] = useState<MuscleGroup | "all">("all");
   const [editEx, setEditEx] = useState<DayExerciseDto | null>(null);
   const [dismissedSuggestions, setDismissedSuggestions] = useState<number[]>([]);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [customPrimary, setCustomPrimary] = useState<MuscleGroup | undefined>(undefined);
+  const [customSecondary, setCustomSecondary] = useState<MuscleGroup[]>([]);
+  const [customEquipment, setCustomEquipment] = useState("");
+  const [customCues, setCustomCues] = useState("");
 
   const suggestions = useOverloadSuggestions(exercises);
   const activeSuggestions = suggestions.filter((s) => !dismissedSuggestions.includes(s.exerciseId));
@@ -41,6 +47,26 @@ function DayCard({ dayId }: { dayId: number }) {
     await addDayExercise(dayId, ex.id!, { sets: 3, repLow: 8, repHigh: 12, weightKg: 0, restSec: 90 });
     setAddOpen(false);
     message.success(`Added ${ex.name}`);
+  }
+
+  function resetCustomForm() {
+    setCustomName(""); setCustomPrimary(undefined); setCustomSecondary([]);
+    setCustomEquipment(""); setCustomCues("");
+  }
+
+  async function handleSaveCustom() {
+    const name = customName.trim();
+    if (!name || !customPrimary) return;
+    const id = await addCustomExercise({
+      name, primaryMuscle: customPrimary, secondaryMuscles: customSecondary,
+      equipment: customEquipment.trim() || "other",
+      cues: customCues.trim() || undefined,
+    });
+    await addDayExercise(dayId, id, { sets: 3, repLow: 8, repHigh: 12, weightKg: 0, restSec: 90 });
+    message.success(`Added ${name} to your exercise library`);
+    setCustomOpen(false);
+    setAddOpen(false);
+    resetCustomForm();
   }
 
   return (
@@ -141,6 +167,9 @@ function DayCard({ dayId }: { dayId: number }) {
 
       {/* Add exercise modal */}
       <Modal open={addOpen} onCancel={() => setAddOpen(false)} footer={null} title="Exercise library">
+        <Button type="dashed" block icon={<TbPlus />} onClick={() => setCustomOpen(true)} style={{ marginBottom: 10 }}>
+          Add custom exercise
+        </Button>
         <div style={{ marginBottom: 10 }}>
           <Segmented size="small"
             value={filter}
@@ -162,6 +191,38 @@ function DayCard({ dayId }: { dayId: number }) {
               <TbPlus style={{ color: "var(--accent)" }} />
             </div>
           ))}
+        </div>
+      </Modal>
+
+      {/* Add custom exercise modal */}
+      <Modal open={customOpen} onCancel={() => { setCustomOpen(false); resetCustomForm(); }}
+        title="Add custom exercise" onOk={handleSaveCustom} okText="Add"
+        okButtonProps={{ disabled: !customName.trim() || !customPrimary }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+          <Input placeholder="Exercise name" value={customName} onChange={(e) => setCustomName(e.target.value)} />
+          <div>
+            <div style={{ fontSize: 12, marginBottom: 4 }}>Primary muscle</div>
+            <Select
+              style={{ width: "100%" }}
+              placeholder="Select primary muscle"
+              value={customPrimary}
+              onChange={(v) => setCustomPrimary(v)}
+              options={ALL_MUSCLES.map((m) => ({ label: MUSCLE_LABELS[m], value: m }))}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, marginBottom: 4 }}>Secondary muscles (optional)</div>
+            <Select
+              mode="multiple"
+              style={{ width: "100%" }}
+              placeholder="Select secondary muscles"
+              value={customSecondary}
+              onChange={(v) => setCustomSecondary(v)}
+              options={ALL_MUSCLES.filter((m) => m !== customPrimary).map((m) => ({ label: MUSCLE_LABELS[m], value: m }))}
+            />
+          </div>
+          <Input placeholder="Equipment (e.g. barbell, dumbbell, cable, bodyweight)" value={customEquipment} onChange={(e) => setCustomEquipment(e.target.value)} />
+          <Input placeholder="Cue / tip (optional)" value={customCues} onChange={(e) => setCustomCues(e.target.value)} />
         </div>
       </Modal>
 

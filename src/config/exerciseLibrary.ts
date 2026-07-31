@@ -151,6 +151,52 @@ export const EXERCISE_LIBRARY: Seed[] = [
   { name: "Reverse Wrist Curl", primaryMuscle: "forearms", secondaryMuscles: [], equipment: "dumbbell" },
   { name: "Dead Hang", primaryMuscle: "forearms", secondaryMuscles: ["back"], equipment: "bodyweight", cues: "Grip endurance" },
   { name: "Plate Pinch", primaryMuscle: "forearms", secondaryMuscles: [], equipment: "bodyweight", cues: "Two plates, smooth sides out" },
+
+  // ---- Expansion pack 2 ----
+  // Chest
+  { name: "Svend Press", primaryMuscle: "chest", secondaryMuscles: ["triceps"], equipment: "bodyweight", cues: "Press plates together, squeeze" },
+  { name: "Smith Machine Bench Press", primaryMuscle: "chest", secondaryMuscles: ["triceps", "shoulders"], equipment: "machine" },
+
+  // Back
+  { name: "Inverted Row", primaryMuscle: "back", secondaryMuscles: ["biceps"], equipment: "bodyweight", cues: "Body straight, chest to bar" },
+  { name: "Landmine Row", primaryMuscle: "back", secondaryMuscles: ["biceps"], equipment: "barbell" },
+  { name: "Wide-Grip Lat Pulldown", primaryMuscle: "back", secondaryMuscles: ["biceps"], equipment: "cable" },
+
+  // Shoulders
+  { name: "Push Press", primaryMuscle: "shoulders", secondaryMuscles: ["triceps", "quads"], equipment: "barbell", cues: "Leg drive, then press" },
+  { name: "Cuban Press", primaryMuscle: "shoulders", secondaryMuscles: ["traps"], equipment: "dumbbell", cues: "Rotate through, control the tempo" },
+  { name: "Upright Row", primaryMuscle: "shoulders", secondaryMuscles: ["traps"], equipment: "barbell" },
+
+  // Biceps
+  { name: "Zottman Curl", primaryMuscle: "biceps", secondaryMuscles: ["forearms"], equipment: "dumbbell", cues: "Curl supinated, lower pronated" },
+  { name: "Cross-Body Hammer Curl", primaryMuscle: "biceps", secondaryMuscles: ["forearms"], equipment: "dumbbell" },
+  { name: "Drag Curl", primaryMuscle: "biceps", secondaryMuscles: [], equipment: "barbell", cues: "Bar drags up the torso" },
+
+  // Triceps
+  { name: "Tate Press", primaryMuscle: "triceps", secondaryMuscles: ["chest"], equipment: "dumbbell", cues: "Elbows out, dumbbells to chest" },
+
+  // Quads
+  { name: "Smith Machine Squat", primaryMuscle: "quads", secondaryMuscles: ["glutes"], equipment: "machine" },
+  { name: "Pistol Squat", primaryMuscle: "quads", secondaryMuscles: ["glutes", "abs"], equipment: "bodyweight", cues: "Single-leg, full control" },
+  { name: "Curtsy Lunge", primaryMuscle: "quads", secondaryMuscles: ["glutes"], equipment: "dumbbell" },
+
+  // Hamstrings
+  { name: "Kettlebell Swing", primaryMuscle: "hamstrings", secondaryMuscles: ["glutes", "back"], equipment: "kettlebell", cues: "Hip hinge, snap the hips" },
+
+  // Glutes
+  { name: "Banded Hip Abduction", primaryMuscle: "glutes", secondaryMuscles: [], equipment: "band" },
+
+  // Calves
+  { name: "Smith Machine Calf Raise", primaryMuscle: "calves", secondaryMuscles: [], equipment: "machine" },
+
+  // Abs
+  { name: "Hollow Body Hold", primaryMuscle: "abs", secondaryMuscles: [], equipment: "bodyweight", cues: "Lower back pressed down, arms overhead" },
+  { name: "V-Up", primaryMuscle: "abs", secondaryMuscles: [], equipment: "bodyweight" },
+  { name: "Mountain Climber", primaryMuscle: "abs", secondaryMuscles: [], equipment: "bodyweight" },
+
+  // Traps + forearms
+  { name: "Snatch-Grip Shrug", primaryMuscle: "traps", secondaryMuscles: [], equipment: "barbell" },
+  { name: "Barbell Wrist Roller", primaryMuscle: "forearms", secondaryMuscles: [], equipment: "barbell", cues: "Roll slow, control the eccentric" },
 ];
 
 export const MUSCLE_LABELS: Record<MuscleGroup, string> = {

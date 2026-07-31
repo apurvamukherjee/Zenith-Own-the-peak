@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import type { DayExerciseDto, WorkoutDayDto, WorkoutSetDto, Effort, DropStageDto } from "../../db/types";
+import type { DayExerciseDto, WorkoutDayDto, WorkoutSetDto, Effort, DropStageDto, MuscleGroup } from "../../db/types";
 import { estimate1RM, bestE1RM } from "../../lib/workout.utils";
 import { todayKey, weekKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
@@ -108,6 +108,14 @@ export async function deleteWorkoutDay(id: number) {
   await db.dayExercises.where({ dayId: id }).delete();
   await db.weekSchedule.where({ dayId: id }).delete();
   await db.workoutDays.delete(id);
+}
+
+// User-authored exercise, added straight into the library (isCustom: 1) so it
+// shows up alongside the pre-made list everywhere (planner picker, logger).
+export async function addCustomExercise(data: {
+  name: string; primaryMuscle: MuscleGroup; secondaryMuscles: MuscleGroup[]; equipment: string; cues?: string;
+}): Promise<number> {
+  return db.exercises.add({ ...data, isCustom: 1 });
 }
 
 export async function addDayExercise(dayId: number, exerciseId: number, plan: {
