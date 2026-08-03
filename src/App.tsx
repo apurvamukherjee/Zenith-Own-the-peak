@@ -11,6 +11,7 @@ import { OnboardingFlow } from "./features/onboarding/OnboardingFlow";
 import { seedIfEmpty } from "./config/seedProgram";
 import { seedTaskLists, migrateSchedulesToTasks } from "./config/seedTaskLists";
 import { useAdaptiveTheme } from "./hooks/useAdaptiveTheme";
+import { accentById, DEFAULT_ACCENT } from "./lib/rewardVault";
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -22,6 +23,8 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const resolved: Mode = mode === "light" ? "light" : "dark";
   const adaptive = useAdaptiveTheme();
+  const equippedAccent = String(useSetting("equippedAccent")) || DEFAULT_ACCENT;
+  const accentHex = equippedAccent === DEFAULT_ACCENT ? undefined : accentById(equippedAccent)[resolved];
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", resolved);
@@ -31,6 +34,15 @@ export default function App() {
     // in index.html set the right theme before React mounts, killing the flash.
     try { localStorage.setItem("zenith-theme", resolved); } catch { /* ignore */ }
   }, [resolved]);
+
+  // Reward Vault — equipped accent theme. Only ever touches --accent (never
+  // --hero, which stays gothic dark always — see the adaptive-theme effect
+  // below). Clearing the inline override for the default lets the stylesheet's
+  // :root / [data-theme=dark] values apply normally again.
+  useEffect(() => {
+    if (accentHex) document.documentElement.style.setProperty("--accent", accentHex);
+    else document.documentElement.style.removeProperty("--accent");
+  }, [accentHex]);
 
   // Mirror accessibility flags onto <html> so CSS can key on them.
   useEffect(() => {
@@ -72,7 +84,7 @@ export default function App() {
   }, [ready, seeded, onboarded]);
 
   return (
-    <ConfigProvider theme={getTheme(resolved)}>
+    <ConfigProvider theme={getTheme(resolved, accentHex)}>
       <AntApp>
         <AnimatePresence>
           {!ready && <SplashScreen key="splash" onDone={() => setReady(true)} />}

@@ -189,6 +189,13 @@ export interface AchievementUnlockDto {
   seen: number;
 }
 
+// ---- Reward Vault (cosmetics) ----
+export interface CosmeticUnlockDto {
+  id: string;
+  unlockedAt: number;
+  seen: number;
+}
+
 // ---- Phase-3 usage history ------------------------------------------------
 // Keyed store used by predictive-input UX. Key format: "<kind>:<itemId>".
 //   • "weight:<exerciseId>" → last-used weight for that exercise (kg)

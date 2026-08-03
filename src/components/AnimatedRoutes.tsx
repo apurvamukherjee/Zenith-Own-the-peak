@@ -17,6 +17,7 @@ const CalendarPage = lazy(() => import("../features/calendar/CalendarPage").then
 const GlancePage = lazy(() => import("../features/glance/GlancePage").then((m) => ({ default: m.GlancePage })));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then((m) => ({ default: m.ProfilePage })));
 const HallOfFrame = lazy(() => import("../features/achievements/HallOfFrame").then((m) => ({ default: m.HallOfFrame })));
+const VaultPage = lazy(() => import("../features/vault/VaultPage").then((m) => ({ default: m.VaultPage })));
 const SettingsPage = lazy(() => import("../features/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 const QuickLogPage = lazy(() => import("../features/quick/QuickLogPage").then((m) => ({ default: m.QuickLogPage })));
 const LeaderboardPage = lazy(() => import("../features/leaderboard/LeaderboardPage").then((m) => ({ default: m.LeaderboardPage })));
@@ -60,6 +61,7 @@ export function AnimatedRoutes() {
             <Route path="glance" element={<GlancePage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="hall" element={<HallOfFrame />} />
+            <Route path="vault" element={<VaultPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="quick" element={<QuickLogPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />

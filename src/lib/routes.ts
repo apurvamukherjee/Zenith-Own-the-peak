@@ -15,6 +15,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/glance":    { title: "At a glance", rank: 1, tab: false },
   "/quotes":    { title: "Motivation",  rank: 1, tab: false },
   "/hall":      { title: "Hall of Frame", rank: 1, tab: false },
+  "/vault":     { title: "Reward Vault", rank: 1, tab: false },
   "/settings":  { title: "Settings",    rank: 1, tab: false },
   "/quick":     { title: "Quick log",   rank: 1, tab: false },
   "/leaderboard": { title: "Leaderboard", rank: 1, tab: false },

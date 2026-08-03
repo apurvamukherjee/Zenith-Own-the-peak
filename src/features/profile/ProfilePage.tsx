@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty } from "antd";
 import {
   TbBolt, TbBook2, TbBulb, TbClipboardList, TbDroplet,
-  TbFlame, TbGasStation, TbMoon, TbTrendingUp, TbTrendingDown, TbTrophy,
+  TbFlame, TbGasStation, TbMoon, TbTrendingUp, TbTrendingDown, TbTrophy, TbSparkles,
 } from "react-icons/tb";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
@@ -20,6 +20,8 @@ import { useWeeklyReview } from "../review/useWeeklyReview";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 import { useAchievements, useUnseenAchievements } from "../achievements/useAchievements";
+import { AvatarFrame } from "../../components/AvatarFrame";
+import { useEquippedTitle, useUnseenCosmetics } from "../vault/useRewardVault";
 
 export function ProfilePage() {
   const t = useTokens();
@@ -30,6 +32,9 @@ export function ProfilePage() {
   const unseen = useUnseenAchievements();
   const name = useSetting("name");
   const profilePic = useSetting("profilePic");
+  const equippedFrame = String(useSetting("equippedFrame"));
+  const equippedTitle = useEquippedTitle();
+  const unseenCosmetics = useUnseenCosmetics();
 
   async function logBw() {
     const cur = stats?.bodyweight.latest || 50;
@@ -52,14 +57,40 @@ export function ProfilePage() {
   return (
     <PageTransition>
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-        <Avatar size={56} src={profilePic || undefined} className="avatar-grad" style={{ fontWeight: 800, fontSize: 22 }}>
-          {String(name).charAt(0)}
-        </Avatar>
+        <AvatarFrame frameId={equippedFrame}>
+          <Avatar size={56} src={profilePic || undefined} className="avatar-grad" style={{ fontWeight: 800, fontSize: 22 }}>
+            {String(name).charAt(0)}
+          </Avatar>
+        </AvatarFrame>
         <div>
           <h2 className="display" style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{name}</h2>
-          <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Own the peak.</div>
+          <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{equippedTitle} · Own the peak.</div>
         </div>
       </div>
+
+      {/* Reward Vault entry */}
+      <Link to="/vault" style={{ textDecoration: "none" }}>
+        <Card size="small" hoverable style={{ marginBottom: 16, overflow: "hidden" }}
+          styles={{ body: { padding: 0 } }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, background: "var(--hero)", color: "#fff" }}>
+            <div style={{ position: "relative", width: 46, height: 46, borderRadius: 13, background: "rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <TbSparkles size={24} />
+              {unseenCosmetics > 0 && (
+                <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+                  {unseenCosmetics}
+                </span>
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="display" style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.1 }}>Reward Vault</div>
+              <div style={{ fontSize: 12.5, opacity: 0.9 }}>
+                {unseenCosmetics > 0 ? `${unseenCosmetics} new — go claim ${unseenCosmetics === 1 ? "it" : "them"}` : "Accent themes, frames & titles"}
+              </div>
+            </div>
+            <span style={{ fontSize: 20, opacity: 0.8 }}>→</span>
+          </div>
+        </Card>
+      </Link>
 
       {/* Hall of Frame entry */}
       <Link to="/hall" style={{ textDecoration: "none" }}>

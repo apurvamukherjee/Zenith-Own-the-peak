@@ -7,6 +7,7 @@ import {
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { MountainGrows } from "../../components/MountainGrows";
+import { AvatarFrame } from "../../components/AvatarFrame";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { exportAll, importAll } from "../../db/db";
 import { encryptString } from "../../lib/encryptedExport";
@@ -33,6 +34,7 @@ export function SettingsPage() {
   const birthday = String(useSetting("birthday") ?? "");
   const highContrast = Number(useSetting("highContrast")) === 1;
   const reduceMotion = Number(useSetting("reduceMotion")) === 1;
+  const equippedFrame = String(useSetting("equippedFrame"));
 
   const picRef = useRef<HTMLInputElement>(null);
   const bgRef = useRef<HTMLInputElement>(null);
@@ -128,7 +130,9 @@ export function SettingsPage() {
 
         <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><TbUser /> Profile picture</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <Avatar size={48} src={profilePic || undefined} className="avatar-grad">{String(name).charAt(0)}</Avatar>
+          <AvatarFrame frameId={equippedFrame}>
+            <Avatar size={48} src={profilePic || undefined} className="avatar-grad">{String(name).charAt(0)}</Avatar>
+          </AvatarFrame>
           <Button icon={<TbPhoto />} onClick={() => picRef.current?.click()}>Choose</Button>
           {profilePic && <Button danger type="text" onClick={() => setSetting("profilePic", "")}>Remove</Button>}
         </div>

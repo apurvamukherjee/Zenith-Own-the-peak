@@ -6,7 +6,7 @@ import type {
   ScheduleDto, ScheduleLogDto, MealDto, GoalDayDto, DayPhotoDto, StreakFreezeDto,
   QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
   AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
-  TaskDto, TaskListDto, RecurringRuleDto,
+  TaskDto, TaskListDto, RecurringRuleDto, CosmeticUnlockDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -43,6 +43,7 @@ class ZenithDB extends Dexie {
   tasks!: Table<TaskDto, number>;
   taskLists!: Table<TaskListDto, string>;
   recurringRules!: Table<RecurringRuleDto, number>;
+  cosmeticUnlocks!: Table<CosmeticUnlockDto, string>;
 
   constructor() {
     super("zenith");
@@ -113,6 +114,12 @@ class ZenithDB extends Dexie {
       taskLists: "&id, order",
       recurringRules: "++id, active",
     });
+    // v11: Reward Vault — cosmetic unlocks (accent themes + avatar frames).
+    // Same shape as `achievements`: id keyed by the definition id in
+    // lib/rewardVault.ts, table only persists *which* cosmetics are unlocked.
+    this.version(11).stores({
+      cosmeticUnlocks: "&id, unlockedAt, seen",
+    });
   }
 }
 
@@ -126,7 +133,7 @@ for (const table of db.tables) {
 }
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 10, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 11, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

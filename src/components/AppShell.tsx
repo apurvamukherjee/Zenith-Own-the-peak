@@ -16,6 +16,7 @@ import { useSetting } from "../hooks/useSettings";
 import { useReminderEngine } from "../features/reminders/useReminderEngine";
 import { useTaskReminderSync } from "../features/reminders/useTaskReminderSync";
 import { useAchievementEngine } from "../features/achievements/useAchievements";
+import { useRewardVaultEngine } from "../features/vault/useRewardVault";
 import { useScrollRestore } from "../hooks/useScrollRestore";
 import { useEasterEggs } from "../hooks/useEasterEggs";
 import { useXPEngine } from "../hooks/useXPEngine";
@@ -27,6 +28,7 @@ export function AppShell() {
   useReminderEngine();
   useTaskReminderSync();
   useAchievementEngine();
+  useRewardVaultEngine();
 
   // Phase 5 XP engine — grants XP on every mutation, fires level-up callback.
   const [levelUp, setLevelUp] = useState<{ level: number; name: string } | null>(null);

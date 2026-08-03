@@ -15,7 +15,11 @@ const components = {
 
 export type Mode = "light" | "dark";
 
-export function getTheme(mode: Mode): ThemeConfig {
+// `accentOverride`: Reward Vault equipped accent theme's resolved hex for the
+// current mode (undefined/omitted = default gothic red). Only ever feeds
+// colorPrimary/colorInfo — the brand-color tokens — never colorError/Success/
+// Warning, which stay semantic.
+export function getTheme(mode: Mode, accentOverride?: string): ThemeConfig {
   const base: ThemeConfig = {
     // CSS-variable mode: AntD writes tokens as real CSS custom properties instead
     // of baking hex values into per-theme class hashes. Combined with the CSS
@@ -25,13 +29,14 @@ export function getTheme(mode: Mode): ThemeConfig {
     hashed: false,
   };
   if (mode === "dark") {
+    const accent = accentOverride ?? "#ff2740";
     return {
       ...base,
       algorithm: antdTheme.darkAlgorithm,
       token: {
         ...shared,
-        colorPrimary: "#ff2740",
-        colorInfo: "#ff2740",
+        colorPrimary: accent,
+        colorInfo: accent,
         colorSuccess: "#37d67a",
         colorWarning: "#f6b93b",
         colorError: "#ff5c7a",
@@ -44,12 +49,13 @@ export function getTheme(mode: Mode): ThemeConfig {
       components,
     };
   }
+  const accent = accentOverride ?? "#c8112a";
   return {
     ...base,
     token: {
       ...shared,
-      colorPrimary: "#c8112a",
-      colorInfo: "#c8112a",
+      colorPrimary: accent,
+      colorInfo: accent,
       colorSuccess: "#12b3a1",
       colorWarning: "#b8860b",
       colorError: "#c8112a",

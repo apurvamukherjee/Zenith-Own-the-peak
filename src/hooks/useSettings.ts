@@ -52,6 +52,11 @@ export const DEFAULTS = {
   hardcoreUntil: 0,       // epoch ms — Hardcore Mode active until
   sabbathUntil: 0,        // epoch ms — Sabbath Mode active until (Sunday-only)
   mountainPeaks: 0,       // count of mythic badges ever unlocked (drives Settings→About)
+  // Reward Vault (cosmetics) — equipped selections. Unlock state itself lives
+  // in db.cosmeticUnlocks; these three keys are just "which one is worn".
+  equippedAccent: "gothic-red", // accent theme id from lib/rewardVault.ts — always unlocked
+  equippedFrame: "",            // avatar frame id, "" = no ring
+  equippedTitle: "",            // level name, "" = derive from current level
 };
 export type SettingKey = keyof typeof DEFAULTS;
 
