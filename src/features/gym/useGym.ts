@@ -178,6 +178,48 @@ export async function cloneDay(srcId: number, newName: string): Promise<number> 
   return newId;
 }
 
+// Complete all remaining (unlogged) sets for ONE exercise in the CURRENT,
+// in-progress session — planned weight + mid-range reps fill in whatever
+// hasn't been tapped yet. Sets already logged are left untouched.
+export async function completeRemainingSets(
+  sessionId: number,
+  plan: DayExerciseDto,
+  alreadyLoggedIndices: number[],
+): Promise<number> {
+  const exercise = await db.exercises.get(plan.exerciseId);
+  const midReps = Math.round((plan.repLow + plan.repHigh) / 2);
+  const done = new Set(alreadyLoggedIndices);
+  const date = todayKey();
+  let added = 0;
+  for (let i = 1; i <= plan.sets; i++) {
+    if (done.has(i)) continue;
+    const e1rm = estimate1RM(plan.weightKg, midReps);
+    await db.workoutSets.add({
+      sessionId, date, exerciseId: plan.exerciseId,
+      exerciseName: exercise?.name ?? "Exercise", setIndex: i,
+      weightKg: plan.weightKg, reps: midReps, e1rm, isPR: false, createdAt: Date.now(),
+    });
+    added++;
+  }
+  if (added > 0) hapticLight();
+  return added;
+}
+
+// Complete every remaining set across the WHOLE day's plan in one tap —
+// same placeholder logic as completeRemainingSets, applied exercise by
+// exercise, for the "finish the rest of today's workout" button.
+export async function completeAllRemainingForDay(
+  sessionId: number,
+  exercises: DayExerciseDto[],
+  sets: WorkoutSetDto[],
+): Promise<void> {
+  for (const ex of exercises) {
+    const loggedIndices = sets.filter((s) => s.exerciseId === ex.exerciseId).map((s) => s.setIndex);
+    await completeRemainingSets(sessionId, ex, loggedIndices);
+  }
+  hapticSuccess();
+}
+
 // Backfill: log an entire missed session for a past date, using the day's
 // planned sets/reps/weight as the recorded values (quick one-tap recovery
 // for "I trained but forgot to log it").

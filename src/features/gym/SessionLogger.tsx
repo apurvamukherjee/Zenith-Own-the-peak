@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Progress, Tag, Segmented } from "antd";
+import { Button, Progress, Tag, Segmented, Popconfirm } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX } from "react-icons/tb";
+import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX } from "react-icons/tb";
 import { RestTimer } from "../../components/RestTimer";
 import { PageTransition } from "../../components/PageTransition";
 import { useTokens } from "../../hooks/useTokens";
@@ -12,6 +12,7 @@ import type { DayExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types"
 import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
   useSessionSets, useGhostSets, useExercise, ensureSession, logSet,
+  completeRemainingSets, completeAllRemainingForDay,
 } from "./useGym";
 import { prettyDate, todayKey } from "../../lib/date.utils";
 import { db } from "../../db/db";
@@ -252,6 +253,17 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
         <Tag color={allDone ? "green" : "default"} style={{ borderRadius: 8, margin: 0, flexShrink: 0 }}>
           {doneCount}/{totalSets}
         </Tag>
+        {!allDone && (
+          <Button
+            size="small" type="text" icon={<TbChecks size={16} />}
+            aria-label="Complete all sets for this exercise" title="Complete all sets"
+            style={{ flexShrink: 0, padding: "0 4px" }}
+            onClick={async () => {
+              const sid = await getSessionId();
+              await completeRemainingSets(sid, plan, done.map((s) => s.setIndex));
+            }}
+          />
+        )}
       </div>
       <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 6 }}>
         {plan.sets}×{plan.repLow}–{plan.repHigh} · rest {plan.restSec}s · {plan.weightKg}kg planned
@@ -382,6 +394,17 @@ function SupersetPartner({
           </div>
         </div>
         <Tag style={{ borderRadius: 8, margin: 0, flexShrink: 0 }}>{done.length}/{totalSets}</Tag>
+        {done.length < totalSets && (
+          <Button
+            size="small" type="text" icon={<TbChecks size={15} />}
+            aria-label="Complete all sets for this exercise" title="Complete all sets"
+            style={{ flexShrink: 0, padding: "0 4px" }}
+            onClick={async () => {
+              const sid = await getSessionId();
+              await completeRemainingSets(sid, plan, done.map((s) => s.setIndex));
+            }}
+          />
+        )}
       </div>
       {rows.map((si) => {
         const last = done
@@ -495,6 +518,11 @@ export function SessionLogger() {
     return id;
   }
 
+  async function completeWholeDay() {
+    const sid = await getSessionId();
+    await completeAllRemainingForDay(sid, exercises, sets);
+  }
+
   const isRest = !dayId || dayId === 0;
   const coachDone = Number(useSetting("coachLogger"));
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
@@ -533,9 +561,23 @@ export function SessionLogger() {
               ))}
             </div>
           )}
-          {!isRest && (
-            <Progress percent={pct} strokeColor={pct >= 100 ? t.teal : t.accent} showInfo={false}
-              style={{ maxWidth: 320, margin: "0 auto" }} size={[-1, 8]} />
+          {!isRest && totalSets > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, maxWidth: 320, margin: "0 auto" }}>
+              <Progress percent={pct} strokeColor={pct >= 100 ? t.teal : t.accent} showInfo={false}
+                style={{ flex: 1 }} size={[-1, 8]} />
+              {pct < 100 && (
+                <Popconfirm
+                  title="Complete the full day?"
+                  description="Logs every remaining set at planned weight/reps."
+                  okText="Complete" cancelText="Cancel"
+                  onConfirm={completeWholeDay}
+                >
+                  <Button size="small" type="text" icon={<TbChecks size={16} />}
+                    aria-label="Complete full day routine" title="Complete full day"
+                    style={{ flexShrink: 0, padding: "0 4px" }} />
+                </Popconfirm>
+              )}
+            </div>
           )}
         </div>
 
@@ -564,27 +606,30 @@ export function SessionLogger() {
               )
             ))}
 
-            <div style={{ position: "sticky", bottom: 56, background: "var(--surface)", borderRadius: 14,
-              padding: "10px 16px", display: "flex", justifyContent: "space-around",
-              boxShadow: "0 -4px 20px rgba(0,0,0,0.12)", border: "1px solid var(--border)", marginTop: 8 }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--accent)" }}>{doneSets}/{totalSets}</div>
-                <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>sets</div>
+            <div style={{ background: "var(--surface)", borderRadius: 14,
+              padding: "12px 16px", border: "1px solid var(--border)", marginTop: 18 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-soft)",
+                letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 10 }}>
+                Session summary
               </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(volume).toLocaleString()}</div>
-                <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>kg vol</div>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: t.gold }}><TbFlame style={{ verticalAlign: "-2px" }} /> {pct}%</div>
-                <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>done</div>
-              </div>
-              {elapsedMin > 0 && (
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink-soft)" }}>{elapsedMin}m</div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 4 }}>
+                <div style={{ textAlign: "center", flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--accent)" }}>{doneSets}/{totalSets}</div>
+                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>sets</div>
+                </div>
+                <div style={{ textAlign: "center", flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(volume).toLocaleString()}</div>
+                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>kg vol</div>
+                </div>
+                <div style={{ textAlign: "center", flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: t.gold }}><TbFlame style={{ verticalAlign: "-2px" }} /> {pct}%</div>
+                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>done</div>
+                </div>
+                <div style={{ textAlign: "center", flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink-soft)" }}>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</div>
                   <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>elapsed</div>
                 </div>
-              )}
+              </div>
             </div>
           </>
         )}

@@ -7,11 +7,12 @@ import { motion } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SisyphusOverlay } from "../../components/SisyphusOverlay";
 import { HomeQuoteCard } from "../../components/HomeQuoteCard";
+import { ColdIcon } from "../../components/ColdIcon";
 import { db } from "../../db/db";
 import { useTokens } from "../../hooks/useTokens";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useTodayWater, useWorkoutToday, addWater } from "../water/useWater";
-import { useTodaySession, useTodayDayId } from "../gym/useGym";
+import { useTodaySession, useTodayDayId, useDayExercises, useSessionSets } from "../gym/useGym";
 import { useRecentSleep } from "../sleep/useSleep";
 import { computeUnifiedStreak, isFreezeAvailable, useStreakFreeze as useFreezeAction } from "../../lib/streak.utils";
 import { computeTodayScore } from "../../lib/todayScore";
@@ -94,6 +95,12 @@ export function DashboardPage() {
   const lastSleep = [...sleep].reverse().find(Boolean);
   const todayDayId = useTodayDayId();
   const todaySession = useTodaySession(todayDayId);
+  const todayExercises = useDayExercises(todayDayId ?? undefined);
+  const todaySets = useSessionSets(todaySession?.id);
+  const trainTotalSets = todayExercises.reduce((s, e) => s + e.sets, 0);
+  const trainDoneSets = todaySets.length;
+  const trainPct = trainTotalSets > 0 ? Math.round((trainDoneSets / trainTotalSets) * 100) : 0;
+  const trainAllDone = trainTotalSets > 0 && trainDoneSets >= trainTotalSets;
 
   const [streak, setStreak] = useState(0);
   const [score, setScore] = useState({ score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 });
@@ -452,6 +459,22 @@ export function DashboardPage() {
             </div>
             <TbChevronRight size={20} style={{ color: "rgba(255,255,255,0.7)" }} />
           </div>
+          {todayDay && trainTotalSets > 0 && (
+            trainAllDone ? (
+              <div style={{ position: "relative", zIndex: 1, marginTop: 8, display: "flex", alignItems: "center", gap: 6, color: "#fff" }}>
+                <ColdIcon glyph="peak" size={14} />
+                <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.3 }}>All done — peak conquered</span>
+              </div>
+            ) : (
+              <div style={{ position: "relative", zIndex: 1, marginTop: 8 }}>
+                <Progress percent={trainPct} showInfo={false} size={[-1, 5]}
+                  strokeColor="#fff" trailColor="rgba(255,255,255,0.25)" />
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", marginTop: 3 }}>
+                  {trainDoneSets}/{trainTotalSets} sets
+                </div>
+              </div>
+            )
+          )}
         </div>
       </Link>
 
