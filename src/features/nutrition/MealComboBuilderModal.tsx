@@ -54,7 +54,7 @@ export function MealComboBuilderModal({ open, onClose }: Props) {
 
         <div style={{ background: "var(--bg)", borderRadius: 12, padding: 10, border: "1px solid var(--border)" }}>
           {items.length === 0 ? (
-            <Empty description="No foods yet" imageStyle={{ height: 40 }} />
+            <Empty description="No foods yet" styles={{ image: { height: 40 } }} />
           ) : (
             <List size="small" dataSource={items}
               renderItem={(it, i) => (

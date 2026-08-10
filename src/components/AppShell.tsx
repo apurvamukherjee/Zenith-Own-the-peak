@@ -53,6 +53,13 @@ export function AppShell() {
 
   return (
     <div className="app-root" style={{ position: "relative", background: "var(--bg)" }}>
+      {/* Desktop/wide-viewport only: the app column stays a fixed phone width
+          (see maxWidth:480 below) by design — on a wide monitor that leaves
+          bare gutters either side. A faint centered glow keeps that space
+          feeling intentional instead of like an unfinished mobile page. Pure
+          CSS (index.css ".app-gutter-glow"), zero-cost/invisible on mobile
+          since the column already fills the viewport there. */}
+      <div className="app-gutter-glow" aria-hidden />
       {bgImage && (
         <div aria-hidden style={{
           position: "fixed", inset: 0, zIndex: 0,

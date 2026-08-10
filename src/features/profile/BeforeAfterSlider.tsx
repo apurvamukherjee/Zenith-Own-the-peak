@@ -28,7 +28,7 @@ export function BeforeAfterSlider() {
   if (photos.length < 2) {
     return (
       <Card size="small" title={<span><TbArrowsLeftRight /> Before / after</span>} style={{ marginBottom: 12 }}>
-        <Empty description="Add photos to two different days on the calendar to compare." imageStyle={{ height: 40 }} />
+        <Empty description="Add photos to two different days on the calendar to compare." styles={{ image: { height: 40 } }} />
       </Card>
     );
   }
@@ -100,7 +100,7 @@ export function BeforeAfterSlider() {
           </div>
         </div>
       ) : (
-        <Empty description="Pick two dates to compare" imageStyle={{ height: 40 }} />
+        <Empty description="Pick two dates to compare" styles={{ image: { height: 40 } }} />
       )}
 
       <div style={{ marginTop: 8, textAlign: "center" }}>

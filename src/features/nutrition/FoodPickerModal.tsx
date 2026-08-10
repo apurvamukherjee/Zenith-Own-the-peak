@@ -93,7 +93,7 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
 
   return (
     <Sheet open={open} onCancel={onClose} title={title}
-      footer={null} destroyOnClose width={520}
+      footer={null} destroyOnHidden width={520}
       styles={{ body: { paddingTop: 8 } }}>
       <Segmented block value={tab} onChange={(v) => setTab(v as typeof tab)}
         options={[{ label: "From food", value: "food" }, { label: "Custom", value: "custom" }]}

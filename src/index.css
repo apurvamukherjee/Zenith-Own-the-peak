@@ -127,6 +127,21 @@ h1, h2, h3, h4, .display {
   animation: zenith-shimmer 1.6s linear infinite;
 }
 
+/* Desktop gutter glow — the app column stays a fixed phone width (see
+   AppShell's maxWidth:480) at any viewport size. Below ~600px the column
+   already fills the screen so this is invisible; above it, a faint centered
+   radial glow fills the bare side gutters instead of flat black. Fixed +
+   behind everything (z-index unset, app-root's content wrapper is the first
+   element with z-index:2) so it never intercepts clicks or affects layout. */
+.app-gutter-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 900px 700px at 50% 40%, var(--ember-glow), transparent 70%);
+  opacity: 0.18;
+}
+
 /* UI #8 — ember-corner. A soft red glow anchored to the bottom-right of a
    card. Not visible in isolation but always present. Use `.ember-corner`
    on any positioned parent. */

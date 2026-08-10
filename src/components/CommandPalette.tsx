@@ -98,7 +98,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     <Modal
       open={open} onCancel={onClose} footer={null} title={null} closable={false}
       styles={{ body: { padding: 0 }, content: { padding: 0 } }}
-      width={520} destroyOnClose
+      width={520} destroyOnHidden
     >
       <div style={{ padding: 12, borderBottom: "1px solid var(--border)" }}>
         <Input

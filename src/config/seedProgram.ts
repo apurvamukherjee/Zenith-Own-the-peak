@@ -5,7 +5,20 @@ import { seedQuotesIfEmpty } from "./quoteSeed";
 import type { MuscleGroup } from "../db/types";
 
 // Seeds the exercise library + default PPL split + food catalog on first launch. Idempotent.
-export async function seedIfEmpty() {
+//
+// React 19 StrictMode double-invokes effects in dev, and App.tsx calls this
+// from a plain useEffect — two concurrent calls would both read an empty
+// `db.exercises` count before either finishes writing, doubling every seeded
+// row (days, exercises, schedule). A module-level in-flight-promise guard
+// makes the second caller just await the first call's result instead of
+// re-running the read-then-write race.
+let inFlight: Promise<void> | null = null;
+export function seedIfEmpty(): Promise<void> {
+  if (!inFlight) inFlight = seedIfEmptyInner().finally(() => { inFlight = null; });
+  return inFlight;
+}
+
+async function seedIfEmptyInner() {
   // Foods seed runs independently — it can grow later without invalidating gym seed.
   await seedFoodsIfEmpty();
   // Quotes seed runs independently too — Home's shuffle card needs at least
