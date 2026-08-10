@@ -19,7 +19,10 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/settings":  { title: "Settings",    rank: 1, tab: false },
   "/quick":     { title: "Quick log",   rank: 1, tab: false },
   "/leaderboard": { title: "Leaderboard", rank: 1, tab: false },
-  "/tasks":       { title: "Tasks",       rank: 1, tab: true },
+  // Hidden from BottomNav (see components/BottomNav.tsx) but route/feature
+  // stays live — tab:false so it now gets a normal back-arrow AppBar instead
+  // of rendering as an orphaned tab page with no way back.
+  "/tasks":       { title: "Tasks",       rank: 1, tab: false },
 };
 
 export function metaFor(pathname: string): RouteMeta {

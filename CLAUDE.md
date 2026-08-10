@@ -134,6 +134,15 @@ src/
     calendar/            Month/Week/Day calendar UI (Phase 1.1 onward, rebuilt Phase 7–9) — see below
 ```
 
+## User-facing power-user docs
+
+Not linked from in-app UI beyond a passing mention — these are for people who
+go looking:
+- [`docs/LEADERBOARD_GUIDE.md`](./docs/LEADERBOARD_GUIDE.md) — social leaderboard setup (share codes, what friends see).
+- [`docs/WORKOUT_PLAN_FORMAT.md`](./docs/WORKOUT_PLAN_FORMAT.md) — the JSON format for Settings → **Plan file (advanced)**
+  (`features/gym/PlanImportCard.tsx` + `lib/workoutPlanFile.ts`), bulk-importing/exporting a full training
+  program (days/exercises/weekly schedule) instead of building it by hand in the Planner.
+
 ## Theming
 
 Two layers — both required when adding UI:

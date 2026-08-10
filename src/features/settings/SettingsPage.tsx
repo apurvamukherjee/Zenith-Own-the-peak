@@ -14,6 +14,7 @@ import { encryptString } from "../../lib/encryptedExport";
 import { fileToDataURL } from "../../lib/image.utils";
 import { RemindersCard } from "../reminders/RemindersCard";
 import { SyncCard } from "../sync/SyncCard";
+import { PlanImportCard } from "../gym/PlanImportCard";
 
 export function SettingsPage() {
   const { message, modal } = App.useApp();
@@ -183,6 +184,8 @@ export function SettingsPage() {
         <input ref={fileRef} type="file" accept="application/json" hidden
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ""; }} />
       </Card>
+
+      <PlanImportCard />
 
       {/* Accessibility */}
       <Card size="small" style={{ marginBottom: 12 }} title={<span><TbAccessible /> Accessibility</span>}>
