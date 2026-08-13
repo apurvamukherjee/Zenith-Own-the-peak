@@ -179,8 +179,12 @@ export async function cloneDay(srcId: number, newName: string): Promise<number> 
 }
 
 // Complete all remaining (unlogged) sets for ONE exercise in the CURRENT,
-// in-progress session — planned weight + mid-range reps fill in whatever
-// hasn't been tapped yet. Sets already logged are left untouched.
+// in-progress session. Weight/reps mirror SetRow's own autofill priority
+// (last-completed set in this session > usage history > last session's
+// ghost set > planned baseline) instead of blindly using `plan.weightKg` —
+// that field defaults to 0 when an exercise is first added to a day and
+// often goes stale once the user has progressed past it set by set, which
+// used to make "complete all" log every remaining set at 0kg.
 export async function completeRemainingSets(
   sessionId: number,
   plan: DayExerciseDto,
@@ -190,15 +194,40 @@ export async function completeRemainingSets(
   const midReps = Math.round((plan.repLow + plan.repHigh) / 2);
   const done = new Set(alreadyLoggedIndices);
   const date = todayKey();
+
+  const usageW = await db.usageHistory.get(`weight:${plan.exerciseId}`);
+  const usageR = await db.usageHistory.get(`reps:${plan.exerciseId}`);
+  const pastSessions = await db.workoutSessions
+    .where("dayId").equals(plan.dayId)
+    .and((s) => s.date < date)
+    .reverse().sortBy("date");
+  const lastSessionId = pastSessions[0]?.id;
+  const ghosts = lastSessionId
+    ? await db.workoutSets.where({ sessionId: lastSessionId, exerciseId: plan.exerciseId }).sortBy("setIndex")
+    : [];
+
+  // Seed with sets already logged this session, so newly-added sets can
+  // themselves become the "last completed" fallback for the next index —
+  // same as if the user had tapped each one in order.
+  const logged = alreadyLoggedIndices.length > 0
+    ? await db.workoutSets.where({ sessionId, exerciseId: plan.exerciseId }).sortBy("setIndex")
+    : [];
+  const loggedSoFar = logged.map((s) => ({ setIndex: s.setIndex, weightKg: s.weightKg, reps: s.reps }));
+
   let added = 0;
   for (let i = 1; i <= plan.sets; i++) {
     if (done.has(i)) continue;
-    const e1rm = estimate1RM(plan.weightKg, midReps);
+    const last = loggedSoFar.filter((s) => s.setIndex < i).sort((a, b) => b.setIndex - a.setIndex)[0];
+    const ghost = ghosts.find((g) => g.setIndex === i);
+    const weightKg = last?.weightKg ?? usageW?.value ?? ghost?.weightKg ?? plan.weightKg;
+    const reps = last?.reps ?? usageR?.value ?? ghost?.reps ?? midReps;
+    const e1rm = estimate1RM(weightKg, reps);
     await db.workoutSets.add({
       sessionId, date, exerciseId: plan.exerciseId,
       exerciseName: exercise?.name ?? "Exercise", setIndex: i,
-      weightKg: plan.weightKg, reps: midReps, e1rm, isPR: false, createdAt: Date.now(),
+      weightKg, reps, e1rm, isPR: false, createdAt: Date.now(),
     });
+    loggedSoFar.push({ setIndex: i, weightKg, reps });
     added++;
   }
   if (added > 0) hapticLight();
