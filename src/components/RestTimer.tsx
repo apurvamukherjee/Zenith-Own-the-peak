@@ -7,12 +7,19 @@ import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
 // store is inactive. Kept as a controlled *view*; ticking, haptics, and reset
 // live in `lib/restTimerStore.ts`. This is the SessionLogger's inline card.
 // The floating chip in AppShell shares the exact same source of truth.
-export function RestTimer() {
+//
+// `matchLabel`: the store is a single global singleton (one rest at a time),
+// but SessionLogger mounts one <RestTimer/> per exercise/superset card. Without
+// this, every card would show the same running countdown regardless of which
+// exercise actually triggered it. Pass the label `startRest()` was called with
+// for this card; omit it (e.g. the floating GlobalRestChip) to always render.
+export function RestTimer({ matchLabel }: { matchLabel?: string } = {}) {
   const rest = useRestTimer();
+  const relevant = matchLabel === undefined || rest.label === matchLabel;
 
   return (
     <AnimatePresence>
-      {rest.active && (
+      {rest.active && relevant && (
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}

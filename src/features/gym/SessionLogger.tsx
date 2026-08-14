@@ -268,7 +268,7 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
       <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 6 }}>
         {plan.sets}×{plan.repLow}–{plan.repHigh} · rest {plan.restSec}s · {plan.weightKg}kg planned
       </div>
-      <RestTimer />
+      <RestTimer matchLabel={ex.name} />
       {rows.map((si) => {
         // "Last completed" = the most recently logged set for THIS exercise
         // in the current session, strictly before this set-index.
@@ -320,10 +320,7 @@ function SupersetBlock({ group, dayId, sets, getSessionId }: {
       }
     }
     if (lastPartnerAdvanced && !allDone) {
-      const label = group.map((g) => g.exerciseId).length
-        ? "Superset"
-        : "Rest";
-      startRest(restSec, t.accent, label);
+      startRest(restSec, t.accent, "Superset");
     }
     doneCountsRef.current = perExerciseDone.slice();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -344,7 +341,7 @@ function SupersetBlock({ group, dayId, sets, getSessionId }: {
       }}>
         <TbArrowsRightLeft size={12} /> Superset · round {Math.min(roundsCompleted + 1, targetSets)}/{targetSets}
       </div>
-      <RestTimer />
+      <RestTimer matchLabel="Superset" />
       {group.map((plan, gIdx) => (
         <SupersetPartner
           key={plan.id}

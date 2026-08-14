@@ -390,7 +390,7 @@ h1, h2, h3, h4, .display {
   pointer-events: none;
 }
 
-/* Deterministic "fits one screen" height for no-scroll pages (Home). */
+/* Deterministic "fits one screen" height for no-scroll pages (Home).
    AppBar is a fixed 48px + its own safe-area-top padding; BottomNav content is
    ~62px + its own safe-area-bottom padding. Computed directly so it doesn't
    depend on ancestor flex/percentage cascades resolving correctly. */
