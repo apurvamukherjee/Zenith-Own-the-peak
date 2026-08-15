@@ -259,6 +259,10 @@ export interface TaskDto {
   // Kanban
   startedAt?: number;
   completedAt?: number;
+  // Google Calendar two-way sync — all optional, absent means never synced.
+  googleEventId?: string;   // this task's event id on the dedicated "Zenith" Google calendar
+  googleUpdatedAt?: number; // Google's `updated` timestamp (ms) as of the last pull, for conflict comparison
+  syncedAt?: number;        // last time THIS row was written by the sync engine (pull or push) — lets push skip rows it just pulled
 }
 
 export interface TaskListDto {
@@ -287,4 +291,16 @@ export interface RecurringRuleDto {
   templateRemindBefore?: number; // carried onto spawned instances' `remindBefore` field
   templateAllDay?: number;       // carried onto spawned instances' `allDay` field
   createdAt: number;
+}
+
+// A task that was deleted locally while it still had a `googleEventId` needs
+// its remote event deleted too, but by the time the push engine runs, the
+// local row (the only record of that id) is already gone — hard delete is
+// Zenith's existing convention, no tombstone field on TaskDto. This table is
+// the queue: `db.tasks`'s "deleting" hook writes one row here right before
+// the task disappears, the next push flushes it against Google, then clears it.
+export interface GoogleSyncOutboxDto {
+  id?: number;
+  googleEventId: string;
+  deletedAt: number;
 }

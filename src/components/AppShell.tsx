@@ -21,6 +21,8 @@ import { useScrollRestore } from "../hooks/useScrollRestore";
 import { useEasterEggs } from "../hooks/useEasterEggs";
 import { useXPEngine } from "../hooks/useXPEngine";
 import { unlockAudio } from "../lib/audio";
+import { convexConfigured } from "../lib/convexClient";
+import { GoogleCalendarSyncEngine } from "../features/googleCalendar/useGoogleCalendarSync";
 
 const DebugPanel = lazy(() => import("./DebugPanel").then((m) => ({ default: m.DebugPanel })));
 
@@ -79,6 +81,11 @@ export function AppShell() {
         <PwaInstallPrompt />
         <BottomNav />
       </div>
+      {/* Google Calendar sync's background half (debounced push + pull-on-
+          connect) — gated behind convexConfigured the same way every other
+          Convex-dependent piece is, since main.tsx only mounts
+          ConvexAuthProvider when configured. */}
+      {convexConfigured && <GoogleCalendarSyncEngine />}
       <PRCelebration />
       <PeakFlash triggerKey={eggs.peakFlash} />
       <BirthdayConfetti />

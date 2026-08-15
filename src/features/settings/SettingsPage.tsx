@@ -14,6 +14,7 @@ import { encryptString } from "../../lib/encryptedExport";
 import { fileToDataURL } from "../../lib/image.utils";
 import { RemindersCard } from "../reminders/RemindersCard";
 import { SyncCard } from "../sync/SyncCard";
+import { GoogleCalendarCard } from "../googleCalendar/GoogleCalendarCard";
 import { PlanImportCard } from "../gym/PlanImportCard";
 
 export function SettingsPage() {
@@ -159,6 +160,7 @@ export function SettingsPage() {
 
       <RemindersCard />
       <SyncCard />
+      <GoogleCalendarCard />
 
       {/* Backup */}
       <Card size="small" style={{ marginBottom: 20 }} title="Data backup">

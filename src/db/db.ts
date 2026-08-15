@@ -6,7 +6,7 @@ import type {
   ScheduleDto, ScheduleLogDto, MealDto, GoalDayDto, DayPhotoDto, StreakFreezeDto,
   QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
   AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
-  TaskDto, TaskListDto, RecurringRuleDto, CosmeticUnlockDto,
+  TaskDto, TaskListDto, RecurringRuleDto, CosmeticUnlockDto, GoogleSyncOutboxDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -44,6 +44,7 @@ class ZenithDB extends Dexie {
   taskLists!: Table<TaskListDto, string>;
   recurringRules!: Table<RecurringRuleDto, number>;
   cosmeticUnlocks!: Table<CosmeticUnlockDto, string>;
+  googleSyncOutbox!: Table<GoogleSyncOutboxDto, number>;
 
   constructor() {
     super("zenith");
@@ -120,6 +121,15 @@ class ZenithDB extends Dexie {
     this.version(11).stores({
       cosmeticUnlocks: "&id, unlockedAt, seen",
     });
+    // v12: Google Calendar two-way sync. `googleEventId` indexed on `tasks`
+    // for fast reverse lookup during pull-merge (match an incoming Google
+    // event back to its local row without a full scan). `googleSyncOutbox`
+    // queues remote deletions for tasks that get hard-deleted locally before
+    // a push has run — see GoogleSyncOutboxDto.
+    this.version(12).stores({
+      tasks: "++id, listId, status, date, priority, recurringRuleId, createdAt, googleEventId",
+      googleSyncOutbox: "++id, googleEventId",
+    });
   }
 }
 
@@ -131,9 +141,27 @@ for (const table of db.tables) {
   table.hook("updating", () => { bumpMutation(); });
   table.hook("deleting", () => { bumpMutation(); });
 }
+// A task with a googleEventId is about to vanish (hard delete is the app's
+// convention — no tombstone field) — capture the id it needs deleted on
+// Google's side before it's gone. Deferred via setTimeout for the same
+// reason bumpMutation() is: this hook runs inside the `tasks` deletion's own
+// transaction, which doesn't include `googleSyncOutbox`, so writing to it
+// synchronously here would throw "object store not found". Dexie's
+// `deleting` hook fires for bulkDelete/query-.delete() too, not just
+// single-row .delete() — so this one hook covers every current delete path
+// (useTasks.deleteTask, useRecurringSpawner.stopRecurringSeries,
+// useTasks.deleteTaskList) and any future one, with nothing to remember to
+// wire up at each call site.
+db.tasks.hook("deleting", (_primKey, obj) => {
+  const googleEventId = (obj as TaskDto).googleEventId;
+  if (!googleEventId) return;
+  setTimeout(() => {
+    db.googleSyncOutbox.add({ googleEventId, deletedAt: Date.now() }).catch(() => {});
+  }, 0);
+});
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 11, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 12, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

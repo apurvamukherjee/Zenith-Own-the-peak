@@ -47,4 +47,31 @@ export default defineSchema({
     storageId: v.id("_storage"),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
+
+  // Google Calendar two-way sync (see docs/GOOGLE_CALENDAR_SYNC.md).
+  // Short-lived CSRF-protection rows for the OAuth redirect round-trip: the
+  // client creates one while authenticated (so we know the userId), Google's
+  // callback later looks it up by `state` to recover which user is connecting
+  // — the callback itself carries no Zenith session/cookie.
+  oauthStates: defineTable({
+    state: v.string(),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_state", ["state"]),
+
+  // One row per user who has connected Google Calendar. `refreshToken` is
+  // long-lived; `accessToken`/`accessTokenExpiresAt` are refreshed on demand.
+  // `syncToken` is Google's incremental-sync cursor (absent = next pull does
+  // a full resync). Tokens never leave this table via any public query.
+  googleCalendarAccounts: defineTable({
+    userId: v.id("users"),
+    refreshToken: v.string(),
+    accessToken: v.string(),
+    accessTokenExpiresAt: v.number(),
+    googleCalendarId: v.string(),
+    syncToken: v.optional(v.string()),
+    lastSyncAt: v.optional(v.number()),
+    connectedAt: v.number(),
+    needsReauth: v.optional(v.boolean()),
+  }).index("by_user", ["userId"]),
 });
