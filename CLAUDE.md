@@ -1,4 +1,4 @@
-# CLAUDE.md — Zenith (through Phase 9)
+# CLAUDE.md — Zenith (through Phase 10)
 
 ## What this is
 
@@ -8,7 +8,8 @@ study, and bike fuel in one app. Gothic dark theme (black + red) is the default.
 Phase 5 adds XP leveling + social leaderboard via Convex (migrated from
 Supabase in Phase 5.1). Phases 6–9 rebuilt the Calendar into a full
 Google-Calendar-style Month/Week/Day surface with a unified Tasks/Events
-system underneath it — see the dedicated section near the end of this file.
+system underneath it, and Phase 10 adds real two-way Google Calendar sync on
+top of it — see the dedicated sections near the end of this file.
 
 Brand: **Zenith** · tagline **"Own the peak"** · signature **"by Apurva"**
 
@@ -132,6 +133,7 @@ src/
     review/              useWeeklyReview.ts (hook only, rendered in ProfilePage)
     tasks/               Unified Tasks/Events system (Phase 6) — see Phase 6–9 section below
     calendar/            Month/Week/Day calendar UI (Phase 1.1 onward, rebuilt Phase 7–9) — see below
+    googleCalendar/      Two-way Google Calendar sync (see Phase 10 section below)
 ```
 
 ## User-facing power-user docs
@@ -142,6 +144,8 @@ go looking:
 - [`docs/WORKOUT_PLAN_FORMAT.md`](./docs/WORKOUT_PLAN_FORMAT.md) — the JSON format for Settings → **Plan file (advanced)**
   (`features/gym/PlanImportCard.tsx` + `lib/workoutPlanFile.ts`), bulk-importing/exporting a full training
   program (days/exercises/weekly schedule) instead of building it by hand in the Planner.
+- [`docs/GOOGLE_CALENDAR_SYNC.md`](./docs/GOOGLE_CALENDAR_SYNC.md) — Google Cloud Console + Convex env var setup
+  for two-way Google Calendar sync (Settings → Google Calendar), required before that card does anything.
 
 ## Theming
 
@@ -654,3 +658,76 @@ recorded together since they're one continuous arc on one data model.
   (`dose`, `remindBefore`, `allDay`, `spanEnd`, the `templateX` rule fields)
   is optional and unindexed; only genuinely new indexes or tables require
   bumping `db.ts`'s version.
+
+## Phase 10 — Two-way Google Calendar sync (schema v12, 2026-08)
+
+Upgrades Phase 9's one-way ICS export into real bidirectional sync against a
+dedicated **"Zenith" calendar** Google Calendar creates on first connect (never
+the user's primary calendar). Full setup in
+[`docs/GOOGLE_CALENDAR_SYNC.md`](./docs/GOOGLE_CALENDAR_SYNC.md).
+
+- **First Convex `action`/`httpAction` in the app.** Every prior Convex
+  function was a `mutation`/`query` (deterministic, no outbound fetch).
+  `@convex-dev/auth`'s bundled Google provider is sign-in-only and drops
+  OAuth tokens after use — unusable for a long-lived Calendar-scoped offline
+  token, so this is a fully custom OAuth2 flow: `convex/googleOAuth.ts`
+  (`startGoogleOAuth` mutation generates a CSRF `state` row in the new
+  `oauthStates` table while the client is already authenticated; the new
+  `/google/oauth/callback` `httpAction`, registered in `http.ts`, is
+  necessarily unauthenticated — it recovers the Zenith `userId` by looking
+  `state` up, not from a session/cookie) and `convex/googleCalendarSync.ts`
+  (`pullGoogleCalendarChanges`/`pushGoogleCalendarChanges` actions).
+  `convex/lib/googleClient.ts` is deliberately dependency-free (raw `fetch`
+  against Google's REST endpoints, no `googleapis` npm package) so nothing
+  needs the Node-only `"use node"` directive, which would have forced an
+  awkward query/mutation vs. action file split.
+- **`singleEvents: true` on every Calendar API call is the load-bearing
+  decision.** It makes Google pre-expand recurring series into individual
+  occurrences instead of an RRULE master — symmetric with how
+  `spawnRecurring()` already pre-materializes Zenith's own recurring rules —
+  so neither direction ever parses or generates RRULE syntax. Zenith's own
+  recurring rules still push to Google as independent one-off events in this
+  version, not a native Google series (documented limitation).
+- **`extendedProperties.private`** round-trips everything Google events have
+  no native concept of (`status`/`priority`/`listId`/`dose`/`remindBefore` +
+  the source `zenithTaskId`) so pulls stay lossless instead of a naive
+  summary/description-only mapping. An event with no such payload (created
+  directly in Google's own UI) falls back to `status:"todo"`, priority 2,
+  and the `daily` ("Daily Life") list.
+- **Asymmetric delete handling**, chosen to fit Zenith's existing data model
+  instead of adding a new concept to it: Google never truly omits deleted
+  events from a sync response — they come back `status:"cancelled"` in the
+  same list — which pull maps onto Zenith's own `status:"cancelled"` (a soft
+  update, no local delete, no tombstone field needed). The other direction
+  needs one: Zenith hard-deletes rows with no tombstone, so a task's
+  `googleEventId` would otherwise be lost the instant it's deleted locally,
+  before a push ever runs. `db.ts`'s new `db.tasks.hook("deleting", ...)`
+  captures it into the new `googleSyncOutbox` table first — one hook, not a
+  patch to each of the three current delete call sites (`useTasks.deleteTask`,
+  `useRecurringSpawner.stopRecurringSeries`, `useTasks.deleteTaskList`),
+  since Dexie's `deleting` hook fires for bulk/query deletes too.
+- **Feedback-loop guard**: pull-merge writes run inside
+  `suppressMutations(true)/(false)` (the same guard `importAll()` uses) *and*
+  stamp `syncedAt = updatedAt` on every row they touch, so the debounced
+  push effect's dirty-check (`updatedAt > syncedAt`) can't immediately
+  re-push whatever a pull just applied — belt and suspenders, not just one.
+- **Sync triggers, this version**: polling only, no Google push-notification
+  webhooks (`events.watch()` channel renewal is real complexity, deferred).
+  Pull fires on `GoogleCalendarSyncEngine` mount (AppShell, gated behind
+  `convexConfigured` same as everything Convex-dependent) whenever the
+  account is already connected, plus a manual "Sync now" in Settings. Push
+  reuses `useSync.ts`'s exact `onMutation()` → debounce-4s pattern — imprecise
+  (any Dexie write anywhere resets the timer, not just a task edit) but
+  that's the same accepted trade-off auto-backup already ships with.
+- **Push window**: only tasks dated from 7 days ago through 180 days out are
+  eligible, so a first connect doesn't recreate months of past daily
+  reminders as one-time Google events — existing history stays local-only.
+- **Known limitation, documented not solved**: Zenith's cross-device story
+  is snapshot backup/restore, not live merge, so two devices independently
+  polling/pushing against the same Google account can create duplicate
+  events. Settings explicitly says "connect on one device at a time."
+- Schema v12 adds an indexed `googleEventId` on `tasks` (fast reverse lookup
+  during pull-merge) and the new `googleSyncOutbox` table — the only fields
+  that needed a version bump; `googleUpdatedAt`/`syncedAt` on `TaskDto` are
+  optional/unindexed, following the same no-bump convention as Phase 7–9's
+  fields.
