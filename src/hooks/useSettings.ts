@@ -28,6 +28,7 @@ export const DEFAULTS = {
   coachPlanner: 0,
   coachNutrition: 0,
   tasksMigrated: 0,     // 1 = existing schedules migrated to tasks
+  activeWorkoutPlanId: 0, // db.workoutPlans row id currently live in workoutDays/weekSchedule; 0 = not yet seeded
   // Reminders (times are HH:mm)
   remWater: 1,
   remWaterEveryH: 2,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, Button, Modal, Input, Select, Tag, App, Segmented, Alert } from "antd";
 import { SmartInputNumber } from "../../components/SmartInputNumber";
-import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell, TbLink, TbLinkOff, TbTrendingUp } from "react-icons/tb";
+import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell, TbLink, TbLinkOff, TbTrendingUp, TbSwitch3, TbRefresh, TbMoon } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { CoachMark } from "../../components/CoachMark";
@@ -15,9 +15,51 @@ import {
   addDayExercise, updateDayExercise, removeDayExercise, setWeekday,
   toggleSupersetLink, addCustomExercise,
 } from "./useGym";
+import { useActivePlan, planExerciseCount, resetBuiltInPlan } from "./usePlans";
+import { PlanSwitcherSheet } from "./PlanSwitcherSheet";
 import { useOverloadSuggestions } from "./useOverloadSuggestions";
 
 const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// ---- Plan hero card: active plan identity + entry point to the switcher ----
+function PlanHeroCard({ onOpenSwitcher }: { onOpenSwitcher: () => void }) {
+  const { message } = App.useApp();
+  const plan = useActivePlan();
+  const days = useWorkoutDays();
+
+  return (
+    <div style={{
+      borderRadius: 18, padding: "16px 18px", marginBottom: 16,
+      background: "linear-gradient(135deg, rgba(255,39,64,0.18), rgba(0,0,0,0.35))",
+      border: "1px solid var(--accent)", position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
+            Active plan
+          </div>
+          <div className="display" style={{ fontSize: 22, fontWeight: 800, margin: "2px 0 4px", display: "flex", alignItems: "center", gap: 8 }}>
+            {plan?.name ?? "—"}
+            {plan?.isBuiltIn === 1 && <Tag style={{ borderRadius: 6, fontSize: 9, margin: 0 }}>Built-in</Tag>}
+          </div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
+            {days.length} day{days.length === 1 ? "" : "s"} · {plan ? planExerciseCount(plan) : 0} exercises
+          </div>
+        </div>
+        <TbBarbell size={34} style={{ color: "var(--accent)", opacity: 0.5, flexShrink: 0 }} />
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <Button type="primary" icon={<TbSwitch3 />} onClick={onOpenSwitcher}>Switch plan</Button>
+        {plan?.isBuiltIn === 1 && (
+          <Button icon={<TbRefresh />} onClick={async () => {
+            await resetBuiltInPlan(plan.id!);
+            message.success(`"${plan.name}" reset to default`);
+          }}>Reset to default</Button>
+        )}
+      </div>
+    </div>
+  );
+}
 const ALL_MUSCLES: MuscleGroup[] = ["chest", "back", "shoulders", "biceps", "triceps", "quads", "hamstrings", "glutes", "calves", "abs", "forearms", "traps"];
 
 function DayCard({ dayId }: { dayId: number }) {
@@ -70,8 +112,23 @@ function DayCard({ dayId }: { dayId: number }) {
   }
 
   return (
-    <Card size="small" style={{ marginBottom: 14 }}
-      title={<span style={{ fontWeight: 700 }}><>{day.muscles.map((m,i) => <MuscleIcon key={i} muscle={m} size={14} color="var(--accent)" />)}</> {day.name}</span>}
+    <Card size="small" style={{ marginBottom: 14, borderRadius: 16, borderLeft: "3px solid var(--accent)" }}
+      styles={{ header: { border: "none", paddingBottom: 0 } }}
+      title={
+        <div style={{ padding: "4px 0" }}>
+          <div className="display" style={{ fontWeight: 800, fontSize: 16 }}>{day.name}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+            {day.muscles.map((m, i) => (
+              <span key={i} style={{
+                display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 700,
+                borderRadius: 999, padding: "1px 8px", background: "rgba(255,39,64,0.12)", color: "var(--accent)",
+              }}>
+                <MuscleIcon muscle={m} size={11} color="var(--accent)" /> {MUSCLE_LABELS[m]}
+              </span>
+            ))}
+          </div>
+        </div>
+      }
       extra={<div style={{ display: "flex", gap: 6 }}>
         <Button size="small" icon={<TbCopy />} onClick={() => {
           const name = prompt("Clone name", `${day.name} copy`);
@@ -253,6 +310,7 @@ export function WorkoutPlanner() {
   const [addOpen, setAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newMuscles, setNewMuscles] = useState<MuscleGroup[]>([]);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const coachDone = Number(useSetting("coachPlanner"));
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
   const PLANNER_COACH = [
@@ -280,22 +338,44 @@ export function WorkoutPlanner() {
         <Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>New day</Button>
       } />
 
-      {/* Weekly schedule */}
-      <Card size="small" title="Weekly schedule" style={{ marginBottom: 16 }}>
+      <PlanHeroCard onOpenSwitcher={() => setSwitcherOpen(true)} />
+      <PlanSwitcherSheet open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
+
+      {/* Weekly schedule — 7-tile strip, Sun..Sat to match weekSchedule.weekday */}
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 8 }}>
+        Weekly schedule
+      </div>
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))",
+        gap: 8, marginBottom: 20,
+      }}>
         {WEEKDAY_NAMES.map((name, wd) => {
           const entry = schedule.find((s) => s.weekday === wd);
-          
+          const isRest = !entry?.dayId;
+          const dayName = days.find((d) => d.id === entry?.dayId)?.name;
           return (
-            <div key={wd} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: "1px solid var(--border)" }}>
-              <span style={{ width: 36, fontWeight: 700 }}>{name}</span>
-              <Select size="small" style={{ flex: 1 }}
+            <div key={wd} style={{
+              borderRadius: 12, padding: "8px 10px",
+              background: isRest ? "var(--surface)" : "rgba(255,39,64,0.10)",
+              border: isRest ? "1px solid var(--border)" : "1px solid var(--accent)",
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, color: "var(--ink-soft)", marginBottom: 4 }}>
+                {name.toUpperCase()}
+              </div>
+              <Select size="small" variant="borderless" style={{ width: "100%", fontWeight: 700 }}
                 value={entry?.dayId ?? 0}
                 onChange={(v) => setWeekday(wd, v)}
-                options={[{ label: "Rest", value: 0 }, ...days.map((d) => ({ label: d.name, value: d.id! }))]} />
+                options={[{ label: "Rest", value: 0 }, ...days.map((d) => ({ label: d.name, value: d.id! }))]}
+                popupMatchSelectWidth={false}
+                suffixIcon={isRest ? <TbMoon size={12} style={{ color: "var(--ink-soft)" }} /> : null}
+              />
+              {dayName === undefined && !isRest && (
+                <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>Unassigned</div>
+              )}
             </div>
           );
         })}
-      </Card>
+      </div>
 
       {days.length === 0 ? (
         <div style={{ textAlign: "center", padding: 32 }}>

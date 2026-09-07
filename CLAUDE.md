@@ -1,4 +1,4 @@
-# CLAUDE.md — Zenith (through Phase 10)
+# CLAUDE.md — Zenith (through Phase 11)
 
 ## What this is
 
@@ -8,8 +8,9 @@ study, and bike fuel in one app. Gothic dark theme (black + red) is the default.
 Phase 5 adds XP leveling + social leaderboard via Convex (migrated from
 Supabase in Phase 5.1). Phases 6–9 rebuilt the Calendar into a full
 Google-Calendar-style Month/Week/Day surface with a unified Tasks/Events
-system underneath it, and Phase 10 adds real two-way Google Calendar sync on
-top of it — see the dedicated sections near the end of this file.
+system underneath it, Phase 10 adds real two-way Google Calendar sync on
+top of it, and Phase 11 adds multiple named/switchable workout plans plus a
+full Gym tab redesign — see the dedicated sections near the end of this file.
 
 Brand: **Zenith** · tagline **"Own the peak"** · signature **"by Apurva"**
 
@@ -33,7 +34,7 @@ npm run build   # must be clean before any change is considered done
 ```
 UI (features/*/*.tsx)        ← never touches Dexie directly
   └─ data hooks (use*.ts)    ← ONLY place Dexie is read/written
-       └─ db (src/db/db.ts)  ← typed tables, versioned schema v10, export/import
+       └─ db (src/db/db.ts)  ← typed tables, versioned schema v13, export/import
 ```
 
 Mutation bus (`lib/mutations.ts`) fires on every Dexie write → cloud auto-backup
@@ -86,8 +87,9 @@ src/
   db/types.ts          DTOs (all tables)
   db/db.ts             Dexie schema v2, export/import, mutation hooks
   config/
-    exerciseLibrary.ts   56-exercise seed data (plain .ts, NO JSX)
-    seedProgram.ts       Seeds exercises + default PPL on first launch
+    exerciseLibrary.ts   Exercise seed data (plain .ts, NO JSX)
+    seedProgram.ts       Seeds exercises + default plan + plan catalog on first launch
+    plans/builtInPlans.ts  Classic PPL / PPL + Rest / Bro Split, as WorkoutPlanFile constants
   lib/
     date.utils.ts, workout.utils.ts, image.utils.ts
     mutations.ts         Write pub/sub → cloud auto-backup
@@ -117,6 +119,7 @@ src/
   features/
     dashboard/           Home: discipline ring, streak, hero card, quick-add
     gym/                 SessionLogger (execution) + WorkoutPlanner (building) + useGym.ts
+                          + usePlans.ts/PlanSwitcherSheet.tsx (Phase 11 multi-plan switching)
     workout/             WorkoutProgressPage (e1RM charts, PR log)
     water/               Pace-aware hydration tracking
     sleep/               Bed/wake, quality, debt
@@ -731,3 +734,71 @@ the user's primary calendar). Full setup in
   that needed a version bump; `googleUpdatedAt`/`syncedAt` on `TaskDto` are
   optional/unindexed, following the same no-bump convention as Phase 7–9's
   fields.
+
+## Phase 11 — Multiple switchable workout plans + Gym tab redesign (schema v13, 2026-09)
+
+Before this phase there was exactly one implicit, global workout program:
+`db.workoutDays`/`db.dayExercises`/`db.weekSchedule` were unscoped flat tables
+that always represented "the plan," seeded once from a hardcoded 6-day PPL
+split inline in `seedProgram.ts`. This phase adds named, switchable full-week
+plans (built-in and custom) on top of that, ships 2 new built-in plans, and
+gives `/planner` + `/workout` a full visual redesign.
+
+- **Snapshot-based data model, not a `planId` FK.** `workoutDays`/
+  `dayExercises`/`weekSchedule` keep meaning exactly what they meant before —
+  the currently active plan, live — so `useGym.ts`, `useGymOverlay.ts`
+  (calendar), `lib/dayScore.ts`, `lib/todayScore.ts`, and `DashboardPage.tsx`
+  needed zero changes. The new `workoutPlans` table (schema v13,
+  `WorkoutPlanRowDto` in `db/types.ts`) stores every plan — active or not — as
+  a full serialized snapshot in the exact `WorkoutPlanFile` shape the
+  "Plan file (advanced)" Settings feature already defined
+  (`lib/workoutPlanFile.ts`). `switchToPlan()` (`features/gym/usePlans.ts`) is
+  just: export the live tables into the outgoing plan's row via the existing
+  `exportWorkoutPlan()`, then `importWorkoutPlan(target.snapshot, "replace")`
+  the incoming one — the exact transaction the plan-file importer already
+  shipped, reused verbatim. `settings.activeWorkoutPlanId` points at the live
+  row.
+- **Built-in plans aren't frozen templates.** A built-in's `workoutPlans` row
+  starts as a copy of its hardcoded default (`config/plans/builtInPlans.ts`)
+  and drifts as the user edits days/exercises while it's active, exactly like
+  a custom plan — "Reset to default" re-imports the static definition if they
+  want the factory version back. This avoids maintaining a separate
+  pristine-vs-working-copy concept for what is, for a single-user local-first
+  app, an unnecessary distinction.
+- **3 built-in plans**, each a plain `WorkoutPlanFile` constant that goes
+  straight through `importWorkoutPlan()` with no new code path: **Classic
+  PPL** (the original 6-day Push/Pull/Legs A+B split — `seedProgram.ts`'s
+  fresh-install path now installs it via `importWorkoutPlan()` too, instead of
+  hand-rolled `bulkAdd`s, so the seeded plan and its catalog entry can never
+  drift apart), **PPL + Rest** (3 day templates — Push/Pull/Legs — reused
+  across Mon→Sun with Thursday off, ~6 exercises/day), and **Bro Split** (6
+  unique days — Chest+Forearms ×2, Shoulders+Triceps, Back+Biceps, Arms,
+  Abs+Forearms — plus a Sunday rest, ~6 exercises/day). All exercises are
+  drawn from the existing library — no new catalog entries needed.
+- **Seeding** (`config/seedProgram.ts` `ensurePlansSeeded()`): on a fresh
+  install, the 3 built-ins are inserted as catalog rows and `Classic PPL`'s
+  row becomes active immediately (it's what fresh-install already built). On
+  an existing install upgrading to v13, the user's current live tables are
+  snapshotted byte-for-byte into a new `"My Plan"` custom row and made active
+  — the 2 new built-ins become available to switch to, but nothing about
+  their current setup is touched.
+- **`PlanSwitcherSheet.tsx`** (new, `features/gym/`) — a `Sheet` (bottom sheet
+  on mobile) listing Built-in and My Plans sections; each card shows a
+  day-name chip preview and Activate/Duplicate/Rename/Delete/Reset-to-default
+  as applicable (delete blocked for the active plan and for built-ins).
+  Reachable from a new **Plan hero card** at the top of `WorkoutPlanner.tsx`.
+- **Known limitation, inherited not introduced**: `importWorkoutPlan(...,
+  "replace")` recreates `workoutDays` with fresh auto-increment ids every
+  call, so switching away from and back to a plan regenerates new day ids —
+  old `workoutSessions`/ghost-set lookups keyed by the previous instantiation
+  don't cross-reference after a round-trip. This is pre-existing behavior of
+  the plan-file replace-import already shipped in Settings; logged history
+  (sessions/sets/PRs/XP) is never deleted, just no longer joined to a specific
+  day template after a switch.
+- **Gym tab visual redesign** (`SessionLogger.tsx` + `WorkoutPlanner.tsx`,
+  full redesign, not just the plan-switching UI): both screens got a gradient
+  hero banner (red/black gothic, matching the plan-name + day-name + muscle
+  chips + progress), a pill-based day switcher/weekly-schedule strip replacing
+  the old plain `Segmented`/list, and bolder exercise/day card treatment. All
+  underlying write logic (`useGym.ts`) is unchanged — this was a visual/layout
+  pass, not a data-flow rewrite.

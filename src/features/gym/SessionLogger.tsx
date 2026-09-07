@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Progress, Tag, Segmented, Popconfirm } from "antd";
+import { Button, Progress, Tag, Popconfirm } from "antd";
 import { motion } from "framer-motion";
 import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX } from "react-icons/tb";
 import { RestTimer } from "../../components/RestTimer";
@@ -14,6 +14,7 @@ import {
   useSessionSets, useGhostSets, useExercise, ensureSession, logSet,
   completeRemainingSets, completeAllRemainingForDay,
 } from "./useGym";
+import { useActivePlan } from "./usePlans";
 import { prettyDate, todayKey } from "../../lib/date.utils";
 import { db } from "../../db/db";
 import { startRest } from "../../lib/restTimerStore";
@@ -237,20 +238,26 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      style={{ background: "var(--surface)", borderRadius: 16, padding: "14px 14px 10px", marginBottom: 10,
+      style={{ background: "var(--surface)", borderRadius: 18, padding: "14px 14px 10px", marginBottom: 10,
+        borderLeft: allDone ? "3px solid var(--teal)" : "3px solid var(--accent)",
         border: allDone ? `1px solid var(--teal)` : "1px solid var(--border)",
+        borderLeftWidth: 3,
         opacity: allDone ? 0.75 : 1 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={20} color="var(--accent)" />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div title={ex.name} style={{
-            fontWeight: 700, fontSize: 14,
+            fontWeight: 800, fontSize: 15,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>{ex.name}</div>
           {ex.cues && <div style={{ fontSize: 11, color: "var(--ink-soft)",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ex.cues}</div>}
         </div>
-        <Tag color={allDone ? "green" : "default"} style={{ borderRadius: 8, margin: 0, flexShrink: 0 }}>
+        <Tag style={{
+          borderRadius: 999, margin: 0, flexShrink: 0, fontWeight: 800, border: "none",
+          background: allDone ? "var(--teal)" : "rgba(255,39,64,0.12)",
+          color: allDone ? "#fff" : "var(--accent)",
+        }}>
           {doneCount}/{totalSets}
         </Tag>
         {!allDone && (
@@ -452,6 +459,7 @@ function buildItems(exercises: DayExerciseDto[]): Item[] {
 
 export function SessionLogger() {
   const t = useTokens();
+  const plan = useActivePlan();
   const days = useWorkoutDays();
   const todayDayId = useTodayDayId();
   const [activeDayId, setActiveDayId] = useState<number | null>(null);
@@ -541,27 +549,36 @@ export function SessionLogger() {
             onDone={() => { setCoachStep(-1); void setSetting("coachLogger", 1); }}
           />
         )}
-        <div style={{ textAlign: "center", marginBottom: 12, position: "relative" }}>
-          <Link to="/quotes" style={{ position: "absolute", top: -2, right: 0 }}>
-            <Button type="text" shape="circle" icon={<TbQuote size={20} />} aria-label="Motivation quotes" />
+        <div style={{
+          borderRadius: 20, padding: "16px 18px", marginBottom: 14, position: "relative", overflow: "hidden",
+          background: isRest
+            ? "linear-gradient(135deg, rgba(120,120,140,0.14), rgba(0,0,0,0.30))"
+            : "linear-gradient(135deg, rgba(255,39,64,0.22), rgba(0,0,0,0.38))",
+          border: `1px solid ${isRest ? "var(--border)" : "var(--accent)"}`,
+        }}>
+          <Link to="/quotes" style={{ position: "absolute", top: 10, right: 10 }}>
+            <Button type="text" shape="circle" icon={<TbQuote size={18} />} aria-label="Motivation quotes" />
           </Link>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>{prettyDate(todayKey())}</div>
-          <div className="display" style={{ fontSize: 26, fontWeight: 800, margin: "4px 0" }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
+            {plan?.name ?? "Session"} · {prettyDate(todayKey())}
+          </div>
+          <div className="display" style={{ fontSize: 28, fontWeight: 800, margin: "2px 0 6px" }}>
             {isRest ? "Rest Day" : dayPlan?.name ?? "Session"}
           </div>
           {dayPlan && (
-            <div style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
               {dayPlan.muscles.map((m) => (
-                <Tag key={m} style={{ borderRadius: 8, background: "var(--accent)", color: "#fff", border: "none", fontWeight: 600 }}>
+                <Tag key={m} style={{ borderRadius: 999, background: "var(--accent)", color: "#fff", border: "none", fontWeight: 700, fontSize: 10 }}>
                   {MUSCLE_LABELS[m]}
                 </Tag>
               ))}
             </div>
           )}
           {!isRest && totalSets > 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, maxWidth: 320, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <Progress percent={pct} strokeColor={pct >= 100 ? t.teal : t.accent} showInfo={false}
                 style={{ flex: 1 }} size={[-1, 8]} />
+              <span style={{ fontSize: 12, fontWeight: 800, minWidth: 34, textAlign: "right" }}>{pct}%</span>
               {pct < 100 && (
                 <Popconfirm
                   title="Complete the full day?"
@@ -579,19 +596,39 @@ export function SessionLogger() {
         </div>
 
         {days.length > 0 && (
-          <div style={{ overflowX: "auto", whiteSpace: "nowrap", marginBottom: 14, paddingBottom: 4 }}>
-            <Segmented
-              value={dayId ?? 0}
-              onChange={(v) => setActiveDayId(v as number)}
-              options={[...days.map((d) => ({ label: d.name, value: d.id! })), { label: "Rest", value: 0 }]}
-            />
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
+            {[...days.map((d) => ({ id: d.id!, name: d.name })), { id: 0, name: "Rest" }].map((d) => {
+              const selected = (dayId ?? 0) === d.id;
+              const isToday = (todayDayId ?? 0) === d.id;
+              return (
+                <button key={d.id} onClick={() => setActiveDayId(d.id)} style={{
+                  flexShrink: 0, cursor: "pointer", borderRadius: 999, padding: "7px 16px",
+                  fontSize: 13, fontWeight: 700, position: "relative",
+                  background: selected ? "var(--accent)" : "var(--surface)",
+                  color: selected ? "#fff" : "var(--ink)",
+                  border: selected ? "1px solid var(--accent)" : "1px solid var(--border)",
+                }}>
+                  {d.name}
+                  {isToday && (
+                    <span style={{
+                      position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%",
+                      background: selected ? "#fff" : "var(--accent)", border: "1px solid var(--bg)",
+                    }} />
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
 
         {isRest ? (
-          <div style={{ textAlign: "center", padding: 40, color: "var(--ink-soft)" }}>
-            <div style={{ marginBottom: 8 }}><TbMoon size={48} style={{ color: "var(--accent)" }} /></div>
-            <div style={{ fontWeight: 600 }}>Recovery day — muscle grows now, not in the gym.</div>
+          <div style={{
+            textAlign: "center", padding: "48px 24px", color: "var(--ink-soft)",
+            background: "var(--surface)", borderRadius: 18, border: "1px solid var(--border)",
+          }}>
+            <div style={{ marginBottom: 10 }}><TbMoon size={48} style={{ color: "var(--accent)" }} /></div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: "var(--ink)" }}>Recovery day</div>
+            <div style={{ marginTop: 4 }}>Muscle grows now, not in the gym.</div>
           </div>
         ) : (
           <>

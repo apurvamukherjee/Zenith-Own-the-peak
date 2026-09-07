@@ -1,10 +1,12 @@
 <div align="center">
 
-# ⛰️ Zenith
+<img src="assets/logo/screen.png" width="120" alt="Zenith logo" />
+
+# ⛰️ ZENITH
 
 ### *Own the peak.*
 
-A local-first personal tracker — **training, nutrition, study, sleep, water, bike fuel, calendar, motivation A local-first personal tracker — **training, nutrition, study, sleep, water, bike fuel, calendar & motivation** at-a-glance sharing** — in one gothic, offline dashboard. No account, no server, your data never leaves your device.
+A local-first personal tracker for **training, nutrition, study, sleep, water, bike fuel, and a full calendar** — one gothic, offline dashboard. No account, no server, your data never leaves your device.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
@@ -15,30 +17,72 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 ![PWA](https://img.shields.io/badge/Offline-first-000000)
 ![License](https://img.shields.io/badge/license-MIT-informational)
 
-**Phase 5 — Live** · XP leveling + social leaderboard
+**19 screens · 149-exercise library · 3 built-in training splits · 83 achievements · zero backend required**
 
 </div>
 
 ---
 
+## 📸 See it in action
+
+<table>
+<tr>
+<td width="25%"><img src="assets/screenshots/home.png" alt="Home dashboard" /></td>
+<td width="25%"><img src="assets/screenshots/train.png" alt="Session Logger" /></td>
+<td width="25%"><img src="assets/screenshots/planner.png" alt="Workout Planner" /></td>
+<td width="25%"><img src="assets/screenshots/plan-switcher.png" alt="Plan Switcher" /></td>
+</tr>
+<tr>
+<td align="center"><sub><b>Home</b> — discipline ring & streak</sub></td>
+<td align="center"><sub><b>Train</b> — log a session, zero friction</sub></td>
+<td align="center"><sub><b>Planner</b> — build your split</sub></td>
+<td align="center"><sub><b>Switch Plan</b> — flip splits instantly</sub></td>
+</tr>
+<tr>
+<td width="25%"><img src="assets/screenshots/nutrition.png" alt="Nutrition" /></td>
+<td width="25%"><img src="assets/screenshots/calendar.png" alt="Calendar" /></td>
+<td width="25%"><img src="assets/screenshots/hall.png" alt="Hall of Frame" /></td>
+<td width="25%"><img src="assets/screenshots/stats.png" alt="Stats" /></td>
+</tr>
+<tr>
+<td align="center"><sub><b>Nutrition</b> — macros at a glance</sub></td>
+<td align="center"><sub><b>Calendar</b> — discipline, day by day</sub></td>
+<td align="center"><sub><b>Hall of Frame</b> — 83 badges to earn</sub></td>
+<td align="center"><sub><b>Stats</b> — insights that matter</sub></td>
+</tr>
+</table>
+
+---
+
 ## ✨ Highlights
 
-- 🏋️ **Two-screen gym engine** — a minimal Session Logger for the gym (progress bar, +/− weight/reps, tap to complete) and a full Workout Planner for the couch (125-exercise library, custom days, weekly schedule, supersets)
+- 🏋️ **Multiple switchable training plans** — 3 built-in splits (Classic PPL, PPL + Rest, Bro Split) plus unlimited custom plans, each a full 7-day program you build once and flip between in one tap. Switching never loses progress — your outgoing plan is saved automatically.
+- ⚡ **Two-screen gym engine** — a minimal Session Logger for the gym (progress bar, +/− weight/reps, tap to complete, drop sets, supersets, rest timer) and a full Workout Planner for the couch (149-exercise library, custom days, weekly schedule, progressive-overload nudges)
 - 📊 **Discipline score** — one ring on Home that tells you if today is on track (water + training + sleep + protein, averaged)
 - 📅 **Discipline calendar** — month grid colored by daily score with per-metric filters, streak freeze, workout backfill, on-this-day comparisons, goal countdowns, photo pins, range stats, and a GitHub-style year heatmap
+- 🗓️ **Full Month/Week/Day calendar** — a unified tasks & events system underneath it, draw-to-create time blocks, recurring events, all-day/multi-day spans, and real two-way Google Calendar sync
 - ⚡ **XP + Levels** — every action earns XP. 21 levels from Recruit to Zenith. Cinematic level-up overlay.
-- 🏆 **84 achievement badges** — 5 tiers (bronze → mythic), 17 mystery, earned by real milestones
+- 🏆 **83 achievement badges** — 5 tiers (bronze → mythic), 17 mystery, earned by real milestones
 - 🏅 **Social leaderboard** — follow friends by share code, compete on weekly discipline %, streak, volume. See each other's top badges.
 - 🌅 **Time-aware greeting** — 7 time-of-day slots with matching icons, taglines, and evolving gradients from dawn to late night
 - 💬 **Motivation deck** — swipeable quote cards you can add/edit/favorite by category (gym / study / life)
-- 🏆 **Hall of Frame** — 69 unlockable achievements (7 hidden "mystery" badges), bronze→mythic tiers, cold custom vector medallions; locked ones stay visible with a one-line objective so you always know what's next
 - 🖤 **Gothic dark mode** — black + aggressive red by default, with a one-tap Light toggle
 - ⚡ **Quick-Log FAB** — floating action button on every screen, one tap to log water, meals, or jump to any tracker
 - 🎨 **Make it yours** — custom profile picture, wallpaper with blur & opacity controls
-- ☁️ **Optional cloud sync** — Convex backup with email-code login, auto-push on change
-- 🔔 **Smart reminders** — adaptive copy ("you're 700ml behind"), native push via Capacitor
+- ☁️ **Optional cloud sync** — encrypted backup with email-code login, auto-push on change
+- 🔔 **Smart reminders** — adaptive copy ("you're 700ml behind"), native push on mobile
 - 📴 **Works anywhere** — offline, installable, phone-ready, zero backend required
-- 💾 **You own the data** — one-tap JSON backup & restore
+- 💾 **You own the data** — one-tap JSON backup & restore, plus AES-encrypted export
+
+## 🥊 Built-in training plans
+
+| Plan | Split | Days/week |
+|---|---|---|
+| **Classic PPL** | Push A · Pull A · Legs A · Push B · Pull B · Legs B | 6 |
+| **PPL + Rest** | Push · Pull · Legs · Rest · Push · Pull · Legs | 6 |
+| **Bro Split** | Chest+Forearms · Shoulders+Triceps · Back+Biceps · Chest+Forearms · Arms · Abs+Forearms · Rest | 6 |
+
+Every day ships with hand-picked exercises, sets, rep ranges, and rest timers — pulled straight from the 149-exercise library. Swap any exercise, tweak the numbers, or build a plan from scratch; switching plans always keeps the one you're leaving intact.
 
 ## 📦 Modules
 
@@ -46,22 +90,22 @@ A local-first personal tracker — **training, nutrition, study, sleep, water, b
 |---|---|---|
 | 🏠 | **Home** | Discipline ring, unified streak, training card, water quick-add, sleep, study up-next |
 | ⚡ | **Train** | Session Logger — execute today's workout with minimal taps |
-| 📋 | **Planner** | Workout Planner — create days, pick exercises, set weights, assign schedule |
+| 📋 | **Planner** | Build days, pick exercises, set weights, assign a weekly schedule, switch between plans |
 | 📊 | **Progress** | Per-exercise e1RM trend, volume, % gain, PR log |
 | 🍽️ | **Nutrition** | Meals & macros, calorie/protein targets, supplement schedule |
 | 📚 | **Study** | Learning paths, topic backlog, auto "up next", notes, time logging |
 | 💧 | **Water** | Pace-aware hydration with warnings, quick-add, 7-day chart |
 | 😴 | **Sleep** | Bed/wake logging, duration, quality, weekly sleep-debt |
 | ⛽ | **Fuel** | Full-to-full bike mileage (km/L), monthly spend, cost per km |
-| 📅 | **Calendar** | Month grid colored by discipline score, filters, goal countdowns, photo pins, range stats, streak freeze, backfill, year heatmap |
+| 📅 | **Calendar** | Month/Week/Day views, tasks & events, discipline overlay, Google Calendar sync |
 | 💬 | **Motivation** | Swipeable quote deck by category (gym / study / life) — add, edit, favorite, delete |
-| 🏆 | **Hall of Frame** | 69 achievements (7 mystery), tiered badges with cold vector medallions, live progress on everything still locked |
-| 📈 | **Stats** | Read-only insights — weekly review, year heatmap, photo timeline, efficiency, body composition, bodyweight, all-module metrics |
-| ⚙️ | **Settings** | Profile & daily targets, appearance (theme / picture / wallpaper), reminders, cloud sync, backup |
+| 🏆 | **Hall of Frame** | 83 achievements (17 mystery), tiered badges, live progress on everything still locked |
+| 📈 | **Stats** | Read-only insights — weekly review, year heatmap, photo timeline, efficiency, body composition |
+| ⚙️ | **Settings** | Profile & daily targets, appearance, reminders, cloud sync, backup |
 
 ## 🛠 Tech stack
 
-**React 19** · **TypeScript (strict)** · **Vite 5** · **Ant Design 5** · **Dexie (IndexedDB)** · **Framer Motion** · **Recharts** · **react-icons (Tabler)** · **React Router 6** · **dayjs** · optional **Convex**
+**React 19** · **TypeScript (strict)** · **Vite 5** · **Ant Design 5** · **Dexie (IndexedDB)** · **Framer Motion** · **Recharts** · **react-icons (Tabler)** · **React Router 6** · **dayjs**
 
 ## 🚀 Quick start
 
@@ -78,9 +122,9 @@ On your phone (same Wi-Fi), open the **Network** URL.
 npm run build      # → /dist
 ```
 
-Import on **Vercel** → framework **Vite** → deploy. Full Convex + Vercel setup in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
+Import the repo on **Vercel**, framework preset **Vite**, deploy. Fully static — no environment variables required unless you turn on optional cloud sync.
 
-## 📲 Native app (Capacitor)
+## 📲 Native app
 
 ```bash
 npm i @capacitor/core @capacitor/cli
@@ -92,15 +136,13 @@ npx cap add ios && npm run build && npx cap sync
 
 ```
 UI (features/*/*.tsx)        ← presentational only
-  └─ data hooks (use*.ts)    ← the ONLY place Dexie is read/written
-       └─ db (src/db/db.ts)  ← typed tables + export/import
+  └─ data hooks (use*.ts)    ← the ONLY place data is read/written
+       └─ db (IndexedDB)     ← typed tables + export/import
 ```
-
-Full context for contributors: [`CLAUDE.md`](./CLAUDE.md)
 
 ## 🔒 Privacy
 
-100% on-device. No analytics, no account required. Cloud sync is optional and isolated per-user by Convex functions that derive your identity server-side — there's no client-supplied ID to spoof.
+100% on-device by default. No analytics, no account required. Cloud sync is entirely optional and off unless you turn it on.
 
 ## 📄 License
 
