@@ -7,6 +7,7 @@ import type {
   QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
   AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
   TaskDto, TaskListDto, RecurringRuleDto, CosmeticUnlockDto, GoogleSyncOutboxDto,
+  WorkoutPlanRowDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -45,6 +46,7 @@ class ZenithDB extends Dexie {
   recurringRules!: Table<RecurringRuleDto, number>;
   cosmeticUnlocks!: Table<CosmeticUnlockDto, string>;
   googleSyncOutbox!: Table<GoogleSyncOutboxDto, number>;
+  workoutPlans!: Table<WorkoutPlanRowDto, number>;
 
   constructor() {
     super("zenith");
@@ -130,6 +132,14 @@ class ZenithDB extends Dexie {
       tasks: "++id, listId, status, date, priority, recurringRuleId, createdAt, googleEventId",
       googleSyncOutbox: "++id, googleEventId",
     });
+    // v13: multi-plan support. Each row is a full named snapshot of a
+    // workoutDays+dayExercises+weekSchedule program (see WorkoutPlanRowDto).
+    // `workoutDays`/`dayExercises`/`weekSchedule` themselves stay unscoped —
+    // they always represent whichever plan is currently active, exactly as
+    // before v13, so no existing reader of those tables needed to change.
+    this.version(13).stores({
+      workoutPlans: "++id, isBuiltIn, updatedAt",
+    });
   }
 }
 
@@ -161,7 +171,7 @@ db.tasks.hook("deleting", (_primKey, obj) => {
 });
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 12, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 13, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

@@ -1,4 +1,5 @@
 // Domain types. Flat for Dexie indexing.
+import type { WorkoutPlanFile } from "../lib/workoutPlanFile";
 
 // ---- Workout (redesigned) ----
 export type MuscleGroup =
@@ -42,6 +43,22 @@ export interface WeekScheduleDto {
   id?: number;
   weekday: number;
   dayId: number;
+}
+
+// ---- Multi-plan support (switchable full-week programs) ----
+// `workoutDays`/`dayExercises`/`weekSchedule` above always represent only the
+// CURRENTLY ACTIVE plan, live — exactly as before this feature existed. Every
+// plan (active or not) is additionally kept here as a serialized snapshot in
+// the same `WorkoutPlanFile` shape used by the existing plan-file import/export
+// (lib/workoutPlanFile.ts), so switching is just export-current → import-target.
+export interface WorkoutPlanRowDto {
+  id?: number;
+  name: string;
+  isBuiltIn: 0 | 1;
+  builtInKey?: "classic-ppl" | "ppl-rest" | "bro-split"; // only set when isBuiltIn
+  snapshot: WorkoutPlanFile;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export type Effort = "easy" | "good" | "hard" | "failed";
