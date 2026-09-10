@@ -12,6 +12,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/sleep":     { title: "Sleep",       rank: 1, tab: false },
   "/fuel":      { title: "Fuel",        rank: 1, tab: false },
   "/expenses":  { title: "War Chest",   rank: 1, tab: false },
+  "/habits":    { title: "Habits",      rank: 1, tab: false },
   "/calendar":  { title: "Calendar",    rank: 1, tab: false },
   "/glance":    { title: "At a glance", rank: 1, tab: false },
   "/quotes":    { title: "Motivation",  rank: 1, tab: false },

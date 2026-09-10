@@ -67,7 +67,7 @@ export function BodyComposition() {
       )}
       <Modal open={addOpen} onCancel={() => setAddOpen(false)} title={`Log ${metric}`} onOk={submit} okText="Save">
         <InputNumber inputMode="decimal" autoFocus value={cm} onChange={(v) => setCm(v ?? undefined)} step={0.5} min={10} max={200}
-          addonAfter="cm" style={{ width: "100%", marginTop: 8 }} />
+          suffix="cm" style={{ width: "100%", marginTop: 8 }} />
       </Modal>
     </Card>
   );

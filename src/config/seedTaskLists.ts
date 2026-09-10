@@ -21,6 +21,9 @@ const DEFAULT_LISTS: Omit<TaskListDto, "createdAt">[] = [
   // Phase 8 — FocusMode already special-cases a "study"/"learn" list id for its
   // "Start studying" CTA; this was never actually seeded until now.
   { id: "study",      name: "Study",      color: "#a855f7", icon: "TbBook2",         order: 11, isDefault: 1 },
+  // Summit Push — milestone checklist items linked to a goal day via
+  // TaskDto.goalDayId. Never carries a `date` (not calendar events).
+  { id: "milestones", name: "Milestones", color: "#eab308", icon: "TbFlag",          order: 12, isDefault: 1 },
 ];
 
 // Ensures every default list exists; additive only, safe to call on every

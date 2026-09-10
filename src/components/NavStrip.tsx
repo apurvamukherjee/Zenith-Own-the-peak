@@ -1,12 +1,13 @@
 import { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { TbDroplet, TbMoon, TbGasStation, TbChartLine, TbCalendar, TbWallet } from "react-icons/tb";
+import { TbDroplet, TbMoon, TbGasStation, TbChartLine, TbCalendar, TbWallet, TbFlame } from "react-icons/tb";
 
 const chips = [
   { to: "/water", label: "Water", icon: TbDroplet },
   { to: "/sleep", label: "Sleep", icon: TbMoon },
   { to: "/fuel", label: "Fuel", icon: TbGasStation },
   { to: "/expenses", label: "Spend", icon: TbWallet },
+  { to: "/habits", label: "Habits", icon: TbFlame },
   { to: "/progress", label: "Progress", icon: TbChartLine },
   { to: "/calendar", label: "Calendar", icon: TbCalendar },
 ];

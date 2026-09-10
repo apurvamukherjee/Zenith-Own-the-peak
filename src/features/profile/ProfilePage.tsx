@@ -17,6 +17,7 @@ import { BeforeAfterSlider } from "./BeforeAfterSlider";
 import { useSetting } from "../../hooks/useSettings";
 import { fmtDuration } from "../../lib/date.utils";
 import { useWeeklyReview } from "../review/useWeeklyReview";
+import { CompassCard } from "./CompassCard";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 import { useAchievements, useUnseenAchievements } from "../achievements/useAchievements";
@@ -179,6 +180,8 @@ export function ProfilePage() {
           )}
         </Card>
       )}
+
+      <CompassCard />
 
       <SectionTitle title="Everything, measured" />
 

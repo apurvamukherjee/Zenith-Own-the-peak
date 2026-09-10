@@ -215,6 +215,17 @@ export interface HabitChainDto {
   action: "notify"; delayMin: number; message: string; active: number; createdAt: number;
 }
 
+// ---- Forged Habits ----
+// habitChains (above) was never wired to any UI and is shaped for a
+// different, background-automation concept (trigger table → delayed
+// notification) — it stays dormant rather than repurposed. These two tables
+// are the real vehicle for user-facing trigger→action habits with streaks.
+export interface HabitDto {
+  id?: number; name: string; triggerLabel: string; actionLabel: string;
+  icon: string; color: string; active: number; order: number; createdAt: number;
+}
+export interface HabitLogDto { id?: number; habitId: number; date: string; createdAt: number; }
+
 // ---- Achievements ----
 export interface AchievementUnlockDto {
   id: string;
@@ -289,6 +300,8 @@ export interface TaskDto {
   remindBefore?: number;  // minutes before date+time
   // Dependencies
   blockedBy?: number;
+  // Summit Push — links a "milestones"-list task to the goal day it belongs to
+  goalDayId?: number;
   // Kanban
   startedAt?: number;
   completedAt?: number;

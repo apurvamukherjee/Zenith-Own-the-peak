@@ -4,7 +4,7 @@ import { Input, Modal } from "antd";
 import {
   TbSearch, TbHome, TbBarbell, TbCalendar, TbSettings, TbMeat,
   TbDroplet, TbMoon, TbBook2, TbGasStation, TbClipboardList, TbTrophy, TbBolt, TbCheckbox,
-  TbWallet, TbInbox,
+  TbWallet, TbInbox, TbFlame,
 } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/db";
@@ -52,6 +52,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       { id: "nav-fuel", label: "Open Fuel", icon: TbGasStation, action: nav("/fuel"), keywords: "bike mileage" },
       { id: "nav-expenses", label: "Open War Chest", icon: TbWallet, action: nav("/expenses"), keywords: "expense budget money spend upi" },
       { id: "nav-inbox", label: "Open Inbox", icon: TbInbox, action: nav("/tasks?list=inbox"), keywords: "capture brain dump quick task" },
+      { id: "nav-habits", label: "Open Habits", icon: TbFlame, action: nav("/habits"), keywords: "streak trigger action forged" },
       { id: "nav-cal", label: "Open Calendar", icon: TbCalendar, action: nav("/calendar"), keywords: "month heatmap" },
       { id: "nav-hall", label: "Hall of Frame", icon: TbTrophy, action: nav("/hall"), keywords: "achievements badges" },
       { id: "nav-set", label: "Open Settings", icon: TbSettings, action: nav("/settings"), keywords: "profile targets theme" },

@@ -57,7 +57,7 @@ export function RemindersCard() {
       <Row label="Hydration nudges" hint="Every few hours through your day"
         checked={remWater} onChange={(v) => setSetting("remWater", v ? 1 : 0)}
         control={<SmartInputNumber size="small" min={1} max={6} value={remWaterEveryH}
-          onChange={(v) => setSetting("remWaterEveryH", v ?? 2)} addonAfter="h" style={{ width: 92 }} />} />
+          onChange={(v) => setSetting("remWaterEveryH", v ?? 2)} suffix="h" style={{ width: 92 }} />} />
       <Divider style={{ margin: "4px 0" }} />
       <Row label="Session reminder" hint="Nudge to train"
         checked={remSession} onChange={(v) => setSetting("remSession", v ? 1 : 0)}

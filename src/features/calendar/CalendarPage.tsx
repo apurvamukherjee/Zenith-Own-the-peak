@@ -31,11 +31,12 @@ import { db } from "../../db/db";
 import { todayKey } from "../../lib/date.utils";
 import { filteredValue, type ScoreFilter } from "../../lib/dayScore";
 import { useMonthSummary } from "./useMonthSummary";
-import { useGoalsForMonth, useUpcomingGoals, addGoalDay, daysUntil } from "./useGoalDays";
+import { useGoalsForMonth, useUpcomingGoals, addGoalDay, daysUntil, useMilestoneCounts } from "./useGoalDays";
+import { GoalDetailSheet } from "./GoalDetailSheet";
 import { usePhotoDatesInMonth } from "./useDayPhoto";
 import { backfillSession } from "../gym/useGym";
 import { buildICS, exportICS } from "../../lib/icsExport";
-import type { TaskDto } from "../../db/types";
+import type { TaskDto, GoalDayDto } from "../../db/types";
 import dayjs from "dayjs";
 
 function inferMealType() {
@@ -91,6 +92,7 @@ export function CalendarPage() {
   const [filter, setFilter] = useState<ScoreFilter>("blended");
   const [showSummary, setShowSummary] = useState(false);
   const [showGoalAdd, setShowGoalAdd] = useState(false);
+  const [goalDetail, setGoalDetail] = useState<GoalDayDto | null>(null);
 
   // Range select (long-press start, tap end) — Month view only
   const [rangeStart, setRangeStart] = useState<string | null>(null);
@@ -104,6 +106,7 @@ export function CalendarPage() {
   const photoDates = usePhotoDatesInMonth(dates);
   const summary = useMonthSummary(dates, scoreMap);
   const upcomingGoals = useUpcomingGoals(3);
+  const milestoneCounts = useMilestoneCounts(upcomingGoals.map((g) => g.id!).filter(Boolean));
   const gymOverlay = useGymOverlay(dates);
   const allDayEvents = useAllDayEvents(dates);
 
@@ -273,14 +276,21 @@ export function CalendarPage() {
       {/* Upcoming goal countdown */}
       {upcomingGoals.length > 0 && (
         <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 12, paddingBottom: 2 }}>
-          {upcomingGoals.map((g) => (
-            <div key={g.id} style={{ background: "var(--surface)", borderRadius: 12, padding: "8px 12px", whiteSpace: "nowrap", border: "1px solid var(--border)" }}>
-              <div style={{ fontSize: 11, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 4 }}><TbFlag size={12} />{g.title}</div>
-              <div style={{ fontWeight: 800, color: "var(--accent)", fontSize: 14 }}>
-                {daysUntil(g.date) === 0 ? "Today!" : `${daysUntil(g.date)}d away`}
+          {upcomingGoals.map((g) => {
+            const counts = g.id ? milestoneCounts.get(g.id) : undefined;
+            return (
+              <div key={g.id} onClick={() => setGoalDetail(g)} role="button" tabIndex={0}
+                style={{ background: "var(--surface)", borderRadius: 12, padding: "8px 12px", whiteSpace: "nowrap", border: "1px solid var(--border)", cursor: "pointer" }}>
+                <div style={{ fontSize: 11, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 4 }}><TbFlag size={12} />{g.title}</div>
+                <div style={{ fontWeight: 800, color: "var(--accent)", fontSize: 14 }}>
+                  {daysUntil(g.date) === 0 ? "Today!" : `${daysUntil(g.date)}d away`}
+                </div>
+                {counts && counts.total > 0 && (
+                  <div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 1 }}>{counts.done}/{counts.total} milestones</div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -535,6 +545,7 @@ export function CalendarPage() {
       </Modal>
 
       <AddGoalModal open={showGoalAdd} onClose={() => setShowGoalAdd(false)} />
+      <GoalDetailSheet open={!!goalDetail} goal={goalDetail} onClose={() => setGoalDetail(null)} />
     </PageTransition>
   );
 }

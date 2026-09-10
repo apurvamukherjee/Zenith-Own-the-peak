@@ -8,6 +8,7 @@ import type {
   AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
   TaskDto, TaskListDto, RecurringRuleDto, CosmeticUnlockDto, GoogleSyncOutboxDto,
   WorkoutPlanRowDto, ExpenseCategoryDto, ExpenseItemDto, ExpenseDto, CategoryBudgetDto,
+  HabitDto, HabitLogDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -51,6 +52,8 @@ class ZenithDB extends Dexie {
   expenseItems!: Table<ExpenseItemDto, number>;
   expenses!: Table<ExpenseDto, number>;
   categoryBudgets!: Table<CategoryBudgetDto, string>;
+  habits!: Table<HabitDto, number>;
+  habitLogs!: Table<HabitLogDto, number>;
 
   constructor() {
     super("zenith");
@@ -154,6 +157,18 @@ class ZenithDB extends Dexie {
       expenses: "++id, date, categoryId, createdAt",
       categoryBudgets: "&categoryId",
     });
+    // v15: Forged Habits — custom trigger→action habits with daily
+    // completion + streaks. habitChains (v4) was never wired to any UI
+    // (zero consumers, confirmed by grep) and stays dormant/frozen rather
+    // than repurposed — its fields (triggerTable/delayMin/action:"notify")
+    // are shaped for a different, background-automation concept and don't
+    // fit a named, checkable habit. [habitId+date] mirrors the exact
+    // rationale already used for workoutSessions' [date+dayId] index (v6):
+    // fast "is this habit done today" / dedupe lookups.
+    this.version(15).stores({
+      habits: "++id, active, order",
+      habitLogs: "++id, habitId, date, [habitId+date]",
+    });
   }
 }
 
@@ -185,7 +200,7 @@ db.tasks.hook("deleting", (_primKey, obj) => {
 });
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 14, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 15, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

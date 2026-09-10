@@ -80,7 +80,7 @@ export function SettingsPage() {
   const num = (label: string, val: number, key: Parameters<typeof setSetting>[0], suffix?: string, step = 1, min = 0) => (
     <Col span={12} style={{ marginBottom: 12 }}>
       <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>{label}</div>
-      <InputNumber inputMode="decimal" value={val} min={min} step={step} addonAfter={suffix}
+      <InputNumber inputMode="decimal" value={val} min={min} step={step} suffix={suffix}
         style={{ width: "100%" }} onChange={(v) => v != null && setSetting(key, v)} />
     </Col>
   );
