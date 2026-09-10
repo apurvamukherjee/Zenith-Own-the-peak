@@ -10,6 +10,7 @@ import { BloodDrop } from "./components/BloodDrop";
 import { OnboardingFlow } from "./features/onboarding/OnboardingFlow";
 import { seedIfEmpty } from "./config/seedProgram";
 import { seedTaskLists, migrateSchedulesToTasks } from "./config/seedTaskLists";
+import { seedExpenseCategories } from "./config/expenseCategories";
 import { useAdaptiveTheme } from "./hooks/useAdaptiveTheme";
 import { accentById, DEFAULT_ACCENT } from "./lib/rewardVault";
 
@@ -72,7 +73,7 @@ export default function App() {
 
   // Seed exercise library + default PPL on first launch — MUST complete before rendering
   useEffect(() => {
-    Promise.all([seedIfEmpty(), seedTaskLists()])
+    Promise.all([seedIfEmpty(), seedTaskLists(), seedExpenseCategories()])
       .then(() => migrateSchedulesToTasks())
       .then(() => setSeeded(true))
       .catch(() => setSeeded(true));

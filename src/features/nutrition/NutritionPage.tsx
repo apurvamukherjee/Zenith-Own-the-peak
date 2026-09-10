@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Card, Progress, Button, Modal, Input, TimePicker, Segmented,
+  Card, Progress, Button, Modal, Input, Segmented,
   Tag, App, Empty, Row, Col, Switch, Popconfirm, Checkbox,
 } from "antd";
 import {
@@ -12,6 +12,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
+import { TimeSelect } from "../../components/TimeSelect";
 import { ColdIcon } from "../../components/ColdIcon";
 import { db } from "../../db/db";
 import type { MealDto, ScheduleKind } from "../../db/types";
@@ -350,10 +351,10 @@ function ManageScheduleModal({ open, onClose }: { open: boolean; onClose: () => 
   const [kind, setKind] = useState<ScheduleKind>("med");
   const [label, setLabel] = useState("");
   const [dose, setDose] = useState("");
-  const [time, setTime] = useState(dayjs());
+  const [time, setTime] = useState(() => dayjs().format("HH:mm"));
   function submit() {
     if (!label.trim()) return;
-    addSchedule({ kind, label: label.trim(), dose: dose.trim() || undefined, time: time.format("HH:mm") });
+    addSchedule({ kind, label: label.trim(), dose: dose.trim() || undefined, time });
     setLabel(""); setDose("");
   }
   return (
@@ -367,7 +368,7 @@ function ManageScheduleModal({ open, onClose }: { open: boolean; onClose: () => 
         <Input placeholder="Name (e.g. Creatine, Breakfast)" value={label} onChange={(e) => setLabel(e.target.value)} />
         <div style={{ display: "flex", gap: 10 }}>
           <Input placeholder="Dose / note (optional)" value={dose} onChange={(e) => setDose(e.target.value)} style={{ flex: 1 }} />
-          <TimePicker inputReadOnly value={time} onChange={(v) => v && setTime(v)} format="HH:mm" allowClear={false} needConfirm={false} />
+          <TimeSelect value={time} onChange={setTime} />
         </div>
       </div>
     </Modal>

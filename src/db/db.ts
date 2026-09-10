@@ -7,7 +7,7 @@ import type {
   QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
   AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
   TaskDto, TaskListDto, RecurringRuleDto, CosmeticUnlockDto, GoogleSyncOutboxDto,
-  WorkoutPlanRowDto,
+  WorkoutPlanRowDto, ExpenseCategoryDto, ExpenseItemDto, ExpenseDto, CategoryBudgetDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -47,6 +47,10 @@ class ZenithDB extends Dexie {
   cosmeticUnlocks!: Table<CosmeticUnlockDto, string>;
   googleSyncOutbox!: Table<GoogleSyncOutboxDto, number>;
   workoutPlans!: Table<WorkoutPlanRowDto, number>;
+  expenseCategories!: Table<ExpenseCategoryDto, string>;
+  expenseItems!: Table<ExpenseItemDto, number>;
+  expenses!: Table<ExpenseDto, number>;
+  categoryBudgets!: Table<CategoryBudgetDto, string>;
 
   constructor() {
     super("zenith");
@@ -140,6 +144,16 @@ class ZenithDB extends Dexie {
     this.version(13).stores({
       workoutPlans: "++id, isBuiltIn, updatedAt",
     });
+    // v14: War Chest — generalized expense/budget tracker. Mirrors existing
+    // patterns: expenseCategories ~ taskLists (seeded, id-keyed, ordered),
+    // expenseItems ~ foods (named quick-add catalog with presets),
+    // categoryBudgets ~ settings (single-key lookup), expenses is the log.
+    this.version(14).stores({
+      expenseCategories: "&id, order",
+      expenseItems: "++id, categoryId, favorite",
+      expenses: "++id, date, categoryId, createdAt",
+      categoryBudgets: "&categoryId",
+    });
   }
 }
 
@@ -171,7 +185,7 @@ db.tasks.hook("deleting", (_primKey, obj) => {
 });
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 13, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 14, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

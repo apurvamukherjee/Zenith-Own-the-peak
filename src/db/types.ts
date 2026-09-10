@@ -108,6 +108,22 @@ export interface FuelDto {
   id?: number; date: string; odometer: number; litres: number; cost: number;
 }
 
+// ---- Expenses (War Chest) ----
+export interface ExpenseCategoryDto {
+  id: string; name: string; color: string; icon: string;
+  order: number; isDefault: number; createdAt: number;
+}
+export interface ExpensePresetDto { label: string; amount: number; }
+export interface ExpenseItemDto {
+  id?: number; categoryId: string; name: string; defaultAmount: number;
+  presets: ExpensePresetDto[]; favorite: 0 | 1; isCustom: 0 | 1; createdAt: number;
+}
+export interface ExpenseDto {
+  id?: number; date: string; categoryId: string; itemId?: number;
+  label?: string; amount: number; createdAt: number;
+}
+export interface CategoryBudgetDto { categoryId: string; monthlyBudget: number; }
+
 // ---- Nutrition ----
 export type ScheduleKind = "med" | "supplement" | "meal";
 export interface ScheduleDto {

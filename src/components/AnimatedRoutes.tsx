@@ -13,6 +13,7 @@ const WaterPage = lazy(() => import("../features/water/WaterPage").then((m) => (
 const SleepPage = lazy(() => import("../features/sleep/SleepPage").then((m) => ({ default: m.SleepPage })));
 const StudyPage = lazy(() => import("../features/study/StudyPage").then((m) => ({ default: m.StudyPage })));
 const FuelPage = lazy(() => import("../features/fuel/FuelPage").then((m) => ({ default: m.FuelPage })));
+const ExpensesPage = lazy(() => import("../features/expenses/ExpensesPage").then((m) => ({ default: m.ExpensesPage })));
 const CalendarPage = lazy(() => import("../features/calendar/CalendarPage").then((m) => ({ default: m.CalendarPage })));
 const GlancePage = lazy(() => import("../features/glance/GlancePage").then((m) => ({ default: m.GlancePage })));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then((m) => ({ default: m.ProfilePage })));
@@ -57,6 +58,7 @@ export function AnimatedRoutes() {
             <Route path="sleep" element={<SleepPage />} />
             <Route path="study" element={<StudyPage />} />
             <Route path="fuel" element={<FuelPage />} />
+            <Route path="expenses" element={<ExpensesPage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="glance" element={<GlancePage />} />
             <Route path="profile" element={<ProfilePage />} />

@@ -2,6 +2,9 @@ import { db } from "../db/db";
 import type { TaskListDto } from "../db/types";
 
 const DEFAULT_LISTS: Omit<TaskListDto, "createdAt">[] = [
+  // Basecamp Inbox — global frictionless capture target (InboxCaptureModal).
+  // order: -1 so it always sorts first without renumbering anything below.
+  { id: "inbox",      name: "Inbox",      color: "#e4e4e7", icon: "TbInbox",         order: -1, isDefault: 1 },
   { id: "work",       name: "Work",       color: "#3b82f6", icon: "TbBriefcase",     order: 0, isDefault: 1 },
   { id: "daily",      name: "Daily Life", color: "#22c55e", icon: "TbHome",          order: 1, isDefault: 1 },
   { id: "gym",        name: "Gym",        color: "#ff2740", icon: "TbBarbell",       order: 2, isDefault: 1 },

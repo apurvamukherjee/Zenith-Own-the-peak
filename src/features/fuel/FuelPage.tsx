@@ -1,6 +1,5 @@
-import {  } from "react-icons/tb";
 import { useState } from "react";
-import { Card, InputNumber, DatePicker, Button, Statistic, Row, Col, App, Alert } from "antd";
+import { Card, InputNumber, DatePicker, Button, Statistic, Row, Col, App, Alert, Popconfirm } from "antd";
 import { TbPlus, TbTrash } from "react-icons/tb";
 import dayjs from "dayjs";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -96,7 +95,10 @@ export function FuelPage() {
                 <div style={{ fontWeight: 700, color: r.mileage ? VIOLET : "var(--ink-soft)" }}>{r.mileage ? `${r.mileage} km/L` : "—"}</div>
                 {r.distanceKm !== null && <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{r.distanceKm} km</div>}
               </div>
-              <Button type="text" danger size="small" icon={<TbTrash />} onClick={() => r.id && deleteFuel(r.id)} aria-label="Delete" />
+              <Popconfirm title="Delete this fill-up?" okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
+                onConfirm={() => r.id && deleteFuel(r.id)}>
+                <Button type="text" danger size="small" icon={<TbTrash />} aria-label="Delete" />
+              </Popconfirm>
             </div>
           ))
         )}

@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { Modal, Button, InputNumber, App } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
-import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbGasStation, TbBolt, TbMicrophone } from "react-icons/tb";
+import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbGasStation, TbBolt, TbMicrophone, TbWallet, TbInbox } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { addWater } from "../features/water/useWater";
+import { useExpenseCategories, addExpense } from "../features/expenses/useExpenses";
+import { expenseIconFor } from "../features/expenses/expenseIcons";
+import { InboxCaptureModal } from "../features/tasks/InboxCaptureModal";
 import { hapticLight } from "../lib/haptics";
+import { todayKey } from "../lib/date.utils";
 import { VoiceLogModal } from "./VoiceLogModal";
+import { SmartInputNumber } from "./SmartInputNumber";
 
 const actions = [
   { key: "water", label: "Water", icon: TbDroplet, color: "var(--teal)" },
@@ -14,20 +19,29 @@ const actions = [
   { key: "workout", label: "Set", icon: TbBarbell, color: "var(--accent)" },
   { key: "sleep", label: "Sleep", icon: TbMoon, color: "var(--accent)" },
   { key: "fuel", label: "Fuel", icon: TbGasStation, color: "var(--gold)" },
+  { key: "expense", label: "Spend", icon: TbWallet, color: "var(--gold)" },
+  { key: "inbox", label: "Capture", icon: TbInbox, color: "var(--ink-soft)" },
 ];
 
 export function QuickLogFab() {
   const { message } = App.useApp();
   const navigate = useNavigate();
+  const categories = useExpenseCategories();
   const [open, setOpen] = useState(false);
   const [waterOpen, setWaterOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [expenseOpen, setExpenseOpen] = useState(false);
+  const [inboxOpen, setInboxOpen] = useState(false);
   const [ml, setMl] = useState(500);
+  const [expenseCategoryId, setExpenseCategoryId] = useState<string>();
+  const [expenseAmount, setExpenseAmount] = useState<number>();
 
   function handlePick(key: string) {
     setOpen(false);
     if (key === "water") { setWaterOpen(true); return; }
     if (key === "voice") { setVoiceOpen(true); return; }
+    if (key === "expense") { setExpenseCategoryId(categories[0]?.id); setExpenseAmount(undefined); setExpenseOpen(true); return; }
+    if (key === "inbox") { setInboxOpen(true); return; }
     const routes: Record<string, string> = { meal: "/nutrition", workout: "/workout", sleep: "/sleep", fuel: "/fuel" };
     navigate(routes[key] ?? "/");
   }
@@ -37,6 +51,14 @@ export function QuickLogFab() {
     hapticLight();
     message.success(`+${ml}ml logged`);
     setWaterOpen(false);
+  }
+
+  async function logExpense() {
+    if (!expenseCategoryId || !expenseAmount || expenseAmount <= 0) { message.warning("Pick a category and amount"); return; }
+    await addExpense({ date: todayKey(), categoryId: expenseCategoryId, amount: expenseAmount });
+    hapticLight();
+    message.success(`₹${expenseAmount} logged`);
+    setExpenseOpen(false);
   }
 
   return (
@@ -86,7 +108,7 @@ export function QuickLogFab() {
               >
                 <TbBolt style={{ color: "var(--accent)" }} /> Open Quick log
               </button>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
                 {actions.map((a, i) => (
                   <motion.button key={a.key}
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -119,6 +141,29 @@ export function QuickLogFab() {
       </Modal>
 
       <VoiceLogModal open={voiceOpen} onClose={() => setVoiceOpen(false)} />
+
+      {/* Inline quick-spend logger — deliberately minimal (category + amount
+          only, no note/date/presets) so it stays a true one-tap FAB action;
+          the full entry flow with presets/notes lives on /expenses. */}
+      <Modal open={expenseOpen} onCancel={() => setExpenseOpen(false)} title="Quick spend log" onOk={logExpense} okText="Log">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, marginBottom: 10 }}>
+          {categories.map((c) => {
+            const Icon = expenseIconFor(c.icon);
+            const active = expenseCategoryId === c.id;
+            return (
+              <Button key={c.id} size="small" type={active ? "primary" : "default"}
+                icon={<Icon />} onClick={() => setExpenseCategoryId(c.id)}
+                style={active ? { background: c.color, borderColor: c.color } : undefined}>
+                {c.name}
+              </Button>
+            );
+          })}
+        </div>
+        <SmartInputNumber value={expenseAmount} onChange={(v) => setExpenseAmount(v == null ? undefined : Number(v))} min={0}
+          prefix="₹" placeholder="Amount" style={{ width: "100%" }} />
+      </Modal>
+
+      <InboxCaptureModal open={inboxOpen} onClose={() => setInboxOpen(false)} />
     </>
   );
 }

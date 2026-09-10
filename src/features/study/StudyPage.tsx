@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Card, Button, Collapse, Progress, Input, Modal, Tag, App, Segmented,
+  Card, Button, Collapse, Progress, Input, Modal, Tag, App, Segmented, Popconfirm,
 } from "antd";
 import { TbBrandYoutube, TbClock, TbFileText, TbPlus, TbTrash } from "react-icons/tb";
 import { BarChart, Bar, XAxis, ResponsiveContainer } from "recharts";
@@ -88,8 +88,10 @@ function PathCard({ path }: { path: StudyPathDto }) {
             ) : sourceLabel(path)}
           </div>
         </div>
-        <Button type="text" danger size="small" icon={<TbTrash />}
-          onClick={() => path.id && deletePath(path.id)} aria-label="Delete path" />
+        <Popconfirm title="Delete this learning path?" description="All its topics and notes will be removed." okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
+          onConfirm={() => path.id && deletePath(path.id)}>
+          <Button type="text" danger size="small" icon={<TbTrash />} aria-label="Delete path" />
+        </Popconfirm>
       </div>
 
       <div style={{ margin: "12px 0 6px", display: "flex", alignItems: "center", gap: 10 }}>
@@ -114,7 +116,10 @@ function PathCard({ path }: { path: StudyPathDto }) {
                   onClick={() => cycleStatus(it)}>{STATUS_META[it.status].label}</Tag>
                 <span style={{ flex: 1, textDecoration: it.status === "done" ? "line-through" : "none", color: it.status === "done" ? "var(--ink-soft)" : "var(--ink)" }}>{it.title}</span>
                 <Button type="text" size="small" icon={<TbFileText style={{ color: it.notes ? GOLD : undefined }} />} onClick={() => setNoteItem(it)} aria-label="Notes" />
-                <Button type="text" size="small" icon={<TbTrash />} onClick={() => it.id && deleteItem(it.id)} aria-label="Delete topic" />
+                <Popconfirm title="Delete this topic?" okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
+                  onConfirm={() => it.id && deleteItem(it.id)}>
+                  <Button type="text" size="small" icon={<TbTrash />} aria-label="Delete topic" />
+                </Popconfirm>
               </div>
             ))}
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button, Segmented, App } from "antd";
+import { Button, Segmented, App, Popconfirm } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TbPlus, TbCheck, TbLayoutKanban, TbList, TbMapPin, TbClock,
@@ -159,10 +159,13 @@ export function TaskListView() {
                   }}>
                     <TbCheck size={14} style={{ color: "var(--teal)" }} />
                     <span style={{ fontSize: 12, textDecoration: "line-through", flex: 1 }}>{t.title}</span>
-                    <button onClick={() => t.id && deleteTask(t.id)}
-                      style={{ background: "transparent", border: "none", color: "var(--ink-soft)", cursor: "pointer", padding: 2 }}>
-                      <TbTrash size={12} />
-                    </button>
+                    <Popconfirm title="Delete this task?" okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
+                      onConfirm={() => t.id && deleteTask(t.id)}>
+                      <button
+                        style={{ background: "transparent", border: "none", color: "var(--ink-soft)", cursor: "pointer", padding: 2 }}>
+                        <TbTrash size={12} />
+                      </button>
+                    </Popconfirm>
                   </div>
                 ))}
               </details>

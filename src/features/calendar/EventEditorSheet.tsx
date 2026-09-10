@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Input, Select, Switch } from "antd";
+import { Button, Input, Select, Switch, Popconfirm } from "antd";
 import {
   TbBarbell, TbPill, TbCapsule, TbToolsKitchen2, TbBook2, TbHome,
   TbTrash, TbCheck, TbBell, TbRepeat, TbMapPin, TbX,
@@ -365,9 +365,13 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
         {isEdit && (
           <div style={{ display: "flex", gap: 8 }}>
             {isRecurringInstance && (
-              <Button danger icon={<TbX />} onClick={handleStopSeries} style={{ flex: 1 }}>Stop series</Button>
+              <Popconfirm title="Stop this recurring series?" description="Future instances will be removed." okText="Stop" cancelText="Cancel" okButtonProps={{ danger: true }} onConfirm={handleStopSeries}>
+                <Button danger icon={<TbX />} style={{ flex: 1 }}>Stop series</Button>
+              </Popconfirm>
             )}
-            <Button danger icon={<TbTrash />} onClick={handleDelete} style={{ flex: 1 }}>Delete</Button>
+            <Popconfirm title="Delete this event?" okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }} onConfirm={handleDelete}>
+              <Button danger icon={<TbTrash />} style={{ flex: 1 }}>Delete</Button>
+            </Popconfirm>
           </div>
         )}
       </div>
