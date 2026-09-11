@@ -44,6 +44,23 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Mobile-webapp scroll hygiene, app-wide. `<main>` in AppShell is the primary
+   scroller, but the app has 15+ nested scroll containers (horizontal chip
+   rows, sheet bodies, calendar grids, this focus mode's own drag gesture...).
+   Without this, reaching the edge of any of them lets the touch keep going —
+   "scroll chaining" — into whatever scrollable ancestor is next, which on iOS
+   Safari is what causes the classic "whole page rubber-bands / bounces past
+   its own content / a swipe that should stay local jumps somewhere else"
+   feeling. `overscroll-behavior: contain` only has any effect on elements
+   that actually scroll, so applying it via `*` is safe everywhere else — one
+   rule instead of hand-annotating every scroll container individually, and
+   new ones get it for free. `-webkit-overflow-scrolling: touch` is a no-op
+   on modern engines (momentum is default) but keeps old iOS smooth too. */
+* {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 body {
   background: var(--bg);
   color: var(--ink);

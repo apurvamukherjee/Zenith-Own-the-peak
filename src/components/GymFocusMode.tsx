@@ -78,6 +78,11 @@ function pickRandom(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Stable reference — a fresh object literal every render would make Framer
+// re-evaluate drag constraints on every re-render of a component that already
+// re-renders on every stepper tap (w/r state lives one level up).
+const ZERO_DRAG_CONSTRAINTS = { top: 0, bottom: 0 };
+
 interface NextSet {
   ex: DayExerciseDto;
   setIndex: number;
@@ -486,14 +491,22 @@ function SetView({
         </motion.div>
       )}
 
+      {/* Drag lives on this outer circle ONLY — no `animate` prop here. Mixing
+          an imperative `animate` target with `drag` on the same element is a
+          known Framer Motion conflict: `animate` re-asserts on every re-render
+          (and this re-renders on every stepper tap, since w/r state lives in
+          the parent), which can desync drag's internal transform and leave
+          the gesture unresponsive on the NEXT swipe — the exact "works once,
+          then gets stuck" bug. The PR pulse now lives on a nested, non-draggable
+          child instead, so it can animate freely without touching drag state. */}
       <motion.div
         drag={!editing ? "y" : false}
-        dragConstraints={{ top: 0, bottom: 0 }}
+        dragConstraints={ZERO_DRAG_CONSTRAINTS}
         dragElastic={0.4}
+        dragMomentum={false}
         onDragEnd={onDragEnd}
         onTap={() => !editing && setEditing(true)}
         whileTap={editing ? undefined : { scale: 0.97 }}
-        animate={justLogged && !reducedMotion ? { scale: [1, 1.08, 1] } : {}}
         style={{
           width: 220, height: 220, borderRadius: "50%",
           border: "3px solid #ff2740", boxShadow: "0 0 40px rgba(255,39,64,0.35)",
@@ -501,19 +514,25 @@ function SetView({
           marginBottom: 20, cursor: "pointer", touchAction: "none",
         }}
       >
-        {editing ? (
-          <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
-            <Stepper label="kg" value={w} step={2.5} min={0} onChange={setW} />
-            <Stepper label="reps" value={r} step={1} min={1} onChange={setR} />
-          </div>
-        ) : (
-          <>
-            <div className="display" style={{ fontSize: 40, fontWeight: 800, lineHeight: 1 }}>
-              {w}<span style={{ fontSize: 18 }}>kg</span>
+        <motion.div
+          animate={justLogged && !reducedMotion ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+          transition={{ duration: 0.35 }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+        >
+          {editing ? (
+            <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
+              <Stepper label="kg" value={w} step={2.5} min={0} onChange={setW} />
+              <Stepper label="reps" value={r} step={1} min={1} onChange={setR} />
             </div>
-            <div className="display" style={{ fontSize: 28, fontWeight: 700, color: "#948b98" }}>× {r}</div>
-          </>
-        )}
+          ) : (
+            <>
+              <div className="display" style={{ fontSize: 40, fontWeight: 800, lineHeight: 1 }}>
+                {w}<span style={{ fontSize: 18 }}>kg</span>
+              </div>
+              <div className="display" style={{ fontSize: 28, fontWeight: 700, color: "#948b98" }}>× {r}</div>
+            </>
+          )}
+        </motion.div>
       </motion.div>
 
       {!editing && (
