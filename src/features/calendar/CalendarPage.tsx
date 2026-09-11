@@ -235,7 +235,7 @@ export function CalendarPage() {
   }
 
   async function handleGymTap(date: string, dayId: number, done: boolean) {
-    if (done) { message.success("Session already logged for this day ✓"); return; }
+    if (done) { message.success("Session already logged for this day"); return; }
     const today = todayKey();
     if (date > today) { message.info("Planned — nothing to log yet."); return; }
     if (date === today) { nav("/workout"); return; }

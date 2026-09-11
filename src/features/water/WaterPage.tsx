@@ -12,7 +12,8 @@ import { useSetting } from "../../hooks/useSettings";
 import { useTokens } from "../../hooks/useTokens";
 import { useOptimisticNumber } from "../../hooks/useOptimistic";
 import { usePullToRefresh } from "../../hooks/usePullToRefresh";
-import { hapticLight } from "../../lib/haptics";
+import { hapticLight, hapticSuccess } from "../../lib/haptics";
+import { playBellDing } from "../../lib/audio";
 
 const QUICK = [250, 500, 1000];
 
@@ -46,7 +47,12 @@ export function WaterPage() {
   useEffect(() => {
     if (optimistic >= goal && !showedGoalToast) {
       setShowedGoalToast(true);
-      message.success("Daily goal reached! 🎉");
+      // A once-a-day payoff moment — worth the same "impact" sound cue as
+      // rest-timer completion in Focus Mode, unlike the quick-add taps above
+      // which stay haptic-only since they can fire many times an hour.
+      void hapticSuccess();
+      playBellDing();
+      message.success("Daily goal reached!");
     }
   }, [optimistic, goal, showedGoalToast, message]);
 

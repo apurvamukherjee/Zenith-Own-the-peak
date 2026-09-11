@@ -9,6 +9,8 @@ import { useSetting } from "../../hooks/useSettings";
 import { fmtDuration, sleepDurationMin, todayKey } from "../../lib/date.utils";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
+import { hapticSuccess } from "../../lib/haptics";
+import { playBellDing } from "../../lib/audio";
 
 export function SleepPage() {
   const t = useTokens();
@@ -40,6 +42,8 @@ export function SleepPage() {
       wakeAt,
       quality, notes,
     });
+    void hapticSuccess();
+    playBellDing();
     message.success(`Logged ${fmtDuration(preview)}`);
     setNotes("");
   }

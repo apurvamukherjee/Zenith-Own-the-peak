@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { TbClock } from "react-icons/tb";
+import { TbClock, TbCheck } from "react-icons/tb";
 import { updateTask } from "./useTasks";
 import type { TaskDto, TaskListDto } from "../../db/types";
 import { hapticLight } from "../../lib/haptics";
@@ -102,8 +102,8 @@ function KanbanCard({ task, list, columns, currentCol, onMove }: {
         )}
         {nextCol && (
           <button onClick={() => task.id && onMove(task.id, nextCol)}
-            style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, border: `1px solid ${list.color}40`, background: `${list.color}15`, color: list.color, cursor: "pointer", fontWeight: 700 }}>
-            {nextCol === "done" ? "✓ Done" : "Start →"}
+            style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 9, padding: "1px 6px", borderRadius: 4, border: `1px solid ${list.color}40`, background: `${list.color}15`, color: list.color, cursor: "pointer", fontWeight: 700 }}>
+            {nextCol === "done" ? <><TbCheck size={10} /> Done</> : "Start →"}
           </button>
         )}
       </div>

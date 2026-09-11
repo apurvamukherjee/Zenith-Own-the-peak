@@ -130,15 +130,15 @@ async function handleKonami(message: ReturnType<typeof App.useApp>["message"]): 
   if (hour >= 4 && hour < 6) {
     const until = Date.now() + 24 * 60 * 60 * 1000;
     await setSetting("hardcoreUntil", until);
-    message.success({ content: "🔥 Hardcore Mode engaged — 24 hours.", duration: 4 });
+    message.success({ content: "Hardcore Mode engaged — 24 hours.", duration: 4 });
     return;
   }
   if (dow === 0) {
     // Sabbath until end of Sunday.
     const eod = new Date(now); eod.setHours(23, 59, 59, 999);
     await setSetting("sabbathUntil", eod.getTime());
-    message.success({ content: "🕊 Sabbath Mode engaged — rest well.", duration: 4 });
+    message.success({ content: "Sabbath Mode engaged — rest well.", duration: 4 });
     return;
   }
-  message.success({ content: "🎮 Contra unlocked.", duration: 3 });
+  message.success({ content: "Contra unlocked.", duration: 3 });
 }

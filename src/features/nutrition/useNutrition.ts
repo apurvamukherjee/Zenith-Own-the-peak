@@ -1,5 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import dayjs from "dayjs";
+import { TbPill, TbGlassFull, TbToolsKitchen2 } from "react-icons/tb";
+import type { IconType } from "react-icons";
 import { db } from "../../db/db";
 import type { MealDto, ScheduleDto, ScheduleKind, RecurringRuleDto } from "../../db/types";
 import { todayKey } from "../../lib/date.utils";
@@ -103,8 +105,8 @@ export function slotStatus(time: string, done: boolean, graceMin = 30): SlotStat
   return "overdue";
 }
 
-export const KIND_META: Record<ScheduleKind, { label: string; icon: string; color: string }> = {
-  med: { label: "Medicine", icon: "💊", color: "#ff5c7a" },
-  supplement: { label: "Supplement", icon: "🥤", color: "#f6b93b" },
-  meal: { label: "Meal", icon: "🍽️", color: "#12b3a1" },
+export const KIND_META: Record<ScheduleKind, { label: string; icon: IconType; color: string }> = {
+  med: { label: "Medicine", icon: TbPill, color: "#ff5c7a" },
+  supplement: { label: "Supplement", icon: TbGlassFull, color: "#f6b93b" },
+  meal: { label: "Meal", icon: TbToolsKitchen2, color: "#12b3a1" },
 };

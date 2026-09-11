@@ -387,6 +387,7 @@ function CustomHandEntry({ onClose, defaultMealType }: { onClose: () => void; de
       fatG: fat, carbsG: carbs,
     });
     setName(""); setProtein(undefined); setCalories(undefined); setFat(undefined); setCarbs(undefined);
+    hapticLight();
     message.success("Meal logged");
     onClose();
   }

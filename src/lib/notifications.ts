@@ -37,7 +37,7 @@ export function planReminders(c: ReminderConfig, includeSupps = true, state?: Li
       out.push({ id: id++, title: "Hydrate", body: waterBody(state), at: hm(h % 24) });
     }
   }
-  if (c.session) out.push({ id: id++, title: "⚡ Train", body: "Session time. Go earn today's numbers.", at: c.sessionAt });
+  if (c.session) out.push({ id: id++, title: "Train", body: "Session time. Go earn today's numbers.", at: c.sessionAt });
   if (includeSupps && c.supps) for (const s of c.suppSchedules) out.push({ id: id++, title: s.label, body: "Scheduled dose.", at: s.time });
   if (c.bedtime) out.push({ id: id++, title: "Wind down", body: "Bedtime — sleep is where you grow.", at: c.bedtimeAt });
   return out;

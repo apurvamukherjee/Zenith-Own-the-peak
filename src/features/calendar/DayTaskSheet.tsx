@@ -219,7 +219,9 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
             }}>
               <TbBarbell size={15} style={{ color: gym.done ? t.teal : t.accent }} />
               <span style={{ flex: 1, fontSize: 12, fontWeight: 700 }}>{gym.dayName}</span>
-              <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{gym.done ? "Done ✓" : "Planned"}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-soft)" }}>
+                {gym.done ? <><TbCheck size={11} /> Done</> : "Planned"}
+              </span>
             </button>
           </div>
         )}

@@ -180,7 +180,7 @@ export function NutritionPage() {
             return (
               <Card key={s.id} size="small" style={{ marginBottom: 8, opacity: done ? 0.7 : 1 }} styles={{ body: { padding: "12px 14px" } }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ fontSize: 22 }}>{meta.icon}</div>
+                  <div style={{ fontSize: 22, color: meta.color, display: "flex" }}><meta.icon size={22} /></div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, textDecoration: done ? "line-through" : "none" }}>{s.label}</div>
                     <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
@@ -394,10 +394,10 @@ function TemplatesRow({ onCreateCombo }: { onCreateCombo: () => void }) {
           {templates.map((tpl) => (
             <div key={tpl.id} style={{ position: "relative" }}>
               <button onClick={async () => { await logFromTemplate(tpl); hapticLight(); message.success(`Logged ${tpl.name}`); }}
-                style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10,
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10,
                   padding: "6px 24px 6px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
                   cursor: "pointer", color: "var(--ink)" }}>
-                {tpl.isCombo ? "🍱 " : ""}{tpl.name} · {Math.round(tpl.protein)}p / {Math.round(tpl.calories)}kcal
+                {tpl.isCombo && <TbStack2 size={12} />}{tpl.name} · {Math.round(tpl.protein)}p / {Math.round(tpl.calories)}kcal
               </button>
               <Popconfirm title="Delete this template?" okText="Delete" okButtonProps={{ danger: true }}
                 onConfirm={() => tpl.id && deleteMealTemplate(tpl.id)}>

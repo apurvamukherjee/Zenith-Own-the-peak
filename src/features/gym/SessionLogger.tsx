@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Progress, Tag, Popconfirm, Switch } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX, TbFocus2 } from "react-icons/tb";
+import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX, TbFocus2, TbTrendingDown } from "react-icons/tb";
 import { RestTimer } from "../../components/RestTimer";
 import { GymFocusMode } from "../../components/GymFocusMode";
 import { PageTransition } from "../../components/PageTransition";
@@ -101,10 +101,17 @@ function SetRow({
 
   if (logged) {
     const drops = logged.dropStages ?? [];
+    // Every set is a challenge against your own history, not just a log
+    // entry — if this set's e1RM came in under what you did at this exact
+    // set index last session (the same `ghost` value already used for
+    // autofill), call it out instead of showing the same neutral pill a
+    // stronger set would get. PRs take priority display-wise; a set can't
+    // be both a PR and "weaker than last time".
+    const isWeaker = !logged.isPR && !!ghost && logged.e1rm < ghost.e1rm;
     return (
       <motion.div initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }}
         style={{ padding: "6px 10px",
-          background: logged.isPR ? "rgba(255,176,32,0.12)" : "rgba(18,179,161,0.10)",
+          background: logged.isPR ? "rgba(255,176,32,0.12)" : isWeaker ? "rgba(255,39,64,0.12)" : "rgba(18,179,161,0.10)",
           borderRadius: 10, marginBottom: 4 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
@@ -112,6 +119,13 @@ function SetRow({
           {drops.length > 0 && (
             <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.5, color: "var(--accent)",
               background: "rgba(255,39,64,0.12)", borderRadius: 999, padding: "1px 6px" }}>DROP</span>
+          )}
+          {isWeaker && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 9, fontWeight: 800,
+              letterSpacing: 0.5, color: "var(--accent)", background: "rgba(255,39,64,0.14)",
+              borderRadius: 999, padding: "1px 6px" }}>
+              <TbTrendingDown size={11} /> WEAKER THAN LAST TIME
+            </span>
           )}
           {logged.isPR && <TbTrophy style={{ color: t.gold }} />}
         </div>
@@ -512,7 +526,7 @@ export function SessionLogger() {
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
 
   const COACH_STEPS = [
-    { title: "Log a set", body: "Dial in your weight and reps, then tap ✓ to complete the set. Rest timer starts automatically." },
+    { title: "Log a set", body: "Dial in your weight and reps, then tap the check button to complete the set. Rest timer starts automatically." },
     { title: "Supersets", body: "In the Planner, tap the chain icon to link two exercises. They'll alternate here with one shared rest." },
     { title: "Your best is shown", body: "Greyed values are your ghost from last week. Beat them." },
   ];

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button, Input } from "antd";
-import { TbInbox, TbCheck } from "react-icons/tb";
+import {
+  TbInbox, TbCheck, TbCalendar, TbClock, TbAlertTriangle, TbArrowDown, TbMapPin, TbRepeat,
+} from "react-icons/tb";
+import type { IconType } from "react-icons";
 import { Sheet } from "../../components/Sheet";
 import { useBackClose } from "../../hooks/useBackClose";
 import { addTask } from "./useTasks";
@@ -54,16 +57,21 @@ export function InboxCaptureModal({ open, onClose }: { open: boolean; onClose: (
         style={{ marginBottom: 8 }}
       />
       {parsed && (() => {
-        const parts: string[] = [];
-        if (parsed.date) parts.push(`📅 ${parsed.date}`);
-        if (parsed.time) parts.push(`🕐 ${parsed.time}${parsed.endTime ? `–${parsed.endTime}` : ""}`);
-        if (parsed.priority === 1) parts.push("🔴 urgent");
-        if (parsed.priority === 3) parts.push("🟢 low");
-        if (parsed.location) parts.push(`📍 ${parsed.location}`);
-        if (parsed.recurring) parts.push(`🔁 ${parsed.recurring.frequency}`);
+        const parts: { Icon: IconType; text: string; color?: string }[] = [];
+        if (parsed.date) parts.push({ Icon: TbCalendar, text: parsed.date });
+        if (parsed.time) parts.push({ Icon: TbClock, text: `${parsed.time}${parsed.endTime ? `–${parsed.endTime}` : ""}` });
+        if (parsed.priority === 1) parts.push({ Icon: TbAlertTriangle, text: "urgent", color: "var(--accent)" });
+        if (parsed.priority === 3) parts.push({ Icon: TbArrowDown, text: "low", color: "var(--teal)" });
+        if (parsed.location) parts.push({ Icon: TbMapPin, text: parsed.location });
+        if (parsed.recurring) parts.push({ Icon: TbRepeat, text: parsed.recurring.frequency });
         return parts.length > 0 ? (
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 10 }}>
-            Parsed: <strong>{parsed.title || "..."}</strong> · {parts.join(" · ")}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 11, color: "var(--ink-soft)", marginBottom: 10 }}>
+            <span>Parsed: <strong>{parsed.title || "..."}</strong></span>
+            {parts.map((p, i) => (
+              <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 3, color: p.color ?? "var(--ink-soft)" }}>
+                <p.Icon size={11} /> {p.text}
+              </span>
+            ))}
           </div>
         ) : <div style={{ marginBottom: 10 }} />;
       })()}

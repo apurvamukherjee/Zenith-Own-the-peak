@@ -315,7 +315,7 @@ export function WorkoutPlanner() {
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
   const PLANNER_COACH = [
     { title: "Plan your week", body: "Assign a workout day to each weekday below. You can have multiple days with different muscle groups." },
-    { title: "Link supersets", body: "In any day card, tap the ⛓ chain icon between two exercises to link them as a superset A1→A2." },
+    { title: "Link supersets", body: "In any day card, tap the chain icon between two exercises to link them as a superset A1→A2." },
   ];
 
   function handleCreate() {

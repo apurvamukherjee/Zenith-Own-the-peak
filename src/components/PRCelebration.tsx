@@ -10,6 +10,23 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
 // never eats a tap.
 const DURATION_MS = 1400;
 
+// Overrides the caller-supplied title for "pr" celebrations — one place for
+// the quote bank instead of duplicating it at every `celebrate()` call site
+// (SessionLogger's SetRow, GymFocusMode's logCurrent). Random pick per hit.
+const PR_QUOTES = [
+  "You just broke something. Good.",
+  "New number. Old you doesn't live here anymore.",
+  "That's what happens when you stop negotiating with yourself.",
+  "PR. Now go find the next one.",
+  "The bar didn't know what hit it.",
+  "Numbers don't lie. You just got stronger.",
+  "That weight used to be impossible. Not anymore.",
+  "Somewhere, your excuses just got quieter.",
+];
+function headlineFor(p: CelebrationPayload): string {
+  return p.kind === "pr" ? PR_QUOTES[Math.floor(Math.random() * PR_QUOTES.length)] : p.title;
+}
+
 interface Flake { id: number; x: number; hue: number; delay: number; drift: number; rot: number; }
 
 function makeFlakes(count = 24): Flake[] {
@@ -29,7 +46,11 @@ function makeFlakes(count = 24): Flake[] {
 
 export function PRCelebration() {
   const [payload, setPayload] = useState<CelebrationPayload | null>(null);
-  const flakes = useMemo(() => makeFlakes(), [payload?.title]); // fresh set per celebration
+  // Keyed on the payload object itself, not a derived string — every
+  // celebrate() call constructs a fresh object, so this is guaranteed to
+  // change per celebration even when two PRs in a row share the same title.
+  const flakes = useMemo(() => makeFlakes(), [payload]);
+  const headline = useMemo(() => (payload ? headlineFor(payload) : ""), [payload]);
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -44,8 +65,8 @@ export function PRCelebration() {
   if (reducedMotion) {
     return payload ? (
       <div style={{ position: "fixed", bottom: 80, left: 0, right: 0, zIndex: 10000, textAlign: "center", pointerEvents: "none" }}>
-        <span className="display" style={{ background: "var(--surface)", padding: "8px 16px", borderRadius: 12, fontSize: 14, fontWeight: 700, color: "var(--gold)", border: "1px solid var(--border)" }}>
-          🏆 {payload.title}
+        <span className="display" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--surface)", padding: "8px 16px", borderRadius: 12, fontSize: 14, fontWeight: 700, color: "var(--gold)", border: "1px solid var(--border)" }}>
+          <TbTrophy size={16} /> {headline}
         </span>
       </div>
     ) : null;
@@ -87,14 +108,25 @@ export function PRCelebration() {
               textAlign: "center", minWidth: 220, maxWidth: "80vw",
             }}
           >
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-              <TbTrophy size={22} style={{ color: "#f6b93b" }} />
-              <span className="display" style={{
-                fontSize: 22, fontWeight: 800, letterSpacing: 0.5, color: "#f6b93b",
-              }}>
-                {payload.title}
-              </span>
-            </div>
+            {/* Impact shake — isolated in its own nested motion.div with an
+                independent, short-lived `animate` so it can't fight the
+                parent's longer entrance animation (same lesson as the drag/
+                animate conflict fixed in GymFocusMode: never mix a one-shot
+                imperative animate with a gesture/entrance transform on the
+                SAME element). Runs once, ~0.4s, right on mount. */}
+            <motion.div
+              animate={{ x: [0, -8, 8, -5, 5, -2, 2, 0] }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <TbTrophy size={22} style={{ color: "#f6b93b" }} />
+                <span className="display" style={{
+                  fontSize: 22, fontWeight: 800, letterSpacing: 0.5, color: "#f6b93b",
+                }}>
+                  {headline}
+                </span>
+              </div>
+            </motion.div>
             {payload.subtitle && (
               <div style={{ fontSize: 12, color: "rgba(243,238,242,0.85)", fontWeight: 600 }}>
                 {payload.subtitle}

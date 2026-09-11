@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Progress, Button, App } from "antd";
-import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbShare2, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee, TbTrophy } from "react-icons/tb";
+import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbShare2, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee, TbTrophy, TbSnowflake, TbStarFilled, TbX, TbCheck } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import { motion } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
@@ -10,6 +10,7 @@ import { HomeQuoteCard } from "../../components/HomeQuoteCard";
 import { ColdIcon } from "../../components/ColdIcon";
 import { db } from "../../db/db";
 import { useTokens } from "../../hooks/useTokens";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useTodayWater, useWorkoutToday, addWater } from "../water/useWater";
 import { useTodaySession, useTodayDayId, useDayExercises, useSessionSets } from "../gym/useGym";
@@ -86,6 +87,7 @@ function greeting(overrides?: { devilsHour?: boolean; zenithHour?: boolean; pali
 export function DashboardPage() {
   const { message } = App.useApp();
   const t = useTokens();
+  const reducedMotion = useReducedMotion();
   const name = useSetting("name");
   const waterGoal = useSetting("waterGoalMl");
   const proteinTarget = useSetting("proteinTargetG");
@@ -154,6 +156,32 @@ export function DashboardPage() {
   // instead of "genuine warning".
   const hasAnyWriteToday = score.waterPct > 0 || score.sessionDone || score.sleepLogged || score.proteinPct > 0;
   const streakInDanger = hour >= 21 && !hasAnyWriteToday && streak > 0;
+
+  // Discipline-ring "rage meter" — the ring recolors and starts pulsing the
+  // later in the day it is with the score still low, so it reads as an
+  // alarm instead of a passive stat. `scoreCritical` adds a shake on top,
+  // reusing the same "score >= 100 → calm, else → accent" convention the
+  // session progress bar already uses elsewhere (SessionLogger).
+  const scoreUrgent = hour >= 18 && score.score < 40;
+  const scoreCritical = hour >= 21 && score.score < 15;
+
+  // End-of-day brutal recap — water/protein/session (not sleep, which often
+  // isn't loggable until the day is basically over) all still untouched
+  // this late. Independent of `streakInDanger`: fires even with no streak to
+  // protect, since "you did nothing today" deserves a callout either way.
+  const didNothingToday = hour >= 21 && score.waterPct === 0 && !score.sessionDone && score.proteinPct === 0;
+  const NOTHING_TODAY_QUOTES = [
+    "Zero water. Zero protein. Zero sets. What exactly did you do today?",
+    "It's night. The scoreboard says nothing happened. That's on you.",
+    "Tomorrow you'll say you'll do better. You said that yesterday too.",
+    "Nothing logged, nothing done. That's not a rest day, that's a skip.",
+  ];
+  // Stable per-day, not re-rolled on every re-render — keyed on the date so
+  // it stays put through this file's frequent live-query re-renders but
+  // still changes tomorrow.
+  const nothingTodayQuote = NOTHING_TODAY_QUOTES[
+    todayKey().split("-").reduce((s, n) => s + Number(n), 0) % NOTHING_TODAY_QUOTES.length
+  ];
 
   async function protectStreak() {
     await addWater(500);
@@ -313,7 +341,11 @@ export function DashboardPage() {
               )}
             </div>
             <div style={{ fontSize: 9, color: "var(--ink-soft)" }}>
-              streak{freezeAvailable && <span style={{ marginLeft: 4, fontSize: 8, opacity: 0.7 }}>❄️1</span>}
+              streak{freezeAvailable && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 1, marginLeft: 4, fontSize: 8, opacity: 0.7 }}>
+                  <TbSnowflake size={9} />1
+                </span>
+              )}
             </div>
           </div>
           <Link to="/glance"><Button type="text" size="small" icon={<TbShare2 size={18} />} aria-label="Share card" /></Link>
@@ -322,13 +354,15 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Streak-in-danger banner */}
+      {/* Streak-in-danger banner — escalates to the brutal end-of-day recap
+          line when water/protein/session are ALL still untouched, instead of
+          the milder default copy. Same slot, same buttons either way. */}
       {streakInDanger && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           style={{ background: "linear-gradient(135deg, #ff2740, #6e0f1c)", borderRadius: 12,
             padding: "10px 12px", color: "#fff" }}>
           <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-            <TbFlame /> Streak at risk — protect it now
+            <TbFlame /> {didNothingToday ? nothingTodayQuote : "Streak at risk — protect it now"}
           </div>
           <div style={{ display: "flex", gap: 6 }}>
             <Button size="small" onClick={protectStreak} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", flex: 1 }}>
@@ -340,6 +374,24 @@ export function DashboardPage() {
               </Button>
             )}
           </div>
+        </motion.div>
+      )}
+
+      {/* End-of-day brutal recap — fires even with no streak to protect
+          (streakInDanger above requires streak > 0), since doing literally
+          nothing all day deserves a callout either way. */}
+      {!streakInDanger && didNothingToday && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          style={{ background: "linear-gradient(135deg, #ff2740, #6e0f1c)", borderRadius: 12,
+            padding: "10px 12px", color: "#fff" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+            <TbFlame /> {nothingTodayQuote}
+          </div>
+          <Link to="/quick">
+            <Button size="small" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff" }}>
+              Log something now
+            </Button>
+          </Link>
         </motion.div>
       )}
 
@@ -357,7 +409,7 @@ export function DashboardPage() {
             <Link to="/settings">
               <Button size="small" type="primary">Review</Button>
             </Link>
-            <Button size="small" type="text" onClick={() => setSetting("reviewNudgeDone", 1)}>✕</Button>
+            <Button size="small" type="text" icon={<TbX size={14} />} aria-label="Dismiss" onClick={() => setSetting("reviewNudgeDone", 1)} />
           </div>
         </motion.div>
       )}
@@ -388,13 +440,27 @@ export function DashboardPage() {
               />
             </svg>
           )}
-          <Progress type="dashboard" percent={score.score} size={120} strokeColor={t.accent} strokeWidth={8}
-            format={() => (
-              <div>
-                <div className="display" style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}><AnimatedNumber value={score.score} />%</div>
-                <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
-              </div>
-            )} />
+          <motion.div
+            animate={
+              reducedMotion ? {}
+              : scoreCritical ? { x: [0, -3, 3, -2, 2, 0] }
+              : scoreUrgent ? { scale: [1, 1.035, 1] }
+              : {}
+            }
+            transition={
+              scoreCritical ? { duration: 0.6, repeat: Infinity, repeatDelay: 1.2, ease: "easeInOut" }
+              : { duration: 1.8, repeat: Infinity, ease: "easeInOut" }
+            }
+          >
+            <Progress type="dashboard" percent={score.score} size={120}
+              strokeColor={score.score >= 100 ? t.teal : scoreUrgent ? "#ff2740" : t.accent} strokeWidth={8}
+              format={() => (
+                <div>
+                  <div className="display" style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}><AnimatedNumber value={score.score} />%</div>
+                  <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
+                </div>
+              )} />
+          </motion.div>
           {bellFlash > 0 && (
             <motion.div
               key={bellFlash} aria-hidden
@@ -451,8 +517,8 @@ export function DashboardPage() {
               <div className="display" style={{ color: "#fff", fontSize: 20, fontWeight: 800 }}>
                 {todayDay?.name ?? "Recovery"}
                 {rockyToday && (
-                  <span title="Rocky Mode — 40+ sets today" style={{ marginLeft: 6, fontSize: 16, verticalAlign: "-1px" }} aria-label="Rocky Mode">
-                    ⭐
+                  <span title="Rocky Mode — 40+ sets today" style={{ display: "inline-flex", marginLeft: 6, verticalAlign: "-3px" }} aria-label="Rocky Mode">
+                    <TbStarFilled size={16} color="#f6b93b" />
                   </span>
                 )}
               </div>
@@ -603,7 +669,7 @@ function Pill({ done, label, icon }: { done: boolean; label: string; icon: React
       background: done ? "rgba(18,179,161,0.10)" : "transparent",
       opacity: done ? 1 : 0.75,
     }}>
-      {icon} {label} {done && "✓"}
+      {icon} {label} {done && <TbCheck size={11} />}
     </div>
   );
 }

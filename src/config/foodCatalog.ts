@@ -6,7 +6,7 @@ import { db } from "../db/db";
 type Seed = Omit<FoodDto, "id" | "createdAt" | "favorite" | "isCustom">;
 
 export const FOOD_CATALOG: Seed[] = [
-  // 🥩 Primary proteins
+  // Primary proteins
   { name: "Chicken Breast (cooked)", category: "protein", unit: "g",
     protein: 31, fat: 3.6, carbs: 0, kcal: 165,
     presets: [{ label: "100g", amount: 100 }, { label: "150g", amount: 150 }, { label: "200g", amount: 200 }] },
@@ -38,7 +38,7 @@ export const FOOD_CATALOG: Seed[] = [
     protein: 22, fat: 13, carbs: 0, kcal: 208,
     presets: [{ label: "100g", amount: 100 }, { label: "150g", amount: 150 }] },
 
-  // 🍚 Primary carbs
+  // Primary carbs
   { name: "White Rice (cooked)", category: "carb", unit: "g",
     protein: 2.7, fat: 0.3, carbs: 28, kcal: 130,
     presets: [{ label: "1 katori (100g)", amount: 100 }, { label: "150g", amount: 150 }, { label: "200g", amount: 200 }] },
@@ -67,7 +67,7 @@ export const FOOD_CATALOG: Seed[] = [
     protein: 0.3, fat: 0.2, carbs: 14, kcal: 52,
     presets: [{ label: "1", amount: 1 }, { label: "2", amount: 2 }] },
 
-  // 🥑 Primary fats
+  // Primary fats
   { name: "Oil — olive/mustard/coconut", category: "fat", unit: "tbsp",
     protein: 0, fat: 14, carbs: 0, kcal: 120,
     presets: [{ label: "1 tbsp", amount: 1 }, { label: "2 tbsp", amount: 2 }] },
@@ -93,7 +93,7 @@ export const FOOD_CATALOG: Seed[] = [
     protein: 16.5, fat: 30.7, carbs: 42.1, kcal: 486,
     presets: [{ label: "10g (1 tbsp)", amount: 10 }, { label: "20g", amount: 20 }] },
 
-  // 🫘 Hybrid — carbs + protein
+  // Hybrid — carbs + protein
   { name: "Dal / Lentils (cooked)", category: "hybrid", unit: "g",
     protein: 9, fat: 0.4, carbs: 20, kcal: 116,
     presets: [{ label: "1 katori (150g)", amount: 150 }, { label: "200g", amount: 200 }] },

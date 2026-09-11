@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { App } from "antd";
+import { TbSparkles } from "react-icons/tb";
 import { db } from "../../db/db";
 import { onMutation } from "../../lib/mutations";
 import { hapticSuccess } from "../../lib/haptics";
@@ -72,14 +73,21 @@ export function useRewardVaultEngine() {
 
       void hapticSuccess();
       if (newIds.length === 1) {
-        message.success({ content: `✨ Unlocked — ${labelFor(newIds[0])}`, duration: 4 });
+        message.success({
+          content: (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <TbSparkles /> Unlocked — {labelFor(newIds[0])}
+            </span>
+          ),
+          duration: 4,
+        });
         return;
       }
       // 2+ unlocks in one scan — merge into a single tap-to-Vault toast.
       message.success({
         content: (
           <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-            <span>✨ {newIds.length} vault items unlocked</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><TbSparkles /> {newIds.length} vault items unlocked</span>
             <a href="/vault" onClick={(e) => { e.preventDefault(); window.location.hash = ""; window.location.pathname = "/vault"; }}
                style={{ color: "var(--accent)", fontWeight: 700, textDecoration: "underline" }}>
               See them →

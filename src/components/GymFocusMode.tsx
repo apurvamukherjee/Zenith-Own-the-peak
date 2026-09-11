@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { motion, AnimatePresence, type PanInfo } from "framer-motion";
-import { TbX, TbMinus, TbPlus, TbTrophy, TbArrowsRightLeft, TbChevronUp, TbArrowBackUp, TbLock, TbSkull } from "react-icons/tb";
+import { motion, AnimatePresence } from "framer-motion";
+import { TbX, TbMinus, TbPlus, TbTrophy, TbArrowsRightLeft, TbArrowBackUp, TbLock, TbSkull, TbBoltFilled, TbFlameFilled, TbCheck } from "react-icons/tb";
 import { useBackClose } from "../hooks/useBackClose";
 import { useRestTimer } from "../hooks/useRestTimer";
 import { useReducedMotion } from "../hooks/useReducedMotion";
@@ -78,10 +78,21 @@ function pickRandom(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Stable reference — a fresh object literal every render would make Framer
-// re-evaluate drag constraints on every re-render of a component that already
-// re-renders on every stepper tap (w/r state lives one level up).
-const ZERO_DRAG_CONSTRAINTS = { top: 0, bottom: 0 };
+// Shared glassmorphism treatment for every primary CTA in focus mode (LOG
+// SET, LOCK IN, Keep going, Finish) — translucent red instead of a flat
+// fill, blurred backdrop, a hairline highlight border, so the accent glows
+// through whatever's behind it instead of sitting as an opaque block.
+const glassCtaStyle: CSSProperties = {
+  width: "100%", padding: "16px 0", borderRadius: 16,
+  border: "1px solid rgba(255,255,255,0.22)",
+  background: "rgba(255,39,64,0.28)",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
+  color: "#fff", fontWeight: 800, fontSize: 16, letterSpacing: 0.5,
+  cursor: "pointer",
+  boxShadow: "0 8px 28px rgba(255,39,64,0.3), inset 0 1px 0 rgba(255,255,255,0.16)",
+  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+};
 
 interface NextSet {
   ex: DayExerciseDto;
@@ -387,12 +398,7 @@ function LockInGate({ quote, dayName, onLockIn, onSkip, reducedMotion }: {
       <div className="display" style={{ fontSize: 24, fontWeight: 800, lineHeight: 1.35, marginBottom: 32 }}>
         {quote}
       </div>
-      <button onClick={onLockIn} style={{
-        width: "100%", padding: "16px 0", borderRadius: 16, border: "none",
-        background: "#ff2740", color: "#fff", fontWeight: 800, fontSize: 16, letterSpacing: 1,
-        cursor: "pointer", boxShadow: "0 4px 20px rgba(255,39,64,0.4)",
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-      }}>
+      <button onClick={onLockIn} style={glassCtaStyle}>
         <TbLock size={18} /> LOCK IN
       </button>
     </motion.div>
@@ -422,12 +428,8 @@ function QuitShameGate({ quote, remaining, onKeepGoing, onQuitAnyway, reducedMot
           {remaining} set{remaining === 1 ? "" : "s"} left. Still leaving?
         </div>
       )}
-      <button onClick={onKeepGoing} style={{
-        width: "100%", padding: "16px 0", borderRadius: 16, border: "none",
-        background: "#ff2740", color: "#fff", fontWeight: 800, fontSize: 16,
-        cursor: "pointer", boxShadow: "0 4px 20px rgba(255,39,64,0.4)", marginBottom: remaining > 0 ? 32 : 14,
-      }}>
-        Keep going 🔥
+      <button onClick={onKeepGoing} style={{ ...glassCtaStyle, marginBottom: remaining > 0 ? 32 : 14 }}>
+        <TbFlameFilled size={18} /> Keep going
       </button>
       <button onClick={onQuitAnyway} style={{
         background: "transparent", border: "none", color: "#6b6470", fontSize: 12,
@@ -451,11 +453,6 @@ function SetView({
   superset?: { round: number; target: number; partnerNames: string[] };
   trans: Trans; reducedMotion: boolean;
 }) {
-  function onDragEnd(_: unknown, info: PanInfo) {
-    if (editing) return;
-    if (info.offset.y < -50 || info.velocity.y < -500) onLog();
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: reducedMotion ? 0 : 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reducedMotion ? 0 : -12 }}
@@ -481,37 +478,19 @@ function SetView({
       )}
       <div style={{ fontSize: 13, color: "#948b98", marginBottom: 16 }}>Set {setIndex} of {totalSets}</div>
 
-      {!editing && (
-        <motion.div
-          animate={reducedMotion ? {} : { y: [0, -6, 0] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-          style={{ color: "#ff2740", marginBottom: 2 }}
-        >
-          <TbChevronUp size={16} />
-        </motion.div>
-      )}
-
-      {/* Drag lives on this outer circle ONLY — no `animate` prop here. Mixing
-          an imperative `animate` target with `drag` on the same element is a
-          known Framer Motion conflict: `animate` re-asserts on every re-render
-          (and this re-renders on every stepper tap, since w/r state lives in
-          the parent), which can desync drag's internal transform and leave
-          the gesture unresponsive on the NEXT swipe — the exact "works once,
-          then gets stuck" bug. The PR pulse now lives on a nested, non-draggable
-          child instead, so it can animate freely without touching drag state. */}
+      {/* Tap-only — a swipe-to-log gesture used to live here (drag + an
+          `animate` prop on the same element, a known Framer Motion conflict
+          that left the gesture unresponsive after the first use). Removed
+          rather than re-patched: one reliable tap beats a gesture that only
+          sometimes works. */}
       <motion.div
-        drag={!editing ? "y" : false}
-        dragConstraints={ZERO_DRAG_CONSTRAINTS}
-        dragElastic={0.4}
-        dragMomentum={false}
-        onDragEnd={onDragEnd}
-        onTap={() => !editing && setEditing(true)}
+        onClick={() => !editing && setEditing(true)}
         whileTap={editing ? undefined : { scale: 0.97 }}
         style={{
           width: 220, height: 220, borderRadius: "50%",
           border: "3px solid #ff2740", boxShadow: "0 0 40px rgba(255,39,64,0.35)",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          marginBottom: 20, cursor: "pointer", touchAction: "none",
+          marginBottom: 20, cursor: "pointer",
         }}
       >
         <motion.div
@@ -535,21 +514,14 @@ function SetView({
         </motion.div>
       </motion.div>
 
-      {!editing && (
+      {!editing && ghost && (
         <div style={{ fontSize: 11, color: "#6b6470", marginBottom: 20, textAlign: "center" }}>
-          {ghost ? `last week: ${ghost.weightKg}kg × ${ghost.reps} · ` : ""}swipe up or tap the button to log
+          last week: {ghost.weightKg}kg × {ghost.reps}
         </div>
       )}
 
-      <button
-        onClick={editing ? () => setEditing(false) : onLog}
-        style={{
-          width: "100%", padding: "16px 0", borderRadius: 16, border: "none",
-          background: "#ff2740", color: "#fff", fontWeight: 800, fontSize: 16,
-          letterSpacing: 0.5, cursor: "pointer", boxShadow: "0 4px 20px rgba(255,39,64,0.4)",
-        }}
-      >
-        {editing ? "CONFIRM" : "LOG SET ⚡"}
+      <button onClick={editing ? () => setEditing(false) : onLog} style={{ ...glassCtaStyle, marginTop: ghost || editing ? 0 : 20 }}>
+        {editing ? <><TbCheck size={18} /> CONFIRM</> : <><TbBoltFilled size={18} /> LOG SET</>}
       </button>
     </motion.div>
   );
@@ -673,11 +645,8 @@ function CompleteView({ doneSets, totalSets, volume, elapsedMin, onClose, trans,
       <div style={{ fontSize: 13, color: "#948b98", marginBottom: 24 }}>
         {doneSets}/{totalSets} sets · {Math.round(volume).toLocaleString()}kg · {elapsedMin}m
       </div>
-      <button onClick={onClose} style={{
-        padding: "14px 32px", borderRadius: 14, border: "none", background: "#ff2740",
-        color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer",
-      }}>
-        Finish
+      <button onClick={onClose} style={{ ...glassCtaStyle, width: "auto", padding: "14px 32px" }}>
+        <TbCheck size={18} /> Finish
       </button>
     </motion.div>
   );

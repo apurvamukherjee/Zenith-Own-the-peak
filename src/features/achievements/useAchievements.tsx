@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { App } from "antd";
+import { TbTrophy } from "react-icons/tb";
 import { db } from "../../db/db";
 import { useSetting } from "../../hooks/useSettings";
 import { onMutation } from "../../lib/mutations";
@@ -113,7 +114,14 @@ export function useAchievementEngine() {
       if (newIds.length === 1) {
         const d = defById(newIds[0]);
         if (d) {
-          message.success({ content: `🏆 Unlocked — ${d.name}`, duration: 4 });
+          message.success({
+            content: (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <TbTrophy /> Unlocked — {d.name}
+              </span>
+            ),
+            duration: 4,
+          });
           if (d.tier === "mythic") growMountain();
         }
         return;
@@ -124,7 +132,7 @@ export function useAchievementEngine() {
       message.success({
         content: (
           <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-            <span>🏆 {newIds.length} badges unlocked</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><TbTrophy /> {newIds.length} badges unlocked</span>
             <a href="/hall" onClick={(e) => { e.preventDefault(); window.location.hash = ""; window.location.pathname = "/hall"; }}
                style={{ color: "var(--accent)", fontWeight: 700, textDecoration: "underline" }}>
               See them →

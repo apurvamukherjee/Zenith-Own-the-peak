@@ -61,7 +61,7 @@ export function TaskListView() {
         // Simple check: if user added a location string, we can't geocode it without an API.
         // Instead, show a gentle reminder that they have location-tagged tasks today.
         const locationTasks = tasksWithLocation.map((t) => t.title).join(", ");
-        setLocationBanner(`📍 Location tasks: ${locationTasks}`);
+        setLocationBanner(`Location tasks: ${locationTasks}`);
       },
       () => { /* location denied — silent */ },
       { enableHighAccuracy: false, maximumAge: 300000 },
@@ -95,8 +95,8 @@ export function TaskListView() {
 
       {/* Location banner */}
       {locationBanner && (
-        <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 10, padding: "6px 10px", background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
-          {locationBanner}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--ink-soft)", marginBottom: 10, padding: "6px 10px", background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
+          <TbMapPin size={13} style={{ flexShrink: 0 }} /> {locationBanner}
         </div>
       )}
 

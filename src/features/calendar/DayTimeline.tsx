@@ -7,7 +7,7 @@ import { HOUR_H, START_HOUR, TOTAL_H, HourGridLines, NowIndicator, TimeBlock, Ti
 import { useGymOverlay } from "./useGymOverlay";
 import { useAllDayEvents } from "./useAllDayEvents";
 import { QuickBackfillBar } from "./QuickBackfillBar";
-import { TbBarbell } from "react-icons/tb";
+import { TbBarbell, TbCheck } from "react-icons/tb";
 import { useTokens } from "../../hooks/useTokens";
 
 interface Props {
@@ -73,7 +73,9 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
         }}>
           <TbBarbell size={16} style={{ color: gym.done ? t.teal : t.accent }} />
           <span style={{ flex: 1, fontSize: 12, fontWeight: 700 }}>{gym.dayName}</span>
-          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{gym.done ? "Done ✓" : "Planned"}</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-soft)" }}>
+            {gym.done ? <><TbCheck size={11} /> Done</> : "Planned"}
+          </span>
         </button>
       )}
 

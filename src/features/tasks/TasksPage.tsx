@@ -4,10 +4,11 @@ import { Button, Tag, App, Select } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TbPlus, TbCheck, TbCalendar, TbFlag,
-  TbMapPin, TbUser,
+  TbMapPin, TbUser, TbAlertTriangle, TbArrowDown, TbRepeat,
   TbBriefcase, TbHome, TbBarbell, TbShoppingCart, TbCash, TbPill,
   TbShoppingBag, TbClock, TbMotorbike, TbCapsule, TbToolsKitchen2, TbBook2,
 } from "react-icons/tb";
+import type { IconType } from "react-icons";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
@@ -126,16 +127,21 @@ function TaskHub() {
       {/* Live parse preview */}
       {input.trim().length > 3 && (() => {
         const p = parseTaskInput(input);
-        const parts: string[] = [];
-        if (p.date) parts.push(`📅 ${p.date}`);
-        if (p.time) parts.push(`🕐 ${p.time}${p.endTime ? `–${p.endTime}` : ""}`);
-        if (p.priority === 1) parts.push("🔴 urgent");
-        if (p.priority === 3) parts.push("🟢 low");
-        if (p.location) parts.push(`📍 ${p.location}`);
-        if (p.recurring) parts.push(`🔁 ${p.recurring.frequency}`);
+        const parts: { Icon: IconType; text: string; color?: string }[] = [];
+        if (p.date) parts.push({ Icon: TbCalendar, text: p.date });
+        if (p.time) parts.push({ Icon: TbClock, text: `${p.time}${p.endTime ? `–${p.endTime}` : ""}` });
+        if (p.priority === 1) parts.push({ Icon: TbAlertTriangle, text: "urgent", color: "var(--accent)" });
+        if (p.priority === 3) parts.push({ Icon: TbArrowDown, text: "low", color: "var(--teal)" });
+        if (p.location) parts.push({ Icon: TbMapPin, text: p.location });
+        if (p.recurring) parts.push({ Icon: TbRepeat, text: p.recurring.frequency });
         return parts.length > 0 ? (
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: -10, marginBottom: 12, paddingLeft: 4 }}>
-            Parsed: <strong>{p.title || "..."}</strong> · {parts.join(" · ")}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 11, color: "var(--ink-soft)", marginTop: -10, marginBottom: 12, paddingLeft: 4 }}>
+            <span>Parsed: <strong>{p.title || "..."}</strong></span>
+            {parts.map((part, i) => (
+              <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 3, color: part.color ?? "var(--ink-soft)" }}>
+                <part.Icon size={11} /> {part.text}
+              </span>
+            ))}
           </div>
         ) : null;
       })()}
