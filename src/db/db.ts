@@ -176,9 +176,9 @@ export const db = new ZenithDB();
 
 import { bumpMutation, suppressMutations } from "../lib/mutations";
 for (const table of db.tables) {
-  table.hook("creating", () => { bumpMutation(); });
-  table.hook("updating", () => { bumpMutation(); });
-  table.hook("deleting", () => { bumpMutation(); });
+  table.hook("creating", () => { bumpMutation(table.name); });
+  table.hook("updating", () => { bumpMutation(table.name); });
+  table.hook("deleting", () => { bumpMutation(table.name); });
 }
 // A task with a googleEventId is about to vanish (hard delete is the app's
 // convention — no tombstone field) — capture the id it needs deleted on

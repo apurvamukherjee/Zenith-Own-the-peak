@@ -1,7 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import type { TaskDto, TaskListDto, TaskStatus } from "../../db/types";
-import { bumpMutation } from "../../lib/mutations";
 import { todayKey } from "../../lib/date.utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -73,36 +72,37 @@ export function useTaskCountByList() {
 
 // ── Mutations ────────────────────────────────────────────────────────────────
 
+// Every write below goes through a plain Dexie table method (add/update/put/
+// delete), and db.ts already registers creating/updating/deleting hooks on
+// EVERY table that call bumpMutation(table.name) automatically — including
+// for the query-based .delete() in deleteTaskList. Calling bumpMutation()
+// again here was pure duplication (double-firing the mutation bus, and with
+// no table name, defeating the gameplay-table filter other listeners use).
+
 export async function addTask(task: Omit<TaskDto, "id" | "createdAt" | "updatedAt" | "status">): Promise<number> {
   const now = Date.now();
-  const id = await db.tasks.add({
+  return db.tasks.add({
     ...task,
     status: "todo",
     createdAt: now,
     updatedAt: now,
   } as TaskDto);
-  bumpMutation();
-  return id;
 }
 
 export async function updateTask(id: number, changes: Partial<TaskDto>): Promise<void> {
   await db.tasks.update(id, { ...changes, updatedAt: Date.now() });
-  bumpMutation();
 }
 
 export async function completeTask(id: number): Promise<void> {
   await db.tasks.update(id, { status: "done", completedAt: Date.now(), updatedAt: Date.now() });
-  bumpMutation();
 }
 
 export async function deleteTask(id: number): Promise<void> {
   await db.tasks.delete(id);
-  bumpMutation();
 }
 
 export async function addTaskList(list: Omit<TaskListDto, "createdAt">): Promise<void> {
   await db.taskLists.put({ ...list, createdAt: Date.now() });
-  bumpMutation();
 }
 
 export async function deleteTaskList(id: string): Promise<void> {
@@ -112,5 +112,4 @@ export async function deleteTaskList(id: string): Promise<void> {
   await db.taskLists.delete(id);
   // Also delete all tasks in this list
   await db.tasks.where("listId").equals(id).delete();
-  bumpMutation();
 }

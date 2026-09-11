@@ -3,7 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { App } from "antd";
 import { TbSparkles } from "react-icons/tb";
 import { db } from "../../db/db";
-import { onMutation } from "../../lib/mutations";
+import { onMutation, GAMEPLAY_TABLES } from "../../lib/mutations";
 import { hapticSuccess } from "../../lib/haptics";
 import { useSetting } from "../../hooks/useSettings";
 import { useXP } from "../../hooks/useXP";
@@ -100,7 +100,7 @@ export function useRewardVaultEngine() {
 
     // Small initial delay so first paint isn't blocked by the scan.
     const boot = window.setTimeout(run, 1200);
-    const off = onMutation(() => { window.clearTimeout(t); t = window.setTimeout(run, 1500); });
+    const off = onMutation(() => { window.clearTimeout(t); t = window.setTimeout(run, 1500); }, GAMEPLAY_TABLES);
     return () => { alive = false; off(); window.clearTimeout(t); window.clearTimeout(boot); };
   }, [message]);
 }

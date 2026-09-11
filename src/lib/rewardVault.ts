@@ -1,5 +1,5 @@
 import { db } from "../db/db";
-import { xpToLevel } from "./xp";
+import { xpToLevel, getTotalXP } from "./xp";
 import { TIER_META, type Tier, defById } from "./achievements";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -21,11 +21,10 @@ export interface VaultContext {
 }
 
 export async function buildVaultContext(): Promise<VaultContext> {
-  const [xpEvents, unlocked] = await Promise.all([
-    db.xpEvents.toArray(),
+  const [totalXp, unlocked] = await Promise.all([
+    getTotalXP(),
     db.achievements.toArray(),
   ]);
-  const totalXp = xpEvents.reduce((s, e) => s + e.xp, 0);
   const level = xpToLevel(totalXp).level;
   const tierCounts: Record<Tier, number> = { bronze: 0, silver: 0, gold: 0, platinum: 0, mythic: 0 };
   let hasCompletionist = false;

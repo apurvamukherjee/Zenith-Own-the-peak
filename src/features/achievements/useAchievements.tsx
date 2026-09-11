@@ -4,7 +4,7 @@ import { App } from "antd";
 import { TbTrophy } from "react-icons/tb";
 import { db } from "../../db/db";
 import { useSetting } from "../../hooks/useSettings";
-import { onMutation } from "../../lib/mutations";
+import { onMutation, GAMEPLAY_TABLES } from "../../lib/mutations";
 import { grantBadgeXP } from "../../hooks/useXPEngine";
 import { hapticSuccess } from "../../lib/haptics";
 import {
@@ -44,7 +44,7 @@ export function useAchievements() {
     const run = () => buildContext(waterGoal, proteinTarget).then((c) => { if (alive) setCtx(c); });
     run();
     let t: number | undefined;
-    const off = onMutation(() => { window.clearTimeout(t); t = window.setTimeout(run, 800); });
+    const off = onMutation(() => { window.clearTimeout(t); t = window.setTimeout(run, 800); }, GAMEPLAY_TABLES);
     return () => { alive = false; off(); window.clearTimeout(t); };
   }, [waterGoal, proteinTarget]);
 
@@ -146,7 +146,7 @@ export function useAchievementEngine() {
 
     // Small initial delay so first paint isn't blocked by the scan.
     const boot = window.setTimeout(run, 1200);
-    const off = onMutation(() => { window.clearTimeout(t); t = window.setTimeout(run, 1500); });
+    const off = onMutation(() => { window.clearTimeout(t); t = window.setTimeout(run, 1500); }, GAMEPLAY_TABLES);
     return () => { alive = false; off(); window.clearTimeout(t); window.clearTimeout(boot); };
   }, [waterGoal, proteinTarget, message]);
 }

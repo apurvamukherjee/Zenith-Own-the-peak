@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Card, Button, App, Avatar, Segmented, Slider, Input, InputNumber, Row, Col, Switch } from "antd";
 import {
   TbPalette, TbBulb, TbUser, TbPhoto, TbMoonStars, TbSun,
@@ -41,6 +41,14 @@ export function SettingsPage() {
   const picRef = useRef<HTMLInputElement>(null);
   const bgRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Local mirrors for the blur/opacity sliders — antd's Slider fires onChange
+  // on every drag tick, and writing to Dexie that often floods the mutation
+  // bus (every write re-triggers the XP + achievement engines app-wide, see
+  // lib/mutations.ts). Track the live value locally for instant label/handle
+  // feedback, and only persist once the drag ends.
+  const [liveBgBlur, setLiveBgBlur] = useState<number | null>(null);
+  const [liveBgOpacity, setLiveBgOpacity] = useState<number | null>(null);
 
   async function pickImage(file: File, key: "profilePic" | "bgImage") {
     try {
@@ -146,10 +154,14 @@ export function SettingsPage() {
         </div>
         {bgImage && (
           <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Blur — {bgBlur}px</div>
-            <Slider min={0} max={24} value={Number(bgBlur)} onChange={(v) => setSetting("bgBlur", v)} />
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Opacity — {bgOpacity}%</div>
-            <Slider min={0} max={100} value={Number(bgOpacity)} onChange={(v) => setSetting("bgOpacity", v)} />
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Blur — {liveBgBlur ?? Number(bgBlur)}px</div>
+            <Slider min={0} max={24} value={liveBgBlur ?? Number(bgBlur)}
+              onChange={setLiveBgBlur}
+              onChangeComplete={(v) => { setLiveBgBlur(null); void setSetting("bgBlur", v); }} />
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Opacity — {liveBgOpacity ?? Number(bgOpacity)}%</div>
+            <Slider min={0} max={100} value={liveBgOpacity ?? Number(bgOpacity)}
+              onChange={setLiveBgOpacity}
+              onChangeComplete={(v) => { setLiveBgOpacity(null); void setSetting("bgOpacity", v); }} />
           </div>
         )}
         <input ref={picRef} type="file" accept="image/*" hidden

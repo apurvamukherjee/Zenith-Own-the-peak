@@ -94,19 +94,38 @@ export function isoWeek(d = new Date()): string {
 /** Grant XP and persist to the xpEvents table. Returns the XpEventDto id. */
 export async function grantXP(action: XpAction): Promise<number> {
   const xp = XP[action];
+  // Read the running total BEFORE adding this event, so the cache write below
+  // is exactly `prior + xp` — see getTotalXP()'s comment for why this cache
+  // exists at all.
+  const priorTotal = await getTotalXP();
   const event: Omit<XpEventDto, "id"> = {
     action,
     xp,
     weekKey: isoWeek(),
     createdAt: Date.now(),
   };
-  return db.xpEvents.add(event as XpEventDto);
+  const id = await db.xpEvents.add(event as XpEventDto);
+  await db.settings.put({ key: "xpTotalCache", value: priorTotal + xp });
+  return id;
 }
 
-/** Total XP across all time. */
+/**
+ * Total XP across all time. Backed by a cached running total (`settings`
+ * key "xpTotalCache") instead of re-scanning the whole `xpEvents` table —
+ * that table only ever grows (every set/PR/meal/etc. adds a row), and this
+ * used to be called from useXPEngine's onMutation listener, i.e. on EVERY
+ * Dexie write anywhere in the app, forever. `grantXP()` keeps the cache in
+ * lockstep on every write it makes; if the cache is missing (an install from
+ * before this existed, or a restored backup from one) this lazily rebuilds
+ * it once via the real scan and persists it, so it's always self-healing.
+ */
 export async function getTotalXP(): Promise<number> {
+  const cached = await db.settings.get("xpTotalCache");
+  if (cached && typeof cached.value === "number") return cached.value;
   const all = await db.xpEvents.toArray();
-  return all.reduce((s, e) => s + e.xp, 0);
+  const total = all.reduce((s, e) => s + e.xp, 0);
+  await db.settings.put({ key: "xpTotalCache", value: total });
+  return total;
 }
 
 /** XP earned in the current ISO week. */

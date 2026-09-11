@@ -15,8 +15,17 @@ import { useAdaptiveTheme } from "./hooks/useAdaptiveTheme";
 import { accentById, DEFAULT_ACCENT } from "./lib/rewardVault";
 
 export default function App() {
-  const [ready, setReady] = useState(false);
+  // Splash's own cinematic timer (glitch beats, wordmark reveal) always runs
+  // its full ~3.8s on a fast device — that's the intended minimum brand
+  // moment, not something to cut short. But gating `ready` on the timer
+  // ALONE meant that if seeding (below) ever took longer than 3.8s on a slow
+  // device, splash would unmount into a bare loading spinner instead of
+  // straight into the app — a visible "stuck screen" hop. Requiring both
+  // flags keeps splash mounted (on its final, static frame — no re-loop)
+  // until seeding actually catches up, so the gap can never show.
+  const [splashTimerDone, setSplashTimerDone] = useState(false);
   const [seeded, setSeeded] = useState(false);
+  const ready = splashTimerDone && seeded;
   const mode = useSetting("themeMode") as Mode;
   const onboarded = useSetting("onboarded");
   const highContrast = Number(useSetting("highContrast")) === 1;
@@ -81,14 +90,14 @@ export default function App() {
 
   // Show onboarding after splash+seed if not yet onboarded
   useEffect(() => {
-    if (ready && seeded && Number(onboarded) !== 1) setShowOnboarding(true);
-  }, [ready, seeded, onboarded]);
+    if (ready && Number(onboarded) !== 1) setShowOnboarding(true);
+  }, [ready, onboarded]);
 
   return (
     <ConfigProvider theme={getTheme(resolved, accentHex)}>
       <AntApp>
         <AnimatePresence>
-          {!ready && <SplashScreen key="splash" onDone={() => setReady(true)} />}
+          {!ready && <SplashScreen key="splash" onDone={() => setSplashTimerDone(true)} />}
         </AnimatePresence>
         {showOnboarding && <OnboardingFlow onDone={() => setShowOnboarding(false)} />}
         {/* Gate routing behind seed completion so hooks don't query empty tables */}

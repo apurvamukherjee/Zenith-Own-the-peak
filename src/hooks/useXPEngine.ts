@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { onMutation } from "../lib/mutations";
-import { grantXP, xpToLevel } from "../lib/xp";
+import { onMutation, GAMEPLAY_TABLES } from "../lib/mutations";
+import { grantXP, getTotalXP, xpToLevel } from "../lib/xp";
 import { db } from "../db/db";
 import { todayKey } from "../lib/date.utils";
 
@@ -103,8 +103,7 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
       } catch { /* computeTodayScore optional */ }
 
       // ── Level-up check ────────────────────────────────────────────────────
-      const allEvents = await db.xpEvents.toArray();
-      const totalXP = allEvents.reduce((s, e) => s + e.xp, 0);
+      const totalXP = await getTotalXP();
       const newLevel = xpToLevel(totalXP);
       if (lastTotalRef.current !== null) {
         const oldLevel = xpToLevel(lastTotalRef.current);
@@ -113,7 +112,7 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
         }
       }
       lastTotalRef.current = totalXP;
-    });
+    }, GAMEPLAY_TABLES);
     return unsub;
   }, [onLevelUp]);
 }

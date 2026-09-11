@@ -52,15 +52,15 @@ A local-first personal tracker for **training, nutrition, study, sleep, water, b
 </tr>
 <tr>
 <td width="25%"><img src="assets/screenshots/pr-celebration.png" alt="PR Celebration" /></td>
-<td width="25%"></td>
-<td width="25%"></td>
-<td width="25%"></td>
+<td width="25%"><img src="assets/screenshots/focus-lock-in.png" alt="Focus Mode lock-in" /></td>
+<td width="25%"><img src="assets/screenshots/focus-quit-1.png" alt="Focus Mode quit screen" /></td>
+<td width="25%"><img src="assets/screenshots/focus-quit-2.png" alt="Focus Mode quit screen, another quote" /></td>
 </tr>
 <tr>
 <td align="center"><sub><b>PR Celebration</b> — a brutal one-liner every time you beat yourself</sub></td>
-<td></td>
-<td></td>
-<td></td>
+<td align="center"><sub><b>Focus Mode</b> — sign the contract before you lift</sub></td>
+<td align="center"><sub><b>Try to leave early</b> — it won't go well</sub></td>
+<td align="center"><sub><b>Try again</b> — still won't</sub></td>
 </tr>
 </table>
 
@@ -70,6 +70,7 @@ A local-first personal tracker for **training, nutrition, study, sleep, water, b
 
 - 🏋️ **Multiple switchable training plans** — 3 built-in splits (Classic PPL, PPL + Rest, Bro Split) plus unlimited custom plans, each a full 7-day program you build once and flip between in one tap. Switching never loses progress — your outgoing plan is saved automatically.
 - ⚡ **Two-screen gym engine** — a minimal Session Logger for the gym (progress bar, +/− weight/reps, tap to complete, drop sets, supersets, rest timer) and a full Workout Planner for the couch (149-exercise library, custom days, weekly schedule, progressive-overload nudges)
+- 🔒 **Focus Mode** — fullscreen, one set at a time, starting on your first logged set. A "lock in" gate makes you commit before it lets you see set one, and trying to back out mid-session gets a brutal, randomized quit-shame screen instead of a plain confirm dialog
 - 📊 **Discipline score** — a glass "dish" ring on Home that tells you if today is on track (water + training + sleep + protein, averaged), with scroll parallax, a staggered entrance cascade, and a kinetic digit-flicker when you're falling behind
 - 🏆 **Brutal PR celebrations & level-ups** — every PR fires a full-bleed one-liner ("PR. Now go find the next one.") instead of a generic toast; leveling up gets a cinematic screen-flash + tier-banded flavor text that gets harsher the higher you climb
 - 📉 **"Weaker than last time" call-outs** — a logged set that came in under your ghost from last session gets flagged inline, not just silently under-highlighted
