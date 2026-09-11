@@ -4,6 +4,7 @@ import { TbX, TbMinus, TbPlus, TbTrophy, TbArrowsRightLeft, TbArrowBackUp, TbLoc
 import { useBackClose } from "../hooks/useBackClose";
 import { useRestTimer } from "../hooks/useRestTimer";
 import { useReducedMotion } from "../hooks/useReducedMotion";
+import { useLockScroll } from "../hooks/useLockScroll";
 import { useUsageValue, recordUsage } from "../hooks/useUsageHistory";
 import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
 import { celebrate } from "../lib/celebrate";
@@ -150,6 +151,10 @@ export function GymFocusMode({
   dayId, dayName, exercises, sets, getSessionId, doneSets, totalSets, volume, elapsedMin, onClose,
 }: Props) {
   const reducedMotion = useReducedMotion();
+  // Parent only mounts this component while focus mode is actually open
+  // (SessionLogger: `focusOn && !isRest && dayId &&`), so it's active for
+  // this component's whole lifetime — no extra gating needed.
+  useLockScroll(true);
 
   // "Lock in" ritual — one full-screen tap-to-commit before anything else is
   // reachable, every time focus mode is entered. Then, once they've actually

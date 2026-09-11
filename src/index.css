@@ -453,6 +453,18 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
 html[data-motion="reduce"] * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 html[data-motion="reduce"] .ember-ring { animation: none !important; }
 
+/* Focus Mode / Gym Focus Mode scroll lock (hooks/useLockScroll.ts). `main`
+   is AppShell's real scroll container; iOS Safari otherwise scroll-chains a
+   touch on the fixed overlay through to it regardless of the overlay's
+   z-index, surfacing its scrollbar and letting the page rubber-band behind
+   the "fullscreen" view. `!important` beats AppShell's own inline
+   `overflowY:"auto"`, which a React re-render would otherwise reassert over
+   a plain style mutation. */
+html[data-focus-lock="1"] main {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+
 /* High-contrast skin — WCAG AAA text vs surface, no gradients on the base
    layer. We intentionally keep the accent (--accent) recognisable so the
    brand still reads as Zenith; everything else flattens. */
