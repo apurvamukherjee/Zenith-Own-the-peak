@@ -29,6 +29,7 @@ export const DEFAULTS = {
   coachNutrition: 0,
   tasksMigrated: 0,     // 1 = existing schedules migrated to tasks
   activeWorkoutPlanId: 0, // db.workoutPlans row id currently live in workoutDays/weekSchedule; 0 = not yet seeded
+  gymFocusMode: 0,        // 1 = fullscreen one-set-at-a-time view is open on /workout
   // Reminders (times are HH:mm)
   remWater: 1,
   remWaterEveryH: 2,

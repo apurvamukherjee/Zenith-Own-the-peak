@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Progress, Tag, Popconfirm } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX } from "react-icons/tb";
+import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX, TbFocus2 } from "react-icons/tb";
 import { RestTimer } from "../../components/RestTimer";
+import { GymFocusMode } from "../../components/GymFocusMode";
 import { PageTransition } from "../../components/PageTransition";
 import { useTokens } from "../../hooks/useTokens";
 import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
@@ -15,6 +16,7 @@ import {
   completeRemainingSets, completeAllRemainingForDay,
 } from "./useGym";
 import { useActivePlan } from "./usePlans";
+import { buildItems } from "./groupExercises";
 import { prettyDate, todayKey } from "../../lib/date.utils";
 import { db } from "../../db/db";
 import { startRest } from "../../lib/restTimerStore";
@@ -430,33 +432,6 @@ function SupersetPartner({
   );
 }
 
-// ---- Group builder: fold consecutive same-supersetGroupId exercises ----
-type Item = { type: "single"; ex: DayExerciseDto } | { type: "group"; exs: DayExerciseDto[] };
-function buildItems(exercises: DayExerciseDto[]): Item[] {
-  const items: Item[] = [];
-  let i = 0;
-  while (i < exercises.length) {
-    const cur = exercises[i];
-    const gid = cur.supersetGroupId;
-    if (gid == null) {
-      items.push({ type: "single", ex: cur });
-      i++;
-      continue;
-    }
-    const grp: DayExerciseDto[] = [cur];
-    let j = i + 1;
-    while (j < exercises.length && exercises[j].supersetGroupId === gid) {
-      grp.push(exercises[j]);
-      j++;
-    }
-    // A group of one is really just a single (user unlinked one side).
-    if (grp.length >= 2) items.push({ type: "group", exs: grp });
-    else items.push({ type: "single", ex: cur });
-    i = j;
-  }
-  return items;
-}
-
 export function SessionLogger() {
   const t = useTokens();
   const plan = useActivePlan();
@@ -529,6 +504,7 @@ export function SessionLogger() {
   }
 
   const isRest = !dayId || dayId === 0;
+  const focusOn = Number(useSetting("gymFocusMode")) === 1;
   const coachDone = Number(useSetting("coachLogger"));
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
 
@@ -559,6 +535,15 @@ export function SessionLogger() {
           <Link to="/quotes" style={{ position: "absolute", top: 10, right: 10 }}>
             <Button type="text" shape="circle" icon={<TbQuote size={18} />} aria-label="Motivation quotes" />
           </Link>
+          {!isRest && totalSets > 0 && (
+            <Button
+              type="text" shape="circle" icon={<TbFocus2 size={18} />}
+              onClick={() => setSetting("gymFocusMode", focusOn ? 0 : 1)}
+              aria-label={focusOn ? "Exit focus mode" : "Enter focus mode"}
+              title="Focus mode"
+              style={{ position: "absolute", top: 10, left: 10, color: focusOn ? "var(--accent)" : undefined }}
+            />
+          )}
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
             {plan?.name ?? "Session"} · {prettyDate(todayKey())}
           </div>
@@ -668,6 +653,20 @@ export function SessionLogger() {
           </>
         )}
       </PageTransition>
+      {focusOn && !isRest && dayId && (
+        <GymFocusMode
+          dayId={dayId}
+          dayName={dayPlan?.name ?? "Session"}
+          exercises={exercises}
+          sets={sets}
+          getSessionId={getSessionId}
+          doneSets={doneSets}
+          totalSets={totalSets}
+          volume={volume}
+          elapsedMin={elapsedMin}
+          onClose={() => setSetting("gymFocusMode", 0)}
+        />
+      )}
     </>
   );
 }
