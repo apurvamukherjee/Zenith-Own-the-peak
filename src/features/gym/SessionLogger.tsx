@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Progress, Tag, Popconfirm } from "antd";
+import { Button, Progress, Tag, Popconfirm, Switch } from "antd";
 import { motion } from "framer-motion";
 import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX, TbFocus2 } from "react-icons/tb";
 import { RestTimer } from "../../components/RestTimer";
@@ -455,15 +455,19 @@ export function SessionLogger() {
   const doneSets = sets.length;
   const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
   const volume = sets.reduce((s, x) => s + x.weightKg * x.reps, 0);
+  const focusOn = Number(useSetting("gymFocusMode")) === 1;
 
   // Auto-duration timer — starts silently on the first set logged, writes back
   // durationMin when the user leaves or the component unmounts. Zero user effort.
   const sessionStartRef = useRef<number | null>(null);
   useEffect(() => {
     if (doneSets === 1 && sessionStartRef.current === null) {
-      // first set just appeared — mark the session start
+      // first set just appeared — mark the session start, and auto-enter
+      // focus mode so the user doesn't have to reach for the toggle mid-lift.
       sessionStartRef.current = Date.now();
+      if (!focusOn) void setSetting("gymFocusMode", 1);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doneSets]);
   useEffect(() => {
     return () => {
@@ -504,7 +508,6 @@ export function SessionLogger() {
   }
 
   const isRest = !dayId || dayId === 0;
-  const focusOn = Number(useSetting("gymFocusMode")) === 1;
   const coachDone = Number(useSetting("coachLogger"));
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
 
@@ -535,15 +538,6 @@ export function SessionLogger() {
           <Link to="/quotes" style={{ position: "absolute", top: 10, right: 10 }}>
             <Button type="text" shape="circle" icon={<TbQuote size={18} />} aria-label="Motivation quotes" />
           </Link>
-          {!isRest && totalSets > 0 && (
-            <Button
-              type="text" shape="circle" icon={<TbFocus2 size={18} />}
-              onClick={() => setSetting("gymFocusMode", focusOn ? 0 : 1)}
-              aria-label={focusOn ? "Exit focus mode" : "Enter focus mode"}
-              title="Focus mode"
-              style={{ position: "absolute", top: 10, left: 10, color: focusOn ? "var(--accent)" : undefined }}
-            />
-          )}
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
             {plan?.name ?? "Session"} · {prettyDate(todayKey())}
           </div>
@@ -579,6 +573,27 @@ export function SessionLogger() {
             </div>
           )}
         </div>
+
+        {!isRest && totalSets > 0 && (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+            background: "var(--surface)", border: `1px solid ${focusOn ? "var(--accent)" : "var(--border)"}`,
+            borderRadius: 14, padding: "10px 14px", marginBottom: 14,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+              <TbFocus2 size={20} style={{ flexShrink: 0, color: focusOn ? "var(--accent)" : "var(--ink-soft)" }} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>Focus mode</div>
+                <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>Fullscreen, one set at a time — starts on your first set</div>
+              </div>
+            </div>
+            <Switch
+              checked={focusOn}
+              onChange={(v) => setSetting("gymFocusMode", v ? 1 : 0)}
+              aria-label="Toggle focus mode"
+            />
+          </div>
+        )}
 
         {days.length > 0 && (
           <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
