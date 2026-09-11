@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Progress, Button, App } from "antd";
 import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbShare2, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee, TbTrophy, TbSnowflake, TbStarFilled, TbX, TbCheck } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SisyphusOverlay } from "../../components/SisyphusOverlay";
 import { HomeQuoteCard } from "../../components/HomeQuoteCard";
@@ -287,13 +287,59 @@ export function DashboardPage() {
     }
   }
 
+  // Scroll-linked parallax for the greeting zone. `<main>` (AppShell) is the
+  // actual scroll container, not the window, so useScroll needs its ref —
+  // `closest`-free, `document.querySelector` is safe since AppShell renders
+  // exactly one `<main>`. Set in a layout effect (before useScroll's own
+  // subscribe effect, since hooks run in declaration order) so the container
+  // is known on first scroll, not just after a re-render.
+  const mainElRef = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => { mainElRef.current = document.querySelector("main"); }, []);
+  const { scrollY } = useScroll({ container: mainElRef });
+  const greetingY = useTransform(scrollY, [0, 220], [0, reducedMotion ? 0 : 55], { clamp: true });
+
+  // Kinetic typography: a one-shot digit-flicker on the discipline % the
+  // moment the real (async) score first resolves urgent, so the alarm reads
+  // through the typography itself, not just the ring color/pulse. Gated on
+  // the `score` object reference (only changes when computeTodayScore
+  // actually resolves) rather than `scoreUrgent`'s value, since the default
+  // pre-load state would otherwise spuriously read as "urgent" too.
+  const [urgentFlicker, setUrgentFlicker] = useState(false);
+  const flickerFiredRef = useRef(false);
+  useEffect(() => {
+    if (flickerFiredRef.current || reducedMotion) return;
+    if (hour >= 18 && score.score < 40) {
+      flickerFiredRef.current = true;
+      setUrgentFlicker(true);
+      const id = window.setTimeout(() => setUrgentFlicker(false), 700);
+      return () => window.clearTimeout(id);
+    }
+  }, [score, hour, reducedMotion]);
+
+  // Staggered entrance cascade — top-to-bottom, opacity/y only (cheap, no
+  // layout thrash). `index` maps 1:1 to the section's visual order below.
+  function cascade(index: number) {
+    if (reducedMotion) return { initial: { opacity: 1, y: 0 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } };
+    return {
+      initial: { opacity: 0, y: 12 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.35, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] as const },
+    };
+  }
+
   return (
     <div style={{
       display: "flex", flexDirection: "column", gap: 10,
       padding: "12px 16px 12px", minHeight: "calc(100dvh - 100px)",
     }}>
-      {/* Header row: greeting + streak + settings */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      {/* Header row: greeting + streak + settings. `y` carries the scroll
+          parallax (drifts slower than the cards below); opacity carries the
+          entrance cascade — kept separate since a MotionValue and a static
+          animate target can't both drive the same transform key. */}
+      <motion.div
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", y: greetingY }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div style={{ minWidth: 0, flex: 1 }}>
           <motion.div
             key={g.text}
@@ -352,7 +398,7 @@ export function DashboardPage() {
           <Link to="/leaderboard"><Button type="text" size="small" icon={<TbTrophy size={18} />} aria-label="Leaderboard" /></Link>
           <Link to="/settings"><Button type="text" size="small" icon={<TbSettings size={18} />} aria-label="Settings" /></Link>
         </div>
-      </div>
+      </motion.div>
 
       {/* Streak-in-danger banner — escalates to the brutal end-of-day recap
           line when water/protein/session are ALL still untouched, instead of
@@ -414,9 +460,22 @@ export function DashboardPage() {
         </motion.div>
       )}
 
-      {/* Center: discipline ring */}
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        style={{ textAlign: "center", flex: "0 0 auto", padding: "8px 0", userSelect: "none" }}>
+      {/* Center: discipline ring — primary tier. Elevated glass "dish" (heavier
+          shadow + faint frosted panel via color-mix, theme-safe unlike a
+          hardcoded rgba white) so it and the training hero read as the two
+          things on this screen that matter, vs the flatter secondary cards
+          below. */}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, delay: reducedMotion ? 0 : 0.06, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          textAlign: "center", flex: "0 0 auto", padding: "16px 10px 14px", userSelect: "none",
+          borderRadius: 22,
+          background: "linear-gradient(180deg, color-mix(in srgb, var(--ink) 8%, transparent), color-mix(in srgb, var(--ink) 2%, transparent))",
+          border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
+          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+          boxShadow: "inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent), 0 18px 40px -20px rgba(0,0,0,0.55), 0 3px 12px -4px var(--ember-glow)",
+        }}>
         <div
           className="ember-ring"
           style={{ display: "inline-block", position: "relative", cursor: "pointer", userSelect: "none", touchAction: "manipulation" }}
@@ -456,7 +515,21 @@ export function DashboardPage() {
               strokeColor={score.score >= 100 ? t.teal : scoreUrgent ? "#ff2740" : t.accent} strokeWidth={8}
               format={() => (
                 <div>
-                  <div className="display" style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}><AnimatedNumber value={score.score} />%</div>
+                  {/* Kinetic typography — bolder/wider weight while urgent so
+                      the number itself carries the alarm, not just the ring
+                      color/pulse; a one-shot digit-flicker (urgentFlicker,
+                      fired once on load by the effect above) layers a brief
+                      neon-flicker on top instead of a continuous distraction. */}
+                  <motion.div
+                    className="display"
+                    animate={urgentFlicker ? { opacity: [1, 0.15, 1, 0.25, 1, 0.5, 1] } : { opacity: 1 }}
+                    transition={urgentFlicker ? { duration: 0.6, times: [0, 0.15, 0.3, 0.45, 0.6, 0.8, 1] } : { duration: 0 }}
+                    style={{
+                      fontSize: 28, lineHeight: 1,
+                      fontWeight: scoreUrgent ? 900 : 800,
+                      letterSpacing: scoreUrgent ? "0.02em" : "normal",
+                    }}
+                  ><AnimatedNumber value={score.score} />%</motion.div>
                   <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
                 </div>
               )} />
@@ -494,12 +567,27 @@ export function DashboardPage() {
       </motion.div>
 
       {/* Mini calendar streak strip — last 7 days */}
-      <MiniWeekStrip />
+      <motion.div {...cascade(2)}>
+        <MiniWeekStrip />
+      </motion.div>
 
-      {/* Training hero card */}
+      {/* Training hero card — primary tier, second of the two "matters most"
+          surfaces. Glassmorphism recipe lifted from GymFocusMode's CTA
+          buttons (translucent tint + blurred backdrop + hairline border +
+          inset highlight) but with a lighter blur (10px vs Focus Mode's
+          18px) — full-screen Focus Mode can afford heavier blur since it's
+          the only thing rendering, a scrolling card feed can't without
+          risking jank on low-end phones. `hero-grad`'s `!important` opaque
+          fill can't be overridden by an inline style, so the translucent
+          gradient below replaces it outright instead of layering on top. */}
+      <motion.div {...cascade(3)}>
       <Link to="/workout" style={{ color: "inherit", display: "block", flex: "0 0 auto" }}>
-        <div className="hero-grad metal-shadow ember-corner" style={{
+        <div className="ember-corner" style={{
           borderRadius: 16, padding: "12px 16px", position: "relative", overflow: "hidden",
+          background: "linear-gradient(135deg, rgba(26,5,9,0.64) 0%, rgba(110,15,28,0.58) 55%, rgba(200,17,42,0.52) 100%)",
+          border: "1px solid rgba(255,255,255,0.20)",
+          backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 20px 46px -18px rgba(0,0,0,0.6), 0 4px 16px -6px var(--ember-glow)",
         }}>
           <svg viewBox="0 0 120 120" width="80" height="80" style={{ position: "absolute", right: -4, bottom: -10, opacity: 0.1 }}>
             <rect x="10" y="42" width="20" height="36" rx="4" fill="#fff"/>
@@ -543,9 +631,10 @@ export function DashboardPage() {
           )}
         </div>
       </Link>
+      </motion.div>
 
       {/* 2x2 compact grid: water, sleep, study, protein */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, flex: "0 0 auto", marginTop: 8 }}>
+      <motion.div {...cascade(4)} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, flex: "0 0 auto", marginTop: 8 }}>
         {/* Water */}
         <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 10 }}>
           <Progress type="circle" percent={score.waterPct} size={38} strokeColor={score.waterPct >= 100 ? t.teal : t.accent} strokeWidth={10}
@@ -596,26 +685,40 @@ export function DashboardPage() {
             </div>
           </div>
         </Link>
-      </div>
+      </motion.div>
 
-      {/* Fuel + Calendar quick links */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+      {/* Fuel + Calendar quick links — secondary tier: flatter and more
+          translucent than the primary ring/hero above, via color-mix on
+          --surface rather than a hardcoded rgba (stays correct in both
+          themes). No shadow, by design — that flatness is what signals
+          "behind" the elevated primary cards. */}
+      <motion.div {...cascade(5)} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         <Link to="/fuel" style={{ color: "inherit" }}>
-          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{
+            background: "color-mix(in srgb, var(--surface) 55%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--border) 60%, transparent)",
+            borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8,
+          }}>
             <TbGasStation size={16} style={{ color: "var(--accent)" }} />
             <span style={{ fontWeight: 700, fontSize: 13 }}>Fuel</span>
           </div>
         </Link>
         <Link to="/calendar" style={{ color: "inherit" }}>
-          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{
+            background: "color-mix(in srgb, var(--surface) 55%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--border) 60%, transparent)",
+            borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8,
+          }}>
             <TbCalendar size={16} style={{ color: "var(--accent)" }} />
             <span style={{ fontWeight: 700, fontSize: 13 }}>Calendar</span>
           </div>
         </Link>
-      </div>
+      </motion.div>
 
       {/* Motivation quote — tap card or shuffle button to draw a new one. */}
-      <HomeQuoteCard />
+      <motion.div {...cascade(6)}>
+        <HomeQuoteCard />
+      </motion.div>
 
       <SisyphusOverlay open={sisyphusOpen} onClose={() => setSisyphusOpen(false)} />
     </div>
@@ -682,12 +785,15 @@ function LevelBadge() {
   if (totalXP === 0) return null; // hide on fresh install until first XP earned
   const xpToNext = next ? next.xpRequired - level.xpRequired : 0;
   const xpInLevel = next ? totalXP - level.xpRequired : 0;
+  // Secondary tier, same flatter/translucent treatment as the fuel/calendar
+  // row below the ring — color-mix over --surface/--ember-inner instead of
+  // solid fills, so it reads as sitting behind the elevated primary cards.
   return (
     <div style={{ marginTop: 10, display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
       <div style={{
         display: "inline-flex", alignItems: "center", gap: 5,
-        background: "var(--surface)", borderRadius: 24,
-        border: "1px solid var(--ember-inner)",
+        background: "color-mix(in srgb, var(--surface) 50%, transparent)", borderRadius: 24,
+        border: "1px solid color-mix(in srgb, var(--ember-inner) 70%, transparent)",
         padding: "3px 10px 3px 7px",
       }}>
         <span style={{
