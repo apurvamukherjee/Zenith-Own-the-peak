@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { completeTask } from "../features/tasks/useTasks";
 import type { TaskDto } from "../db/types";
 import { hapticSuccess } from "../lib/haptics";
+import { useLockScroll } from "../hooks/useLockScroll";
 
 // Focus mode — fullscreen countdown for a time-block task.
 // Links to Session Logger for gym blocks, Study for study blocks.
@@ -21,6 +22,11 @@ export function FocusMode({ task, onClose }: Props) {
     const id = window.setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => window.clearInterval(id);
   }, [task?.id]);
+
+  // Must run before the early return below — hooks can't follow a
+  // conditional return, and this component never actually unmounts (the
+  // parent renders it unconditionally; `task` just flips null/non-null).
+  useLockScroll(Boolean(task && task.time));
 
   if (!task || !task.time) return null;
 
