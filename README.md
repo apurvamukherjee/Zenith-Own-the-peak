@@ -33,7 +33,7 @@ A local-first personal tracker for **training, nutrition, study, sleep, water, b
 <td width="25%"><img src="assets/screenshots/plan-switcher.png" alt="Plan Switcher" /></td>
 </tr>
 <tr>
-<td align="center"><sub><b>Home</b> — discipline ring & streak</sub></td>
+<td align="center"><sub><b>Home</b> — glass discipline ring, parallax greeting</sub></td>
 <td align="center"><sub><b>Train</b> — log a session, zero friction</sub></td>
 <td align="center"><sub><b>Planner</b> — build your split</sub></td>
 <td align="center"><sub><b>Switch Plan</b> — flip splits instantly</sub></td>
@@ -50,6 +50,18 @@ A local-first personal tracker for **training, nutrition, study, sleep, water, b
 <td align="center"><sub><b>Hall of Frame</b> — 83 badges to earn</sub></td>
 <td align="center"><sub><b>Stats</b> — insights that matter</sub></td>
 </tr>
+<tr>
+<td width="25%"><img src="assets/screenshots/pr-celebration.png" alt="PR Celebration" /></td>
+<td width="25%"></td>
+<td width="25%"></td>
+<td width="25%"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>PR Celebration</b> — a brutal one-liner every time you beat yourself</sub></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
 </table>
 
 ---
@@ -58,10 +70,12 @@ A local-first personal tracker for **training, nutrition, study, sleep, water, b
 
 - 🏋️ **Multiple switchable training plans** — 3 built-in splits (Classic PPL, PPL + Rest, Bro Split) plus unlimited custom plans, each a full 7-day program you build once and flip between in one tap. Switching never loses progress — your outgoing plan is saved automatically.
 - ⚡ **Two-screen gym engine** — a minimal Session Logger for the gym (progress bar, +/− weight/reps, tap to complete, drop sets, supersets, rest timer) and a full Workout Planner for the couch (149-exercise library, custom days, weekly schedule, progressive-overload nudges)
-- 📊 **Discipline score** — one ring on Home that tells you if today is on track (water + training + sleep + protein, averaged)
+- 📊 **Discipline score** — a glass "dish" ring on Home that tells you if today is on track (water + training + sleep + protein, averaged), with scroll parallax, a staggered entrance cascade, and a kinetic digit-flicker when you're falling behind
+- 🏆 **Brutal PR celebrations & level-ups** — every PR fires a full-bleed one-liner ("PR. Now go find the next one.") instead of a generic toast; leveling up gets a cinematic screen-flash + tier-banded flavor text that gets harsher the higher you climb
+- 📉 **"Weaker than last time" call-outs** — a logged set that came in under your ghost from last session gets flagged inline, not just silently under-highlighted
 - 📅 **Discipline calendar** — month grid colored by daily score with per-metric filters, streak freeze, workout backfill, on-this-day comparisons, goal countdowns, photo pins, range stats, and a GitHub-style year heatmap
 - 🗓️ **Full Month/Week/Day calendar** — a unified tasks & events system underneath it, draw-to-create time blocks, recurring events, all-day/multi-day spans, and real two-way Google Calendar sync
-- ⚡ **XP + Levels** — every action earns XP. 21 levels from Recruit to Zenith. Cinematic level-up overlay.
+- ⚡ **XP + Levels** — every action earns XP. 21 levels from Recruit to Zenith.
 - 🏆 **83 achievement badges** — 5 tiers (bronze → mythic), 17 mystery, earned by real milestones
 - 🏅 **Social leaderboard** — follow friends by share code, compete on weekly discipline %, streak, volume. See each other's top badges.
 - 🌅 **Time-aware greeting** — 7 time-of-day slots with matching icons, taglines, and evolving gradients from dawn to late night
