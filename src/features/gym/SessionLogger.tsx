@@ -99,16 +99,33 @@ function SetRow({
     setStages((s) => s.filter((_, idx) => idx !== i));
   }
 
-  // Editing an already-logged set — corrects a mis-entered weight/reps
-  // without deleting and redoing the set (which would lose its position/PR
-  // history). Separate from `w`/`r` above, which drive the not-yet-logged row.
+  // Editing an already-logged set — corrects a mis-entered weight/reps (and
+  // any drop stages) without deleting and redoing the set (which would lose
+  // its position/PR history). Separate from `w`/`r`/`stages` above, which
+  // drive the not-yet-logged row.
   const [editingLogged, setEditingLogged] = useState(false);
   const [ew, setEw] = useState(0);
   const [er, setEr] = useState(0);
+  const [eStages, setEStages] = useState<{ weightKg: number; reps: number }[]>([]);
+
+  function addEStage() {
+    const last = eStages[eStages.length - 1] ?? { weightKg: ew, reps: er };
+    setEStages((s) => [...s, { weightKg: Math.max(0, last.weightKg - 10), reps: last.reps }]);
+  }
+  function updateEStage(i: number, patch: Partial<{ weightKg: number; reps: number }>) {
+    setEStages((s) => s.map((stage, idx) => (idx === i ? { ...stage, ...patch } : stage)));
+  }
+  function removeEStage(i: number) {
+    setEStages((s) => s.filter((_, idx) => idx !== i));
+  }
 
   async function saveLoggedEdit() {
     if (!logged?.id || ew <= 0 || er <= 0) return;
-    await updateSet(logged.id, { weightKg: ew, reps: er });
+    const validStages = eStages.filter((s) => s.weightKg > 0 && s.reps > 0);
+    await updateSet(logged.id, {
+      weightKg: ew, reps: er,
+      dropStages: validStages.length > 0 ? validStages : undefined,
+    });
     void hapticLight();
     setEditingLogged(false);
   }
@@ -145,6 +162,31 @@ function SetRow({
             <Button size="small" type="text" icon={<TbX />} aria-label="Cancel edit" onClick={() => setEditingLogged(false)} />
             <Button type="primary" size="small" icon={<TbCheck />} aria-label="Save set" onClick={saveLoggedEdit} style={{ borderRadius: 10 }} />
           </div>
+          <div style={{ marginLeft: 28, marginTop: 4, paddingLeft: 8, borderLeft: "2px dashed var(--accent)" }}>
+            {eStages.map((stage, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 10, color: "var(--ink-soft)", width: 14 }}>↓{i + 1}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+                  <Button size="small" type="text" aria-label="Decrease drop weight" icon={<TbMinus />}
+                    onClick={() => updateEStage(i, { weightKg: Math.max(0, stage.weightKg - 2.5) })} />
+                  <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center", fontSize: 12 }}>{stage.weightKg}<span style={{ fontSize: 9 }}>kg</span></span>
+                  <Button size="small" type="text" aria-label="Increase drop weight" icon={<TbPlus />}
+                    onClick={() => updateEStage(i, { weightKg: stage.weightKg + 2.5 })} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Button size="small" type="text" aria-label="Decrease drop reps" icon={<TbMinus />}
+                    onClick={() => updateEStage(i, { reps: Math.max(1, stage.reps - 1) })} />
+                  <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center", fontSize: 12 }}>{stage.reps}</span>
+                  <Button size="small" type="text" aria-label="Increase drop reps" icon={<TbPlus />}
+                    onClick={() => updateEStage(i, { reps: stage.reps + 1 })} />
+                </div>
+                <Button size="small" type="text" danger icon={<TbX />} aria-label="Remove drop stage" onClick={() => removeEStage(i)} />
+              </div>
+            ))}
+            <Button size="small" type="dashed" icon={<TbPlus />} onClick={addEStage} style={{ borderRadius: 8, fontSize: 11 }}>
+              Add drop
+            </Button>
+          </div>
         </div>
       );
     }
@@ -158,7 +200,7 @@ function SetRow({
     const isWeaker = !logged.isPR && !!ghost && logged.e1rm < ghost.e1rm;
     return (
       <motion.div initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }}
-        onClick={() => { setEw(logged.weightKg); setEr(logged.reps); setEditingLogged(true); }}
+        onClick={() => { setEw(logged.weightKg); setEr(logged.reps); setEStages(logged.dropStages ?? []); setEditingLogged(true); }}
         role="button" aria-label={`Edit set ${setIndex}: ${logged.weightKg}kg × ${logged.reps}`}
         style={{ padding: "6px 10px", cursor: "pointer",
           background: logged.isPR ? "rgba(255,176,32,0.12)" : isWeaker ? "rgba(255,39,64,0.12)" : "rgba(18,179,161,0.10)",
