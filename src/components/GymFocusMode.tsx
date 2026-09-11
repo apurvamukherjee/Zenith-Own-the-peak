@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
-import { TbX, TbMinus, TbPlus, TbTrophy, TbArrowsRightLeft, TbChevronUp, TbArrowBackUp } from "react-icons/tb";
+import { TbX, TbMinus, TbPlus, TbTrophy, TbArrowsRightLeft, TbChevronUp, TbArrowBackUp, TbLock, TbSkull } from "react-icons/tb";
 import { useBackClose } from "../hooks/useBackClose";
 import { useRestTimer } from "../hooks/useRestTimer";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { useUsageValue, recordUsage } from "../hooks/useUsageHistory";
 import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
 import { celebrate } from "../lib/celebrate";
-import { hapticLight } from "../lib/haptics";
+import { hapticLight, hapticMedium } from "../lib/haptics";
 import { unlockAudio, playTick } from "../lib/audio";
 import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "../db/types";
 import { useExercise, useExerciseLibrary, useGhostSets, logSet, deleteSet } from "../features/gym/useGym";
@@ -45,6 +45,38 @@ const MUSCLE_TINT: Record<MuscleGroup, string> = {
   triceps: "#1a0512",
   hamstrings: "#141a05",
 };
+
+// Shown once, full-screen, every time focus mode is entered — a deliberate
+// "sign the contract" tap before anything else is reachable. Random pick per
+// entry so it doesn't go stale on repeat.
+const LOCK_IN_QUOTES = [
+  "Lock in now, or admit you were never serious.",
+  "No turning back. Quit after this and you prove everyone right about you.",
+  "This is the part where cowards find a reason to stop scrolling and back out.",
+  "You don't get to half-ass this. Lock in or get out.",
+  "Every excuse you're building right now — save it. Nobody's buying it.",
+  "Once you lock in, the soft version of you doesn't get a vote anymore.",
+  "You talk about discipline. Here's where you prove it or shut up about it.",
+  "Lock in. Or close the app and admit that's who you are.",
+];
+
+// Shown only if they try to exit AFTER locking in AND after logging at
+// least one set — bailing before you've even started isn't quitting, it's
+// just changing your mind, and doesn't deserve the insult.
+const QUIT_SHAME_QUOTES = [
+  "Go ahead, quit. It's the only thing you've ever been consistent at.",
+  "Yeah, tap it. Weak, pathetic, and proud of it, apparently.",
+  "Quitting again? At this point it's basically your personality.",
+  "Leave now and let's be honest — you were never going to finish anyway.",
+  "This is why nothing ever changes for you. This exact moment, right here.",
+  "Go cry to the couch. It's the only thing that'll still respect you.",
+  "Tap 'exit anyway' and confirm what everyone already suspects about you.",
+  "Quit. Again. Shocking absolutely no one.",
+];
+
+function pickRandom(arr: string[]): string {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 interface NextSet {
   ex: DayExerciseDto;
@@ -101,8 +133,30 @@ function findNext(
 export function GymFocusMode({
   dayId, dayName, exercises, sets, getSessionId, doneSets, totalSets, volume, elapsedMin, onClose,
 }: Props) {
-  useBackClose(true, onClose);
   const reducedMotion = useReducedMotion();
+
+  // "Lock in" ritual — one full-screen tap-to-commit before anything else is
+  // reachable, every time focus mode is entered. Then, once they've actually
+  // started (logged ≥1 set) and haven't finished, exiting gets one brutal
+  // confirmation screen instead of closing instantly — bailing before set 1
+  // is just changing your mind and skips the gate entirely.
+  const [introDismissed, setIntroDismissed] = useState(false);
+  const [quitAttempt, setQuitAttempt] = useState(false);
+  const lockInQuote = useMemo(() => pickRandom(LOCK_IN_QUOTES), []);
+  const quitQuote = useMemo(() => pickRandom(QUIT_SHAME_QUOTES), [quitAttempt]);
+
+  function confirmQuit() {
+    setQuitAttempt(false);
+    onClose();
+  }
+  function keepGoing() {
+    setQuitAttempt(false);
+    void hapticMedium();
+  }
+  function dismissIntro() {
+    setIntroDismissed(true);
+    void hapticMedium();
+  }
 
   // Screen wake-lock — feature-detected, silently no-ops where unsupported
   // (older iOS Safari) or denied (backgrounded tab).
@@ -206,6 +260,13 @@ export function GymFocusMode({
   const tint = ex ? (MUSCLE_TINT[ex.primaryMuscle] ?? "#1a0509") : "#1a0509";
   const trans = reducedMotion ? { duration: 0.01 } : { duration: 0.28, ease: "easeOut" as const };
 
+  function handleCloseAttempt() {
+    if (allDone || !introDismissed || doneSets === 0) { onClose(); return; }
+    setQuitAttempt(true);
+    void hapticLight();
+  }
+  useBackClose(true, handleCloseAttempt);
+
   return (
     <AnimatePresence>
       <motion.div
@@ -232,57 +293,144 @@ export function GymFocusMode({
           position: "relative", zIndex: 1, height: "100%",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24,
         }}>
-          <button onClick={onClose} aria-label="Exit focus mode" style={{
-            position: "absolute", top: 8, right: 8, background: "transparent", border: "none",
-            color: "#948b98", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
-          }}>
-            <TbX size={24} />
-          </button>
-
-          <div style={{
-            fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
-            letterSpacing: "0.2em", textTransform: "uppercase", color: "#948b98", marginBottom: 16,
-          }}>
-            {dayName}
-          </div>
-
-          <AnimatePresence mode="wait">
-            {allDone ? (
-              <CompleteView key="complete" doneSets={doneSets} totalSets={totalSets} volume={volume}
-                elapsedMin={elapsedMin} onClose={onClose} trans={trans} reducedMotion={reducedMotion} />
-            ) : rest.active ? (
-              <RestView key="rest" preview={ex && next ? {
-                name: ex.name, weightKg: w, reps: r, setIndex: next.setIndex, totalSets: next.ex.sets,
-              } : undefined} trans={trans} reducedMotion={reducedMotion} />
-            ) : ex && next ? (
-              <SetView
-                key={`set-${next.ex.exerciseId}-${next.setIndex}`}
-                ex={ex} setIndex={next.setIndex} totalSets={next.ex.sets} superset={next.superset}
-                w={w} r={r} setW={setW} setR={setR}
-                editing={editing} setEditing={setEditing}
-                ghost={ghost} onLog={logCurrent} justLogged={justLogged}
-                trans={trans} reducedMotion={reducedMotion}
-              />
-            ) : null}
-          </AnimatePresence>
-
-          <div style={{ marginTop: 28, fontSize: 11, color: "#6b6470", display: "flex", alignItems: "center", gap: 14 }}>
-            <span>{doneSets}/{totalSets} sets</span>
-            <span>{Math.round(volume).toLocaleString()}kg vol</span>
-            <span>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</span>
-            {lastLogged && (
-              <button onClick={handleUndoTap} style={{
-                display: "flex", alignItems: "center", gap: 4, background: "transparent", border: "none",
-                color: confirmUndo ? "#ff2740" : "#6b6470", fontWeight: confirmUndo ? 800 : 400,
-                cursor: "pointer", fontSize: 11, padding: "6px 4px",
+          {!introDismissed ? (
+            <LockInGate quote={lockInQuote} dayName={dayName} onLockIn={dismissIntro}
+              onSkip={handleCloseAttempt} reducedMotion={reducedMotion} />
+          ) : quitAttempt ? (
+            <QuitShameGate quote={quitQuote} remaining={totalSets - doneSets}
+              onKeepGoing={keepGoing} onQuitAnyway={confirmQuit} reducedMotion={reducedMotion} />
+          ) : (
+            <>
+              <button onClick={handleCloseAttempt} aria-label="Exit focus mode" style={{
+                position: "absolute", top: 8, right: 8, background: "transparent", border: "none",
+                color: "#948b98", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
               }}>
-                <TbArrowBackUp size={13} /> {confirmUndo ? "tap to confirm" : "undo last"}
+                <TbX size={24} />
               </button>
-            )}
-          </div>
+
+              <div style={{
+                fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
+                letterSpacing: "0.2em", textTransform: "uppercase", color: "#948b98", marginBottom: 16,
+              }}>
+                {dayName}
+              </div>
+
+              <AnimatePresence mode="wait">
+                {allDone ? (
+                  <CompleteView key="complete" doneSets={doneSets} totalSets={totalSets} volume={volume}
+                    elapsedMin={elapsedMin} onClose={onClose} trans={trans} reducedMotion={reducedMotion} />
+                ) : rest.active ? (
+                  <RestView key="rest" preview={ex && next ? {
+                    name: ex.name, weightKg: w, reps: r, setIndex: next.setIndex, totalSets: next.ex.sets,
+                  } : undefined} trans={trans} reducedMotion={reducedMotion} />
+                ) : ex && next ? (
+                  <SetView
+                    key={`set-${next.ex.exerciseId}-${next.setIndex}`}
+                    ex={ex} setIndex={next.setIndex} totalSets={next.ex.sets} superset={next.superset}
+                    w={w} r={r} setW={setW} setR={setR}
+                    editing={editing} setEditing={setEditing}
+                    ghost={ghost} onLog={logCurrent} justLogged={justLogged}
+                    trans={trans} reducedMotion={reducedMotion}
+                  />
+                ) : null}
+              </AnimatePresence>
+
+              <div style={{ marginTop: 28, fontSize: 11, color: "#6b6470", display: "flex", alignItems: "center", gap: 14 }}>
+                <span>{doneSets}/{totalSets} sets</span>
+                <span>{Math.round(volume).toLocaleString()}kg vol</span>
+                <span>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</span>
+                {lastLogged && (
+                  <button onClick={handleUndoTap} style={{
+                    display: "flex", alignItems: "center", gap: 4, background: "transparent", border: "none",
+                    color: confirmUndo ? "#ff2740" : "#6b6470", fontWeight: confirmUndo ? 800 : 400,
+                    cursor: "pointer", fontSize: 11, padding: "6px 4px",
+                  }}>
+                    <TbArrowBackUp size={13} /> {confirmUndo ? "tap to confirm" : "undo last"}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+function LockInGate({ quote, dayName, onLockIn, onSkip, reducedMotion }: {
+  quote: string; dayName: string; onLockIn: () => void; onSkip: () => void; reducedMotion: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: reducedMotion ? 1 : 0.96 }} animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: reducedMotion ? 0.01 : 0.35 }}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", maxWidth: 340 }}
+    >
+      <button onClick={onSkip} aria-label="Exit focus mode" style={{
+        position: "absolute", top: 8, right: 8, background: "transparent", border: "none",
+        color: "#948b98", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
+      }}>
+        <TbX size={24} />
+      </button>
+      <TbSkull size={32} style={{ color: "#ff2740", marginBottom: 14 }} />
+      <div style={{
+        fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 11,
+        letterSpacing: "0.25em", textTransform: "uppercase", color: "#948b98", marginBottom: 18,
+      }}>
+        Focus mode · {dayName}
+      </div>
+      <div className="display" style={{ fontSize: 24, fontWeight: 800, lineHeight: 1.35, marginBottom: 32 }}>
+        {quote}
+      </div>
+      <button onClick={onLockIn} style={{
+        width: "100%", padding: "16px 0", borderRadius: 16, border: "none",
+        background: "#ff2740", color: "#fff", fontWeight: 800, fontSize: 16, letterSpacing: 1,
+        cursor: "pointer", boxShadow: "0 4px 20px rgba(255,39,64,0.4)",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+      }}>
+        <TbLock size={18} /> LOCK IN
+      </button>
+    </motion.div>
+  );
+}
+
+function QuitShameGate({ quote, remaining, onKeepGoing, onQuitAnyway, reducedMotion }: {
+  quote: string; remaining: number; onKeepGoing: () => void; onQuitAnyway: () => void; reducedMotion: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: reducedMotion ? 1 : 0.96 }} animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: reducedMotion ? 0.01 : 0.3 }}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", maxWidth: 340 }}
+    >
+      <div style={{
+        fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 11,
+        letterSpacing: "0.25em", textTransform: "uppercase", color: "#ff2740", marginBottom: 18,
+      }}>
+        Wait.
+      </div>
+      <div className="display" style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.35, marginBottom: 10 }}>
+        {quote}
+      </div>
+      {remaining > 0 && (
+        <div style={{ fontSize: 12, color: "#948b98", marginBottom: 32 }}>
+          {remaining} set{remaining === 1 ? "" : "s"} left. Still leaving?
+        </div>
+      )}
+      <button onClick={onKeepGoing} style={{
+        width: "100%", padding: "16px 0", borderRadius: 16, border: "none",
+        background: "#ff2740", color: "#fff", fontWeight: 800, fontSize: 16,
+        cursor: "pointer", boxShadow: "0 4px 20px rgba(255,39,64,0.4)", marginBottom: remaining > 0 ? 32 : 14,
+      }}>
+        Keep going 🔥
+      </button>
+      <button onClick={onQuitAnyway} style={{
+        background: "transparent", border: "none", color: "#6b6470", fontSize: 12,
+        cursor: "pointer", padding: 8,
+      }}>
+        Exit anyway
+      </button>
+    </motion.div>
   );
 }
 
