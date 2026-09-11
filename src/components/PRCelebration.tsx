@@ -43,7 +43,7 @@ export function PRCelebration() {
   // Reduced-motion mode: skip confetti, just show a subtle bottom banner
   if (reducedMotion) {
     return payload ? (
-      <div style={{ position: "fixed", bottom: 80, left: 0, right: 0, zIndex: 200, textAlign: "center", pointerEvents: "none" }}>
+      <div style={{ position: "fixed", bottom: 80, left: 0, right: 0, zIndex: 10000, textAlign: "center", pointerEvents: "none" }}>
         <span className="display" style={{ background: "var(--surface)", padding: "8px 16px", borderRadius: 12, fontSize: 14, fontWeight: 700, color: "var(--gold)", border: "1px solid var(--border)" }}>
           🏆 {payload.title}
         </span>
@@ -58,7 +58,7 @@ export function PRCelebration() {
           key="pr-overlay"
           aria-live="polite"
           style={{
-            position: "fixed", inset: 0, zIndex: 200,
+            position: "fixed", inset: 0, zIndex: 10000,
             pointerEvents: "none",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}

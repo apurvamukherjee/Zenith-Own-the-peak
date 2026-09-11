@@ -44,6 +44,13 @@ function ping(freq: number, when: number, dur = 0.35, gain = 0.18, type: Oscilla
   osc.stop(when + dur + 0.05);
 }
 
+/** Quiet countdown blip — the last 3 seconds of a rest timer, one per second. */
+export function playTick(): void {
+  const c = getCtx(); if (!c) return;
+  unlockAudio();
+  ping(1000, c.currentTime + 0.01, 0.08, 0.10, "square");
+}
+
 /** Gym-bell "ding". Two overlaid pings for a bell-like harmonic. */
 export function playBellDing(): void {
   const c = getCtx(); if (!c) return;

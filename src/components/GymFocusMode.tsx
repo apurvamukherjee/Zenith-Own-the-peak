@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { TbX, TbMinus, TbPlus, TbTrophy, TbArrowsRightLeft } from "react-icons/tb";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { motion, AnimatePresence, type PanInfo } from "framer-motion";
+import { TbX, TbMinus, TbPlus, TbTrophy, TbArrowsRightLeft, TbChevronUp, TbArrowBackUp } from "react-icons/tb";
 import { useBackClose } from "../hooks/useBackClose";
 import { useRestTimer } from "../hooks/useRestTimer";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 import { useUsageValue, recordUsage } from "../hooks/useUsageHistory";
 import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
 import { celebrate } from "../lib/celebrate";
 import { hapticLight } from "../lib/haptics";
-import { unlockAudio } from "../lib/audio";
-import type { DayExerciseDto, ExerciseDto, WorkoutSetDto } from "../db/types";
-import { useExercise, useExerciseLibrary, useGhostSets, logSet } from "../features/gym/useGym";
+import { unlockAudio, playTick } from "../lib/audio";
+import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "../db/types";
+import { useExercise, useExerciseLibrary, useGhostSets, logSet, deleteSet } from "../features/gym/useGym";
 import { buildItems } from "../features/gym/groupExercises";
 
 // Fullscreen "one set at a time" view for /workout. Sits ON TOP of
@@ -31,6 +32,19 @@ interface Props {
   elapsedMin: number;
   onClose: () => void;
 }
+
+// Subtle per-muscle-group wash for the vignette center — the base radial
+// (black at the edges) never changes, only the small color right at 50%/30%
+// shifts, so the gothic red identity stays intact and this reads as a hint,
+// not a repaint.
+const MUSCLE_TINT: Record<MuscleGroup, string> = {
+  chest: "#1a0509", traps: "#1a0509",
+  back: "#051a14", forearms: "#051a1a", calves: "#051a1a",
+  shoulders: "#1a1005", quads: "#1a1005", glutes: "#1a1005",
+  biceps: "#12051a", abs: "#0a051a",
+  triceps: "#1a0512",
+  hamstrings: "#141a05",
+};
 
 interface NextSet {
   ex: DayExerciseDto;
@@ -88,6 +102,7 @@ export function GymFocusMode({
   dayId, dayName, exercises, sets, getSessionId, doneSets, totalSets, volume, elapsedMin, onClose,
 }: Props) {
   useBackClose(true, onClose);
+  const reducedMotion = useReducedMotion();
 
   // Screen wake-lock — feature-detected, silently no-ops where unsupported
   // (older iOS Safari) or denied (backgrounded tab).
@@ -156,67 +171,142 @@ export function GymFocusMode({
     }
   }
 
+  // Undo the most recently logged set (by createdAt, across the whole day —
+  // matches "last thing I did", not just the current exercise). Tap-to-arm,
+  // tap-again-to-confirm rather than a Popconfirm popover, which would need
+  // its own z-index fight against this fullscreen overlay.
+  const lastLogged = sets.length > 0 ? sets.slice().sort((a, b) => b.createdAt - a.createdAt)[0] : undefined;
+  const [confirmUndo, setConfirmUndo] = useState(false);
+  const undoTimerRef = useRef<number | null>(null);
+  useEffect(() => () => { if (undoTimerRef.current) window.clearTimeout(undoTimerRef.current); }, []);
+  // A newer set landing (either logged normally, or a second undo) invalidates
+  // whatever was armed — re-arming against a set the user never saw the label
+  // for would delete the wrong thing.
+  useEffect(() => { setConfirmUndo(false); }, [lastLogged?.id]);
+  function handleUndoTap() {
+    if (!lastLogged?.id) return;
+    if (!confirmUndo) {
+      setConfirmUndo(true);
+      void hapticLight();
+      undoTimerRef.current = window.setTimeout(() => setConfirmUndo(false), 2500);
+      return;
+    }
+    if (undoTimerRef.current) window.clearTimeout(undoTimerRef.current);
+    setConfirmUndo(false);
+    void deleteSet(lastLogged.id);
+    // The set being undone may have just started a rest countdown (the
+    // underlying ExerciseBlock/SupersetBlock effect fires on every doneCount
+    // increase); undoing the set that triggered it should cancel that rest
+    // too, or the timer keeps counting down for a set that no longer exists.
+    skipRest();
+    void hapticLight();
+  }
+
   const allDone = !next;
+  const tint = ex ? (MUSCLE_TINT[ex.primaryMuscle] ?? "#1a0509") : "#1a0509";
+  const trans = reducedMotion ? { duration: 0.01 } : { duration: 0.28, ease: "easeOut" as const };
 
   return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        style={{
-          position: "fixed", inset: 0, zIndex: 9998,
-          background: "radial-gradient(circle at 50% 30%, #1a0509 0%, #08060a 70%)",
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          color: "#f3eef2", padding: 24,
-        }}
+        style={{ position: "fixed", inset: 0, zIndex: 9998, overflow: "hidden", background: "#08060a", color: "#f3eef2" }}
       >
-        <button onClick={onClose} aria-label="Exit focus mode" style={{
-          position: "absolute", top: 16, right: 16, background: "transparent", border: "none",
-          color: "#948b98", cursor: "pointer",
-        }}>
-          <TbX size={24} />
-        </button>
+        {/* Muscle-group tint layer — a real crossfade (two stacked gradients,
+            opacity tweened) rather than a `transition: background` CSS
+            declaration, since browsers don't reliably tween gradient strings
+            (especially on iOS Safari, which this app targets via Capacitor). */}
+        <AnimatePresence>
+          <motion.div
+            key={tint}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.6 }}
+            style={{
+              position: "absolute", inset: 0, zIndex: 0,
+              background: `radial-gradient(circle at 50% 30%, ${tint} 0%, #08060a 70%)`,
+            }}
+          />
+        </AnimatePresence>
 
         <div style={{
-          fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
-          letterSpacing: "0.2em", textTransform: "uppercase", color: "#948b98", marginBottom: 16,
+          position: "relative", zIndex: 1, height: "100%",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24,
         }}>
-          {dayName}
-        </div>
+          <button onClick={onClose} aria-label="Exit focus mode" style={{
+            position: "absolute", top: 8, right: 8, background: "transparent", border: "none",
+            color: "#948b98", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
+          }}>
+            <TbX size={24} />
+          </button>
 
-        {allDone ? (
-          <CompleteView doneSets={doneSets} totalSets={totalSets} volume={volume} elapsedMin={elapsedMin} onClose={onClose} />
-        ) : rest.active ? (
-          <RestView />
-        ) : ex && next ? (
-          <SetView
-            ex={ex} setIndex={next.setIndex} totalSets={next.ex.sets} superset={next.superset}
-            w={w} r={r} setW={setW} setR={setR}
-            editing={editing} setEditing={setEditing}
-            ghost={ghost} onLog={logCurrent} justLogged={justLogged}
-          />
-        ) : null}
+          <div style={{
+            fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
+            letterSpacing: "0.2em", textTransform: "uppercase", color: "#948b98", marginBottom: 16,
+          }}>
+            {dayName}
+          </div>
 
-        <div style={{ marginTop: 28, fontSize: 11, color: "#6b6470", display: "flex", gap: 14 }}>
-          <span>{doneSets}/{totalSets} sets</span>
-          <span>{Math.round(volume).toLocaleString()}kg vol</span>
-          <span>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</span>
+          <AnimatePresence mode="wait">
+            {allDone ? (
+              <CompleteView key="complete" doneSets={doneSets} totalSets={totalSets} volume={volume}
+                elapsedMin={elapsedMin} onClose={onClose} trans={trans} reducedMotion={reducedMotion} />
+            ) : rest.active ? (
+              <RestView key="rest" preview={ex && next ? {
+                name: ex.name, weightKg: w, reps: r, setIndex: next.setIndex, totalSets: next.ex.sets,
+              } : undefined} trans={trans} reducedMotion={reducedMotion} />
+            ) : ex && next ? (
+              <SetView
+                key={`set-${next.ex.exerciseId}-${next.setIndex}`}
+                ex={ex} setIndex={next.setIndex} totalSets={next.ex.sets} superset={next.superset}
+                w={w} r={r} setW={setW} setR={setR}
+                editing={editing} setEditing={setEditing}
+                ghost={ghost} onLog={logCurrent} justLogged={justLogged}
+                trans={trans} reducedMotion={reducedMotion}
+              />
+            ) : null}
+          </AnimatePresence>
+
+          <div style={{ marginTop: 28, fontSize: 11, color: "#6b6470", display: "flex", alignItems: "center", gap: 14 }}>
+            <span>{doneSets}/{totalSets} sets</span>
+            <span>{Math.round(volume).toLocaleString()}kg vol</span>
+            <span>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</span>
+            {lastLogged && (
+              <button onClick={handleUndoTap} style={{
+                display: "flex", alignItems: "center", gap: 4, background: "transparent", border: "none",
+                color: confirmUndo ? "#ff2740" : "#6b6470", fontWeight: confirmUndo ? 800 : 400,
+                cursor: "pointer", fontSize: 11, padding: "6px 4px",
+              }}>
+                <TbArrowBackUp size={13} /> {confirmUndo ? "tap to confirm" : "undo last"}
+              </button>
+            )}
+          </div>
         </div>
       </motion.div>
     </AnimatePresence>
   );
 }
 
+type Trans = { duration: number; ease?: "easeOut" };
+
 function SetView({
-  ex, setIndex, totalSets, w, r, setW, setR, editing, setEditing, ghost, onLog, justLogged, superset,
+  ex, setIndex, totalSets, w, r, setW, setR, editing, setEditing, ghost, onLog, justLogged, superset, trans, reducedMotion,
 }: {
   ex: ExerciseDto; setIndex: number; totalSets: number;
   w: number; r: number; setW: (n: number) => void; setR: (n: number) => void;
   editing: boolean; setEditing: (b: boolean) => void;
   ghost?: WorkoutSetDto; onLog: () => void; justLogged: boolean;
   superset?: { round: number; target: number; partnerNames: string[] };
+  trans: Trans; reducedMotion: boolean;
 }) {
+  function onDragEnd(_: unknown, info: PanInfo) {
+    if (editing) return;
+    if (info.offset.y < -50 || info.velocity.y < -500) onLog();
+  }
+
   return (
-    <motion.div key={`${ex.id}-${setIndex}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+    <motion.div
+      initial={{ opacity: 0, y: reducedMotion ? 0 : 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reducedMotion ? 0 : -12 }}
+      transition={trans}
       style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 340 }}>
       {superset && (
         <div style={{
@@ -236,17 +326,32 @@ function SetView({
           then → {superset.partnerNames.join(", ")}
         </div>
       )}
-      <div style={{ fontSize: 13, color: "#948b98", marginBottom: 24 }}>Set {setIndex} of {totalSets}</div>
+      <div style={{ fontSize: 13, color: "#948b98", marginBottom: 16 }}>Set {setIndex} of {totalSets}</div>
+
+      {!editing && (
+        <motion.div
+          animate={reducedMotion ? {} : { y: [0, -6, 0] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+          style={{ color: "#ff2740", marginBottom: 2 }}
+        >
+          <TbChevronUp size={16} />
+        </motion.div>
+      )}
 
       <motion.div
-        animate={justLogged ? { scale: [1, 1.08, 1] } : {}}
+        drag={!editing ? "y" : false}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.4}
+        onDragEnd={onDragEnd}
+        onTap={() => !editing && setEditing(true)}
+        whileTap={editing ? undefined : { scale: 0.97 }}
+        animate={justLogged && !reducedMotion ? { scale: [1, 1.08, 1] } : {}}
         style={{
           width: 220, height: 220, borderRadius: "50%",
           border: "3px solid #ff2740", boxShadow: "0 0 40px rgba(255,39,64,0.35)",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          marginBottom: 20, cursor: "pointer",
+          marginBottom: 20, cursor: "pointer", touchAction: "none",
         }}
-        onClick={() => setEditing(!editing)}
       >
         {editing ? (
           <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
@@ -264,8 +369,8 @@ function SetView({
       </motion.div>
 
       {!editing && (
-        <div style={{ fontSize: 11, color: "#6b6470", marginBottom: 20 }}>
-          {ghost ? `last week: ${ghost.weightKg}kg × ${ghost.reps} · ` : ""}tap to edit
+        <div style={{ fontSize: 11, color: "#6b6470", marginBottom: 20, textAlign: "center" }}>
+          {ghost ? `last week: ${ghost.weightKg}kg × ${ghost.reps} · ` : ""}swipe up or tap the button to log
         </div>
       )}
 
@@ -284,7 +389,7 @@ function SetView({
 }
 
 const stepperBtnStyle: CSSProperties = {
-  width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.2)",
+  width: 44, height: 44, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.2)",
   background: "rgba(255,255,255,0.08)", color: "#fff",
   display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
 };
@@ -292,28 +397,52 @@ const stepperBtnStyle: CSSProperties = {
 function Stepper({ label, value, step, min, onChange }: {
   label: string; value: number; step: number; min: number; onChange: (n: number) => void;
 }) {
+  function bump(delta: number) {
+    onChange(Math.max(min, value + delta));
+    void hapticLight();
+  }
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <button onClick={() => onChange(Math.max(min, value - step))} style={stepperBtnStyle} aria-label={`Decrease ${label}`}>
-        <TbMinus size={16} />
+      <button onClick={() => bump(-step)} style={stepperBtnStyle} aria-label={`Decrease ${label}`}>
+        <TbMinus size={18} />
       </button>
       <span style={{ minWidth: 56, textAlign: "center", fontWeight: 800, fontSize: 18 }}>
         {value}{label === "kg" ? "kg" : ""}
       </span>
-      <button onClick={() => onChange(value + step)} style={stepperBtnStyle} aria-label={`Increase ${label}`}>
-        <TbPlus size={16} />
+      <button onClick={() => bump(step)} style={stepperBtnStyle} aria-label={`Increase ${label}`}>
+        <TbPlus size={18} />
       </button>
     </div>
   );
 }
 
-function RestView() {
+function RestView({ preview, trans, reducedMotion }: {
+  preview?: { name: string; weightKg: number; reps: number; setIndex: number; totalSets: number };
+  trans: Trans; reducedMotion: boolean;
+}) {
   const rest = useRestTimer();
   const pct = rest.totalSec > 0 ? (1 - rest.remaining / rest.totalSec) * 100 : 0;
   const m = Math.floor(rest.remaining / 60);
   const s = String(rest.remaining % 60).padStart(2, "0");
+
+  // Countdown tick in the last 3 seconds — audible cue so you don't have to
+  // be looking at the phone to know rest is ending. Fires once per second
+  // (the store ticks every 250ms), not gated on reducedMotion since it's
+  // sound, not motion.
+  const lastTickRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!rest.active || rest.paused) return;
+    if (rest.remaining <= 3 && rest.remaining >= 1 && rest.remaining !== lastTickRef.current) {
+      lastTickRef.current = rest.remaining;
+      playTick();
+    }
+    if (rest.remaining > 3) lastTickRef.current = null;
+  }, [rest.remaining, rest.active, rest.paused]);
+
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+    <motion.div
+      initial={{ opacity: 0, scale: reducedMotion ? 1 : 0.95 }} animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: reducedMotion ? 1 : 0.95 }} transition={trans}
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div style={{ fontSize: 13, color: "#948b98", marginBottom: 16, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
         {rest.paused ? "Paused" : "Rest"}
@@ -336,21 +465,43 @@ function RestView() {
       </div>
       <button onClick={skipRest} style={{
         padding: "10px 24px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.2)",
-        background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 700, cursor: "pointer",
+        background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 700, cursor: "pointer", marginBottom: preview ? 20 : 0,
       }}>
         Skip rest
       </button>
+      {preview && (
+        <div style={{
+          textAlign: "center", padding: "10px 16px", borderRadius: 12,
+          background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", color: "#6b6470", marginBottom: 3 }}>
+            Up next · set {preview.setIndex}/{preview.totalSets}
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>
+            {preview.name} — {preview.weightKg}kg × {preview.reps}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
 
-function CompleteView({ doneSets, totalSets, volume, elapsedMin, onClose }: {
+function CompleteView({ doneSets, totalSets, volume, elapsedMin, onClose, trans, reducedMotion }: {
   doneSets: number; totalSets: number; volume: number; elapsedMin: number; onClose: () => void;
+  trans: Trans; reducedMotion: boolean;
 }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+    <motion.div
+      initial={{ opacity: 0, y: reducedMotion ? 0 : 12 }} animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }} transition={trans}
       style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-      <TbTrophy size={56} style={{ color: "#f6b93b", marginBottom: 12 }} />
+      <motion.div
+        initial={reducedMotion ? undefined : { scale: 0.5, rotate: -10 }}
+        animate={reducedMotion ? undefined : { scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 12 }}
+      >
+        <TbTrophy size={56} style={{ color: "#f6b93b", marginBottom: 12 }} />
+      </motion.div>
       <div className="display" style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Session complete</div>
       <div style={{ fontSize: 13, color: "#948b98", marginBottom: 24 }}>
         {doneSets}/{totalSets} sets · {Math.round(volume).toLocaleString()}kg · {elapsedMin}m
