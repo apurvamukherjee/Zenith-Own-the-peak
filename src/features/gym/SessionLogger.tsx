@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Progress, Tag, Popconfirm, Switch } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX, TbFocus2, TbTrendingDown } from "react-icons/tb";
+import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX, TbFocus2, TbTrendingDown, TbPencil, TbTrash } from "react-icons/tb";
 import { RestTimer } from "../../components/RestTimer";
 import { GymFocusMode } from "../../components/GymFocusMode";
 import { PageTransition } from "../../components/PageTransition";
@@ -13,7 +13,7 @@ import type { DayExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types"
 import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
   useSessionSets, useGhostSets, useExercise, ensureSession, logSet,
-  completeRemainingSets, completeAllRemainingForDay,
+  completeRemainingSets, completeAllRemainingForDay, updateSet, deleteSet,
 } from "./useGym";
 import { useActivePlan } from "./usePlans";
 import { buildItems } from "./groupExercises";
@@ -99,8 +99,56 @@ function SetRow({
     setStages((s) => s.filter((_, idx) => idx !== i));
   }
 
+  // Editing an already-logged set — corrects a mis-entered weight/reps
+  // without deleting and redoing the set (which would lose its position/PR
+  // history). Separate from `w`/`r` above, which drive the not-yet-logged row.
+  const [editingLogged, setEditingLogged] = useState(false);
+  const [ew, setEw] = useState(0);
+  const [er, setEr] = useState(0);
+
+  async function saveLoggedEdit() {
+    if (!logged?.id || ew <= 0 || er <= 0) return;
+    await updateSet(logged.id, { weightKg: ew, reps: er });
+    void hapticLight();
+    setEditingLogged(false);
+  }
+
+  async function removeLogged() {
+    if (!logged?.id) return;
+    await deleteSet(logged.id);
+    void hapticLight();
+    setEditingLogged(false);
+  }
+
   if (logged) {
     const drops = logged.dropStages ?? [];
+
+    if (editingLogged) {
+      return (
+        <div style={{ padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 10, marginBottom: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+              <Button size="small" type="text" aria-label="Decrease weight" icon={<TbMinus />} onClick={() => setEw(Math.max(0, ew - 2.5))} />
+              <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{ew}<span style={{ fontSize: 10 }}>kg</span></span>
+              <Button size="small" type="text" aria-label="Increase weight" icon={<TbPlus />} onClick={() => setEw(ew + 2.5)} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Button size="small" type="text" aria-label="Decrease reps" icon={<TbMinus />} onClick={() => setEr(Math.max(1, er - 1))} />
+              <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center" }}>{er}</span>
+              <Button size="small" type="text" aria-label="Increase reps" icon={<TbPlus />} onClick={() => setEr(er + 1)} />
+            </div>
+            <Popconfirm title="Delete this set?" okText="Delete" cancelText="Cancel"
+              okButtonProps={{ danger: true }} onConfirm={removeLogged}>
+              <Button size="small" type="text" danger icon={<TbTrash />} aria-label="Delete set" />
+            </Popconfirm>
+            <Button size="small" type="text" icon={<TbX />} aria-label="Cancel edit" onClick={() => setEditingLogged(false)} />
+            <Button type="primary" size="small" icon={<TbCheck />} aria-label="Save set" onClick={saveLoggedEdit} style={{ borderRadius: 10 }} />
+          </div>
+        </div>
+      );
+    }
+
     // Every set is a challenge against your own history, not just a log
     // entry — if this set's e1RM came in under what you did at this exact
     // set index last session (the same `ghost` value already used for
@@ -110,7 +158,9 @@ function SetRow({
     const isWeaker = !logged.isPR && !!ghost && logged.e1rm < ghost.e1rm;
     return (
       <motion.div initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }}
-        style={{ padding: "6px 10px",
+        onClick={() => { setEw(logged.weightKg); setEr(logged.reps); setEditingLogged(true); }}
+        role="button" aria-label={`Edit set ${setIndex}: ${logged.weightKg}kg × ${logged.reps}`}
+        style={{ padding: "6px 10px", cursor: "pointer",
           background: logged.isPR ? "rgba(255,176,32,0.12)" : isWeaker ? "rgba(255,39,64,0.12)" : "rgba(18,179,161,0.10)",
           borderRadius: 10, marginBottom: 4 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -128,6 +178,7 @@ function SetRow({
             </span>
           )}
           {logged.isPR && <TbTrophy style={{ color: t.gold }} />}
+          <TbPencil size={13} style={{ color: "var(--ink-soft)", flexShrink: 0 }} />
         </div>
         {drops.length > 0 && (
           <div style={{ marginLeft: 30, marginTop: 2 }}>

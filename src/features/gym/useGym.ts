@@ -94,6 +94,27 @@ export async function logSet(params: {
 
 export async function deleteSet(id: number) { await db.workoutSets.delete(id); }
 
+// Correct an already-logged set (wrong weight/reps entered in the moment).
+// Recomputes e1RM/PR against every OTHER set for this exercise so editing a
+// set can both create and revoke a PR, same as a fresh logSet would.
+export async function updateSet(
+  id: number,
+  patch: Partial<Pick<WorkoutSetDto, "weightKg" | "reps" | "dropStages">>,
+): Promise<{ isPR: boolean; e1rm: number } | null> {
+  const existing = await db.workoutSets.get(id);
+  if (!existing) return null;
+  const weightKg = patch.weightKg ?? existing.weightKg;
+  const reps = patch.reps ?? existing.reps;
+  const e1rm = estimate1RM(weightKg, reps);
+  const priorBest = bestE1RM(
+    await db.workoutSets.where("exerciseName").equals(existing.exerciseName)
+      .and((s) => s.id !== id).toArray(),
+  );
+  const isPR = e1rm > 0 && e1rm > priorBest;
+  await db.workoutSets.update(id, { ...patch, weightKg, reps, e1rm, isPR });
+  return { isPR, e1rm };
+}
+
 // ---- Planner writes ----
 export async function addWorkoutDay(name: string, muscles: string[]): Promise<number> {
   const count = await db.workoutDays.count();
