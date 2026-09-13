@@ -27,7 +27,6 @@ export const DEFAULTS = {
   coachLogger: 0,
   coachPlanner: 0,
   coachNutrition: 0,
-  tasksMigrated: 0,     // 1 = existing schedules migrated to tasks
   activeWorkoutPlanId: 0, // db.workoutPlans row id currently live in workoutDays/weekSchedule; 0 = not yet seeded
   gymFocusMode: 0,        // 1 = fullscreen one-set-at-a-time view is open on /workout
   // Reminders (times are HH:mm)
@@ -45,7 +44,6 @@ export const DEFAULTS = {
   // Phase-3 easter eggs + observability
   birthday: "",           // MM-DD (empty = not set)
   eggKonami: 0,
-  egg666: 0,
   eggSisyphus: 0,
   eggReflective: "",      // last YYYY collected (one per year)
   eggPeak: 0,

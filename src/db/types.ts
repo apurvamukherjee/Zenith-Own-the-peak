@@ -207,19 +207,7 @@ export interface MealTemplateItemDto {
   id?: number; templateId: number; foodId: number; amount: number; order: number;
 }
 
-export type RestDayKind = "full" | "active" | "cardio";
-export interface RestDayLogDto { id?: number; date: string; kind: RestDayKind; notes?: string; }
-
-export interface HabitChainDto {
-  id?: number; triggerTable: string; triggerKey?: string;
-  action: "notify"; delayMin: number; message: string; active: number; createdAt: number;
-}
-
 // ---- Forged Habits ----
-// habitChains (above) was never wired to any UI and is shaped for a
-// different, background-automation concept (trigger table → delayed
-// notification) — it stays dormant rather than repurposed. These two tables
-// are the real vehicle for user-facing trigger→action habits with streaks.
 export interface HabitDto {
   id?: number; name: string; triggerLabel: string; actionLabel: string;
   icon: string; color: string; active: number; order: number; createdAt: number;

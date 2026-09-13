@@ -4,7 +4,7 @@ import type {
   WorkoutSessionDto, WorkoutSetDto, BodyweightDto, WaterDto, SleepDto,
   StudyPathDto, StudyItemDto, StudySessionDto, FuelDto, SettingDto,
   ScheduleDto, ScheduleLogDto, MealDto, GoalDayDto, DayPhotoDto, StreakFreezeDto,
-  QuoteDto, BodyMeasurementDto, MealTemplateDto, RestDayLogDto, HabitChainDto,
+  QuoteDto, BodyMeasurementDto, MealTemplateDto,
   AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
   TaskDto, TaskListDto, RecurringRuleDto, CosmeticUnlockDto, GoogleSyncOutboxDto,
   WorkoutPlanRowDto, ExpenseCategoryDto, ExpenseItemDto, ExpenseDto, CategoryBudgetDto,
@@ -35,8 +35,6 @@ class ZenithDB extends Dexie {
   quotes!: Table<QuoteDto, number>;
   bodyMeasurements!: Table<BodyMeasurementDto, number>;
   mealTemplates!: Table<MealTemplateDto, number>;
-  restDayLogs!: Table<RestDayLogDto, number>;
-  habitChains!: Table<HabitChainDto, number>;
   achievements!: Table<AchievementUnlockDto, string>;
   foods!: Table<FoodDto, number>;
   mealTemplateItems!: Table<MealTemplateItemDto, number>;
@@ -89,8 +87,6 @@ class ZenithDB extends Dexie {
     this.version(4).stores({
       bodyMeasurements: "++id, date, metric, [metric+date]",
       mealTemplates: "++id, name, createdAt",
-      restDayLogs: "++id, &date, kind",
-      habitChains: "++id, triggerTable, active",
     });
     this.version(5).stores({
       achievements: "&id, unlockedAt, seen",
@@ -158,13 +154,9 @@ class ZenithDB extends Dexie {
       categoryBudgets: "&categoryId",
     });
     // v15: Forged Habits — custom trigger→action habits with daily
-    // completion + streaks. habitChains (v4) was never wired to any UI
-    // (zero consumers, confirmed by grep) and stays dormant/frozen rather
-    // than repurposed — its fields (triggerTable/delayMin/action:"notify")
-    // are shaped for a different, background-automation concept and don't
-    // fit a named, checkable habit. [habitId+date] mirrors the exact
-    // rationale already used for workoutSessions' [date+dayId] index (v6):
-    // fast "is this habit done today" / dedupe lookups.
+    // completion + streaks. [habitId+date] mirrors the exact rationale
+    // already used for workoutSessions' [date+dayId] index (v6): fast
+    // "is this habit done today" / dedupe lookups.
     this.version(15).stores({
       habits: "++id, active, order",
       habitLogs: "++id, habitId, date, [habitId+date]",

@@ -10,7 +10,6 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.5.1",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@convex-dev/auth": "^0.0.94",
     "@vercel/analytics": "^2.0.1",
