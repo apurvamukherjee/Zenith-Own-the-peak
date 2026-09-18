@@ -13,6 +13,7 @@ import { seedTaskLists, migrateSchedulesToTasks } from "./config/seedTaskLists";
 import { seedExpenseCategories } from "./config/expenseCategories";
 import { useAdaptiveTheme } from "./hooks/useAdaptiveTheme";
 import { accentById, DEFAULT_ACCENT } from "./lib/rewardVault";
+import { hideNativeSplash } from "./lib/nativeShell";
 
 export default function App() {
   // Splash's own cinematic timer (glitch beats, wordmark reveal) always runs
@@ -92,6 +93,13 @@ export default function App() {
   useEffect(() => {
     if (ready && Number(onboarded) !== 1) setShowOnboarding(true);
   }, [ready, onboarded]);
+
+  // Native shell: the OS launch image stays up (launchAutoHide: false) until
+  // the in-app splash+seed gate is actually ready, so there's never a native
+  // splash -> blank frame -> in-app splash double-hop.
+  useEffect(() => {
+    if (ready) hideNativeSplash();
+  }, [ready]);
 
   return (
     <ConfigProvider theme={getTheme(resolved, accentHex)}>

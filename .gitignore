@@ -4,3 +4,13 @@ dist-ssr
 *.local
 .vercel
 .DS_Store
+
+# iOS (Capacitor) — Xcode build output + SPM package resolution cache.
+# ios/App/App.xcodeproj and CapApp-SPM/Package.swift ARE committed.
+ios/App/build
+ios/App/Pods
+ios/App/App/public
+ios/.build
+ios/DerivedData
+**/xcuserdata/
+**/*.xcworkspace/xcuserdata

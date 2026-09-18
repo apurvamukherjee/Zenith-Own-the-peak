@@ -5,8 +5,10 @@ import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import "./index.css";
 import App from "./App";
 import { convexClient } from "./lib/convexClient";
+import { initStatusBar } from "./lib/nativeShell";
 import { inject } from "@vercel/analytics";
 inject();
+initStatusBar();
 
 const root = convexClient ? (
   <ConvexAuthProvider client={convexClient}>
