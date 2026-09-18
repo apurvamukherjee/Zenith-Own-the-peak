@@ -38,6 +38,44 @@ export const FOOD_CATALOG: Seed[] = [
     protein: 22, fat: 13, carbs: 0, kcal: 208,
     presets: [{ label: "100g", amount: 100 }, { label: "150g", amount: 150 }] },
 
+  // Mutton / goat meat
+  { name: "Mutton (goat, raw lean)", category: "protein", unit: "g",
+    protein: 20, fat: 9, carbs: 0, kcal: 165,
+    presets: [{ label: "100g", amount: 100 }, { label: "150g", amount: 150 }, { label: "200g", amount: 200 }] },
+  { name: "Mutton (boiled/steamed, no oil)", category: "protein", unit: "g",
+    protein: 27, fat: 11, carbs: 0, kcal: 212,
+    presets: [{ label: "100g", amount: 100 }, { label: "150g", amount: 150 }] },
+  { name: "Mutton (grilled/tandoori, lean)", category: "protein", unit: "g",
+    protein: 28, fat: 12, carbs: 1, kcal: 228,
+    presets: [{ label: "100g", amount: 100 }, { label: "150g", amount: 150 }] },
+  { name: "Mutton Curry (home, medium oil)", category: "protein", unit: "g",
+    protein: 17, fat: 17, carbs: 3, kcal: 233,
+    presets: [{ label: "1 katori (150g)", amount: 150 }, { label: "200g", amount: 200 }, { label: "250g", amount: 250 }] },
+  { name: "Mutton Kosha / Bhuna", category: "protein", unit: "g",
+    protein: 18, fat: 24, carbs: 4, kcal: 304,
+    presets: [{ label: "1 katori (150g)", amount: 150 }, { label: "200g", amount: 200 }] },
+  { name: "Mutton Rogan Josh", category: "protein", unit: "g",
+    protein: 16, fat: 19, carbs: 5, kcal: 255,
+    presets: [{ label: "1 katori (150g)", amount: 150 }, { label: "200g", amount: 200 }] },
+  { name: "Mutton Keema (cooked)", category: "protein", unit: "g",
+    protein: 21, fat: 18, carbs: 3, kcal: 258,
+    presets: [{ label: "100g", amount: 100 }, { label: "150g", amount: 150 }] },
+  { name: "Mutton Seekh Kebab", category: "protein", unit: "piece",
+    protein: 12, fat: 10, carbs: 2, kcal: 146,
+    presets: [{ label: "1", amount: 1 }, { label: "2", amount: 2 }, { label: "3", amount: 3 }] },
+  { name: "Mutton Chaap (fried)", category: "protein", unit: "piece",
+    protein: 18, fat: 22, carbs: 6, kcal: 294,
+    presets: [{ label: "1", amount: 1 }, { label: "2", amount: 2 }] },
+  { name: "Mutton Liver (cooked)", category: "protein", unit: "g",
+    protein: 27, fat: 6, carbs: 2, kcal: 170,
+    presets: [{ label: "50g", amount: 50 }, { label: "100g", amount: 100 }] },
+  { name: "Mutton Soup / Paya Shorba", category: "protein", unit: "ml",
+    protein: 4, fat: 3, carbs: 1, kcal: 47,
+    presets: [{ label: "1 bowl (200ml)", amount: 200 }, { label: "300ml", amount: 300 }] },
+  { name: "Mutton Biryani", category: "hybrid", unit: "g",
+    protein: 9, fat: 8, carbs: 22, kcal: 196,
+    presets: [{ label: "1 plate (300g)", amount: 300 }, { label: "400g", amount: 400 }] },
+
   // Primary carbs
   { name: "White Rice (cooked)", category: "carb", unit: "g",
     protein: 2.7, fat: 0.3, carbs: 28, kcal: 130,
@@ -109,10 +147,11 @@ export const FOOD_CATALOG: Seed[] = [
 ];
 
 export async function seedFoodsIfEmpty() {
-  const count = await db.foods.count();
-  if (count > 0) return;
+  const existing = new Set((await db.foods.toArray()).map((f) => f.name));
+  const missing = FOOD_CATALOG.filter((f) => !existing.has(f.name));
+  if (!missing.length) return;
   const now = Date.now();
   await db.foods.bulkAdd(
-    FOOD_CATALOG.map((f) => ({ ...f, favorite: 0, isCustom: 0, createdAt: now })),
+    missing.map((f) => ({ ...f, favorite: 0, isCustom: 0, createdAt: now })),
   );
 }
