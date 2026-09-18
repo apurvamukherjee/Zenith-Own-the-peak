@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Zenith — Own the peak</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+
+@font-face { font-family:"Cinzel"; font-style:normal; font-weight:600 900; src:url("assets/fonts/cinzel-latin.woff2") format("woff2"); }
+@font-face { font-family:"Plus Jakarta Sans"; font-style:normal; font-weight:500 800; src:url("assets/fonts/plus-jakarta-sans-latin.woff2") format("woff2"); }
+@font-face { font-family:"Inter"; font-style:normal; font-weight:400 600; src:url("assets/fonts/inter-latin.woff2") format("woff2"); }
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:1920px; height:1080px; overflow:hidden; background:#0d0608; }
+#root { position:relative; width:100%; height:100%; overflow:hidden; font-family:"Plus Jakarta Sans", sans-serif; background:#0d0608; }
+
+.bg-black { position:absolute; inset:0; background: radial-gradient(120% 90% at 50% 38%, #150a0d 0%, #0d0608 62%, #080405 100%); }
+.bg-hero { position:absolute; inset:0; background: linear-gradient(135deg, #1a0509 0%, #6e0f1c 55%, #d81f34 100%); }
+.bg-hero::after { content:""; position:absolute; inset:0; background: radial-gradient(60% 55% at 50% 42%, rgba(255,39,64,0.28) 0%, rgba(255,39,64,0) 70%); }
+
+/* ---- iPhone-accurate frame ---- */
+.iphone { position:absolute; background: linear-gradient(155deg, #4a4a4d 0%, #232326 32%, #0a0a0b 78%, #1c1c1e 100%); box-shadow: 0 40px 100px rgba(0,0,0,0.62), inset 0 0 0 1px rgba(255,255,255,0.07), 0 0 90px rgba(255,39,64,0.22); }
+.iphone-screen { position:relative; width:100%; height:100%; overflow:hidden; background:#000; }
+.iphone-screen img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.iphone-gloss { position:absolute; inset:0; background: linear-gradient(115deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 18%, rgba(255,255,255,0) 34%); pointer-events:none; }
+.iphone-statusbar { position:absolute; left:0; right:0; top:0; background: linear-gradient(#000 72%, rgba(0,0,0,0) 100%); z-index:2; }
+.iphone-island { position:absolute; background:#000; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); z-index:3; }
+.iphone-btn { position:absolute; border-radius:3px; background: linear-gradient(90deg, #0a0a0b 0%, #38383b 50%, #0a0a0b 100%); }
+
+.wordmark { font-family:"Cinzel", serif; font-weight:800; letter-spacing:0.09em; color:#f3eef2; text-shadow: 0 0 60px rgba(255,39,64,0.55); position:absolute; left:0; right:0; top:380px; text-align:center; font-size:178px; }
+.tagline { font-family:"Plus Jakarta Sans", sans-serif; font-style:italic; font-weight:600; color:#f3eef2; opacity:0.92; position:absolute; left:0; right:0; top:680px; text-align:center; font-size:44px; }
+#wordmark2 { top:360px; font-size:150px; }
+#tagline2 { top:620px; font-size:38px; }
+#signature { position:absolute; left:0; right:0; top:780px; text-align:center; font-family:"Inter", sans-serif; font-weight:400; letter-spacing:0.04em; color:rgba(243,238,242,0.55); font-size:24px; }
+
+/* ---- Scene 1: hook ---- */
+#scene-hook { background:#080405; }
+#heartbeat { position:absolute; left:953px; top:250px; width:14px; height:14px; border-radius:50%; background:#ff2740; box-shadow:0 0 40px 14px rgba(255,39,64,0.55); }
+#tap-label { position:absolute; left:0; right:0; top:462px; text-align:center; font-family:"Inter", sans-serif; font-weight:600; letter-spacing:0.28em; text-transform:uppercase; font-size:22px; color:rgba(243,238,242,0.55); }
+#tap-dot { position:absolute; left:954px; top:517px; width:12px; height:12px; border-radius:50%; background:#f3eef2; }
+#tap-ripple { position:absolute; left:930px; top:493px; width:60px; height:60px; border-radius:50%; border:2px solid rgba(255,39,64,0.85); }
+
+/* ---- Climax ---- */
+#scene-climax { background:#08040c; }
+#climax-glow { position:absolute; left:50%; top:50%; width:900px; height:900px; margin:-450px 0 0 -450px; border-radius:50%; background: radial-gradient(closest-side, rgba(255,39,64,0.45), rgba(255,39,64,0) 72%); opacity:0; }
+#flash { position:absolute; inset:0; opacity:0; background: radial-gradient(60% 60% at 50% 45%, #ffe9c2 0%, #ff2740 55%, #6e0f1c 100%); }
+
+/* ---- Stats ---- */
+#scene-stats { background:#1a0509; }
+.decor { position:absolute; width:520px; height:940px; border-radius:70px; overflow:hidden; opacity:0.12; filter:blur(7px); }
+.decor img { width:100%; height:auto; display:block; }
+#decor-plan { left:-160px; top:60px; transform:rotate(-9deg); }
+#decor-hall { left:1560px; top:60px; transform:rotate(9deg); }
+.stat { position:absolute; left:0; right:0; text-align:center; font-family:"League Gothic", sans-serif; font-weight:400; font-size:104px; letter-spacing:0.02em; color:#f3eef2; font-variant-numeric:tabular-nums; text-shadow:0 0 40px rgba(255,39,64,0.45); }
+#stat1 { top:172px; } #stat2 { top:340px; } #stat3 { top:508px; } #stat4 { top:676px; }
+
+/* ---- Feature scenes ---- */
+.feature-text { position:absolute; display:flex; flex-direction:column; justify-content:center; gap:20px; }
+.feature-icon { width:88px; height:88px; border-radius:24px; display:flex; align-items:center; justify-content:center; background: linear-gradient(155deg, rgba(255,39,64,0.22), rgba(255,39,64,0.06)); box-shadow: 0 0 0 1.5px rgba(255,39,64,0.5), 0 0 34px rgba(255,39,64,0.28); color:#ff2740; }
+.feature-eyebrow { font-family:"Plus Jakarta Sans", sans-serif; font-weight:700; letter-spacing:0.32em; text-transform:uppercase; font-size:24px; color:#ff2740; }
+.feature-head { font-family:"League Gothic", sans-serif; font-weight:400; font-size:92px; line-height:0.94; letter-spacing:0.01em; text-transform:uppercase; color:#f3eef2; text-shadow:0 0 44px rgba(255,39,64,0.35); }
+.feature-sub { font-family:"Plus Jakarta Sans", sans-serif; font-weight:500; font-size:31px; line-height:1.32; color:rgba(243,238,242,0.78); max-width:640px; }
+
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="84.913">
+
+<section id="scene-hook" class="clip" data-start="0" data-duration="3.204" data-track-index="0">
+<div class="bg-black"></div>
+<div id="heartbeat"></div>
+<div id="tap-label">LEAVE WORKOUT</div>
+<div id="tap-ripple"></div>
+<div id="tap-dot"></div>
+<div id="phone-quit-phone" class="iphone" style="left:743px;top:40px;width:434px;height:940px;border-radius:67.3px;padding:15.2px;">
+<div class="iphone-btn" style="left:-4.9px;top:136.3px;width:3.9px;height:30.1px;"></div>
+<div class="iphone-btn" style="left:-4.9px;top:192.7px;width:3.9px;height:48.9px;"></div>
+<div class="iphone-btn" style="left:-4.9px;top:258.5px;width:3.9px;height:48.9px;"></div>
+<div class="iphone-btn" style="right:-4.9px;top:173.9px;width:3.9px;height:84.6px;"></div>
+<div class="iphone-screen" style="border-radius:58.2px;"><img src="assets/screenshots/focus-quit-1.png" alt="" style="object-position:center 50%;" /><div class="iphone-statusbar" style="height:69.9px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:130.2px;height:33.9px;top:23.0px;left:50%;margin-left:-65.1px;border-radius:33.9px;"></div>
+</div>
+</section>
+
+<section id="scene-word" class="clip" data-start="3.204" data-duration="3.204" data-track-index="0">
+<div class="bg-hero"></div>
+<h1 id="wordmark" class="wordmark">ZENITH</h1>
+<div id="tagline" class="tagline">Own the peak.</div>
+</section>
+<section id="f-home" class="clip" data-start="6.409" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-home-phone" class="iphone" style="left:130px;top:160.0px;width:351.2px;height:760px;border-radius:54.4px;padding:12.3px;">
+<div class="iphone-btn" style="left:-4.2px;top:110.2px;width:3.2px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:155.8px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:209.0px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-4.2px;top:140.6px;width:3.2px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:47.0px;"><img src="assets/screenshots/home.png" alt="" style="object-position:center 0%;" /><div class="iphone-statusbar" style="height:56.5px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:105.4px;height:27.4px;top:18.6px;left:50%;margin-left:-52.7px;border-radius:27.4px;"></div>
+</div><div id="f-home-text" class="feature-text" style="left:571.2px;width:1218.8px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="16"/><circle cx="24" cy="24" r="7.5"/></svg></div>
+<div class="feature-eyebrow">DISCIPLINE</div>
+<h2 class="feature-head">ONE RING.<br/>EVERYTHING THAT MATTERS.</h2>
+<p class="feature-sub">Water, training, sleep, protein — one honest number.</p>
+</div></section>
+<section id="f-train" class="clip" data-start="10.681" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-train-phone" class="iphone" style="left:1438.8px;top:160.0px;width:351.2px;height:760px;border-radius:54.4px;padding:12.3px;">
+<div class="iphone-btn" style="left:-4.2px;top:110.2px;width:3.2px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:155.8px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:209.0px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-4.2px;top:140.6px;width:3.2px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:47.0px;"><img src="assets/screenshots/train.png" alt="" style="object-position:center 0%;" /><div class="iphone-statusbar" style="height:56.5px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:105.4px;height:27.4px;top:18.6px;left:50%;margin-left:-52.7px;border-radius:27.4px;"></div>
+</div><div id="f-train-text" class="feature-text" style="left:130px;width:1218.8px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="18" width="6" height="12" rx="2"/><rect x="39" y="18" width="6" height="12" rx="2"/><rect x="9" y="21" width="6" height="6" rx="1"/><rect x="33" y="21" width="6" height="6" rx="1"/><line x1="15" y1="24" x2="33" y2="24"/></svg></div>
+<div class="feature-eyebrow">TRAIN</div>
+<h2 class="feature-head">LOG IT.<br/>ZERO FRICTION.</h2>
+<p class="feature-sub">Tap to complete. Drop sets, supersets, rest timer.</p>
+</div></section>
+<section id="f-plans" class="clip" data-start="14.953" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-plans-phone" class="iphone" style="left:130px;top:160.0px;width:351.2px;height:760px;border-radius:54.4px;padding:12.3px;">
+<div class="iphone-btn" style="left:-4.2px;top:110.2px;width:3.2px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:155.8px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:209.0px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-4.2px;top:140.6px;width:3.2px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:47.0px;"><img src="assets/screenshots/plan-switcher.png" alt="" style="object-position:center 0%;" /><div class="iphone-statusbar" style="height:56.5px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:105.4px;height:27.4px;top:18.6px;left:50%;margin-left:-52.7px;border-radius:27.4px;"></div>
+</div><div id="f-plans-text" class="feature-text" style="left:571.2px;width:1218.8px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="23" height="23" rx="6"/><rect x="18" y="18" width="23" height="23" rx="6"/></svg></div>
+<div class="feature-eyebrow">PLANNER</div>
+<h2 class="feature-head">SWITCH SPLITS<br/>IN ONE TAP.</h2>
+<p class="feature-sub">3 built-in splits, unlimited custom ones. Nothing gets lost.</p>
+</div></section>
+<section id="f-focus" class="clip" data-start="19.226" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-focus-phone" class="iphone" style="left:1407.1px;top:160.0px;width:382.9px;height:760px;border-radius:59.3px;padding:13.4px;">
+<div class="iphone-btn" style="left:-4.4px;top:110.2px;width:3.4px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-4.4px;top:155.8px;width:3.4px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-4.4px;top:209.0px;width:3.4px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-4.4px;top:140.6px;width:3.4px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:51.3px;"><img src="assets/screenshots/focus-lock-in.png" alt="" style="object-position:center 50%;" /><div class="iphone-statusbar" style="height:61.7px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:114.9px;height:29.9px;top:20.3px;left:50%;margin-left:-57.45px;border-radius:29.9px;"></div>
+</div><div id="f-focus-text" class="feature-text" style="left:130px;width:1187.1px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="22" width="28" height="19" rx="6"/><path d="M16 22 v-6 a8 8 0 0 1 16 0 v6"/></svg></div>
+<div class="feature-eyebrow">FOCUS MODE</div>
+<h2 class="feature-head">COMMIT.<br/>THEN GO.</h2>
+<p class="feature-sub">Full-screen. One set at a time. No excuses.</p>
+</div></section>
+<section id="f-nutrition" class="clip" data-start="23.498" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-nutrition-phone" class="iphone" style="left:130px;top:160.0px;width:351.2px;height:760px;border-radius:54.4px;padding:12.3px;">
+<div class="iphone-btn" style="left:-4.2px;top:110.2px;width:3.2px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:155.8px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:209.0px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-4.2px;top:140.6px;width:3.2px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:47.0px;"><img src="assets/screenshots/nutrition.png" alt="" style="object-position:center 0%;" /><div class="iphone-statusbar" style="height:56.5px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:105.4px;height:27.4px;top:18.6px;left:50%;margin-left:-52.7px;border-radius:27.4px;"></div>
+</div><div id="f-nutrition-text" class="feature-text" style="left:571.2px;width:1218.8px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 13 c8 0 15 8 15 17 a14 13 0 0 1 -30 0 c0 -9 7 -17 15 -17 Z"/><path d="M24 13 c0 -4.5 3 -7 7 -7"/></svg></div>
+<div class="feature-eyebrow">NUTRITION</div>
+<h2 class="feature-head">EVERY GRAM,<br/>TRACKED.</h2>
+<p class="feature-sub">Indian-first food catalog. Macros at a glance.</p>
+</div></section>
+<section id="f-water" class="clip" data-start="27.770" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-water-phone" class="iphone" style="left:949.7px;top:160.0px;width:840.3px;height:760px;border-radius:130.2px;padding:29.4px;">
+<div class="iphone-btn" style="left:-8.6px;top:110.2px;width:7.6px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:155.8px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:209.0px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-8.6px;top:140.6px;width:7.6px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:112.6px;"><img src="assets/screenshots-live/water.jpg" alt="" style="object-position:center 18%;" /><div class="iphone-statusbar" style="height:135.2px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:252.1px;height:65.5px;top:44.5px;left:50%;margin-left:-126.05px;border-radius:65.5px;"></div>
+</div><div id="f-water-text" class="feature-text" style="left:130px;width:729.7px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 6 C16 18 10 27 10 33 a14 14 0 0 0 28 0 C38 27 32 18 24 6 Z"/></svg></div>
+<div class="feature-eyebrow">HYDRATION</div>
+<h2 class="feature-head">IT KNOWS<br/>WHEN YOU'RE BEHIND.</h2>
+<p class="feature-sub">Pace-aware hydration. Warnings before you're actually thirsty.</p>
+</div></section>
+<section id="f-sleep" class="clip" data-start="32.043" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-sleep-phone" class="iphone" style="left:130px;top:160.0px;width:840.6px;height:760px;border-radius:130.3px;padding:29.4px;">
+<div class="iphone-btn" style="left:-8.6px;top:110.2px;width:7.6px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:155.8px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:209.0px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-8.6px;top:140.6px;width:7.6px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:112.7px;"><img src="assets/screenshots-live/sleep.jpg" alt="" style="object-position:center 18%;" /><div class="iphone-statusbar" style="height:135.3px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:252.2px;height:65.6px;top:44.5px;left:50%;margin-left:-126.1px;border-radius:65.6px;"></div>
+</div><div id="f-sleep-text" class="feature-text" style="left:1060.6px;width:729.4000000000001px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M31 6 A17 17 0 1 0 31 42 A13 13 0 0 1 31 6 Z"/></svg></div>
+<div class="feature-eyebrow">RECOVERY</div>
+<h2 class="feature-head">DEBT TRACKED,<br/>AUTOMATICALLY.</h2>
+<p class="feature-sub">Bed, wake, quality — and the shortfall you're carrying.</p>
+</div></section>
+<section id="f-study" class="clip" data-start="36.315" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-study-phone" class="iphone" style="left:949.4px;top:160.0px;width:840.6px;height:760px;border-radius:130.3px;padding:29.4px;">
+<div class="iphone-btn" style="left:-8.6px;top:110.2px;width:7.6px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:155.8px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:209.0px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-8.6px;top:140.6px;width:7.6px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:112.7px;"><img src="assets/screenshots-live/study.jpg" alt="" style="object-position:center 18%;" /><div class="iphone-statusbar" style="height:135.3px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:252.2px;height:65.6px;top:44.5px;left:50%;margin-left:-126.1px;border-radius:65.6px;"></div>
+</div><div id="f-study-text" class="feature-text" style="left:130px;width:729.4000000000001px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 11 q9 -6 18 0 v27 q-9 -6 -18 0 Z"/><path d="M42 11 q-9 -6 -18 0 v27 q9 -6 18 0 Z"/></svg></div>
+<div class="feature-eyebrow">PRODUCTIVITY</div>
+<h2 class="feature-head">LEARNING,<br/>NOT JUST LOGGING.</h2>
+<p class="feature-sub">Paths, topics, auto up-next. Time that adds up.</p>
+</div></section>
+<section id="f-fuel" class="clip" data-start="40.587" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-fuel-phone" class="iphone" style="left:130px;top:160.0px;width:840.6px;height:760px;border-radius:130.3px;padding:29.4px;">
+<div class="iphone-btn" style="left:-8.6px;top:110.2px;width:7.6px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:155.8px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:209.0px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-8.6px;top:140.6px;width:7.6px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:112.7px;"><img src="assets/screenshots-live/fuel.jpg" alt="" style="object-position:center 18%;" /><div class="iphone-statusbar" style="height:135.3px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:252.2px;height:65.6px;top:44.5px;left:50%;margin-left:-126.1px;border-radius:65.6px;"></div>
+</div><div id="f-fuel-text" class="feature-text" style="left:1060.6px;width:729.4000000000001px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="10" width="19" height="31" rx="3"/><line x1="7" y1="19" x2="26" y2="19"/><path d="M26 19 h6 a4 4 0 0 1 4 4 v11 a3 3 0 0 0 6 0 v-13 l-5 -5"/></svg></div>
+<div class="feature-eyebrow">BIKE</div>
+<h2 class="feature-head">FULL TO FULL.<br/>NO GUESSING.</h2>
+<p class="feature-sub">Mileage, cost per km, tracked like it matters.</p>
+</div></section>
+<section id="f-calendar" class="clip" data-start="44.860" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-calendar-phone" class="iphone" style="left:1438.8px;top:160.0px;width:351.2px;height:760px;border-radius:54.4px;padding:12.3px;">
+<div class="iphone-btn" style="left:-4.2px;top:110.2px;width:3.2px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:155.8px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:209.0px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-4.2px;top:140.6px;width:3.2px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:47.0px;"><img src="assets/screenshots/calendar.png" alt="" style="object-position:center 0%;" /><div class="iphone-statusbar" style="height:56.5px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:105.4px;height:27.4px;top:18.6px;left:50%;margin-left:-52.7px;border-radius:27.4px;"></div>
+</div><div id="f-calendar-text" class="feature-text" style="left:130px;width:1218.8px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="36" height="32" rx="5"/><line x1="6" y1="19" x2="42" y2="19"/><line x1="15" y1="6" x2="15" y2="14"/><line x1="33" y1="6" x2="33" y2="14"/></svg></div>
+<div class="feature-eyebrow">CALENDAR</div>
+<h2 class="feature-head">YOUR WHOLE LIFE,<br/>ONE GRID.</h2>
+<p class="feature-sub">Workouts, meals, meds, deadlines — month, week, or day.</p>
+</div></section>
+<section id="f-hall" class="clip" data-start="49.132" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-hall-phone" class="iphone" style="left:130px;top:160.0px;width:351.2px;height:760px;border-radius:54.4px;padding:12.3px;">
+<div class="iphone-btn" style="left:-4.2px;top:110.2px;width:3.2px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:155.8px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:209.0px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-4.2px;top:140.6px;width:3.2px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:47.0px;"><img src="assets/screenshots/hall.png" alt="" style="object-position:center 0%;" /><div class="iphone-statusbar" style="height:56.5px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:105.4px;height:27.4px;top:18.6px;left:50%;margin-left:-52.7px;border-radius:27.4px;"></div>
+</div><div id="f-hall-text" class="feature-text" style="left:571.2px;width:1218.8px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8 h20 v10 a10 10 0 0 1 -20 0 Z"/><path d="M14 10 h-6 a6 6 0 0 0 6 8"/><path d="M34 10 h6 a6 6 0 0 1 -6 8"/><line x1="24" y1="28" x2="24" y2="35"/><line x1="16" y1="39" x2="32" y2="39"/></svg></div>
+<div class="feature-eyebrow">HALL OF FRAME</div>
+<h2 class="feature-head">83 BADGES<br/>TO EARN.</h2>
+<p class="feature-sub">Five tiers, bronze to mythic. Seventeen still secret.</p>
+</div></section>
+<section id="f-stats" class="clip" data-start="53.405" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-stats-phone" class="iphone" style="left:1438.8px;top:160.0px;width:351.2px;height:760px;border-radius:54.4px;padding:12.3px;">
+<div class="iphone-btn" style="left:-4.2px;top:110.2px;width:3.2px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:155.8px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-4.2px;top:209.0px;width:3.2px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-4.2px;top:140.6px;width:3.2px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:47.0px;"><img src="assets/screenshots/stats.png" alt="" style="object-position:center 0%;" /><div class="iphone-statusbar" style="height:56.5px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:105.4px;height:27.4px;top:18.6px;left:50%;margin-left:-52.7px;border-radius:27.4px;"></div>
+</div><div id="f-stats-text" class="feature-text" style="left:130px;width:1218.8px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="40" x2="41" y2="40"/><rect x="11" y="26" width="6" height="14"/><rect x="21" y="17" width="6" height="23"/><rect x="31" y="9" width="6" height="31"/></svg></div>
+<div class="feature-eyebrow">PROGRESS</div>
+<h2 class="feature-head">EVERY TREND,<br/>ONE SCREEN.</h2>
+<p class="feature-sub">e1RM curves, year heatmaps, body composition.</p>
+</div></section>
+<section id="f-leaderboard" class="clip" data-start="57.677" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-leaderboard-phone" class="iphone" style="left:130px;top:160.0px;width:1008.7px;height:760px;border-radius:156.3px;padding:35.3px;">
+<div class="iphone-btn" style="left:-10.1px;top:110.2px;width:9.1px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-10.1px;top:155.8px;width:9.1px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-10.1px;top:209.0px;width:9.1px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-10.1px;top:140.6px;width:9.1px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:135.1px;"><img src="assets/screenshots-live/leaderboard.jpg" alt="" style="object-position:center 8%;" /><div class="iphone-statusbar" style="height:162.5px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:302.6px;height:78.7px;top:53.5px;left:50%;margin-left:-151.3px;border-radius:78.7px;"></div>
+</div><div id="f-leaderboard-text" class="feature-text" style="left:1228.7px;width:561.3px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 38 L17 16 L24 26 L31 12 L44 38 Z"/></svg></div>
+<div class="feature-eyebrow">COMPETE</div>
+<h2 class="feature-head">COMPETE ON<br/>DISCIPLINE.</h2>
+<p class="feature-sub">Follow friends by code. Climb on consistency, not selfies.</p>
+</div></section>
+<section id="f-quotes" class="clip" data-start="61.949" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-quotes-phone" class="iphone" style="left:949.4px;top:160.0px;width:840.6px;height:760px;border-radius:130.3px;padding:29.4px;">
+<div class="iphone-btn" style="left:-8.6px;top:110.2px;width:7.6px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:155.8px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:209.0px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-8.6px;top:140.6px;width:7.6px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:112.7px;"><img src="assets/screenshots-live/quotes.jpg" alt="" style="object-position:center 18%;" /><div class="iphone-statusbar" style="height:135.3px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:252.2px;height:65.6px;top:44.5px;left:50%;margin-left:-126.1px;border-radius:65.6px;"></div>
+</div><div id="f-quotes-text" class="feature-text" style="left:130px;width:729.4000000000001px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14 q-6 4 -6 12 q0 6 6 6 q5 0 5 -6 q0 -5 -4 -6 q1 -4 5 -6 Z"/><path d="M29 14 q-6 4 -6 12 q0 6 6 6 q5 0 5 -6 q0 -5 -4 -6 q1 -4 5 -6 Z"/></svg></div>
+<div class="feature-eyebrow">MOTIVATION</div>
+<h2 class="feature-head">ARGUMENTS<br/>REMOVED.</h2>
+<p class="feature-sub">Quotes that hit. Gym, study, life — swipe through.</p>
+</div></section>
+<section id="f-settings" class="clip" data-start="66.222" data-duration="4.272" data-track-index="0"><div class="bg-black"></div><div id="f-settings-phone" class="iphone" style="left:130px;top:160.0px;width:840.6px;height:760px;border-radius:130.3px;padding:29.4px;">
+<div class="iphone-btn" style="left:-8.6px;top:110.2px;width:7.6px;height:24.3px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:155.8px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="left:-8.6px;top:209.0px;width:7.6px;height:39.5px;"></div>
+<div class="iphone-btn" style="right:-8.6px;top:140.6px;width:7.6px;height:68.4px;"></div>
+<div class="iphone-screen" style="border-radius:112.7px;"><img src="assets/screenshots-live/settings.jpg" alt="" style="object-position:center 18%;" /><div class="iphone-statusbar" style="height:135.3px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:252.2px;height:65.6px;top:44.5px;left:50%;margin-left:-126.1px;border-radius:65.6px;"></div>
+</div><div id="f-settings-text" class="feature-text" style="left:1060.6px;width:729.4000000000001px;text-align:left;">
+<div class="feature-icon"><svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="8"/><path d="M24 4 v6 M24 38 v6 M44 24 h-6 M10 24 h-6 M37.5 10.5 l-4.2 4.2 M14.7 33.3 l-4.2 4.2 M37.5 37.5 l-4.2 -4.2 M14.7 14.7 l-4.2 -4.2"/></svg></div>
+<div class="feature-eyebrow">SETTINGS</div>
+<h2 class="feature-head">MAKE IT<br/>YOURS.</h2>
+<p class="feature-sub">Targets, themes, reminders, backup — configured your way.</p>
+</div></section>
+
+<section id="scene-climax" class="clip" data-start="70.494" data-duration="4.806" data-track-index="0">
+<div class="bg-black"></div>
+<div id="climax-glow"></div>
+<div id="flash"></div>
+<div id="phone-pr-phone" class="iphone" style="left:743px;top:40px;width:434px;height:940px;border-radius:67.3px;padding:15.2px;">
+<div class="iphone-btn" style="left:-4.9px;top:136.3px;width:3.9px;height:30.1px;"></div>
+<div class="iphone-btn" style="left:-4.9px;top:192.7px;width:3.9px;height:48.9px;"></div>
+<div class="iphone-btn" style="left:-4.9px;top:258.5px;width:3.9px;height:48.9px;"></div>
+<div class="iphone-btn" style="right:-4.9px;top:173.9px;width:3.9px;height:84.6px;"></div>
+<div class="iphone-screen" style="border-radius:58.2px;"><img src="assets/screenshots/pr-celebration.png" alt="" style="object-position:center 50%;" /><div class="iphone-statusbar" style="height:69.9px;"></div><div class="iphone-gloss"></div></div>
+<div class="iphone-island" style="width:130.2px;height:33.9px;top:23.0px;left:50%;margin-left:-65.1px;border-radius:33.9px;"></div>
+</div>
+</section>
+
+<section id="scene-stats" class="clip" data-start="75.300" data-duration="4.272" data-track-index="0">
+<div class="bg-hero"></div>
+<div id="decor-plan" class="decor"><img src="assets/screenshots/plan-switcher.png" alt="" /></div>
+<div id="decor-hall" class="decor"><img src="assets/screenshots/hall.png" alt="" /></div>
+<div id="stat1" class="stat">3 SPLITS.</div><div id="stat2" class="stat">149 EXERCISES.</div><div id="stat3" class="stat">83 BADGES.</div><div id="stat4" class="stat">21 LEVELS.</div>
+</section>
+
+<section id="scene-outro" class="clip" data-start="79.573" data-duration="5.340" data-track-index="0">
+<div class="bg-hero"></div>
+<h1 id="wordmark2" class="wordmark">ZENITH</h1>
+<div id="tagline2" class="tagline">Own the peak.</div>
+<div id="signature">by Apurva</div>
+</section>
+      <audio id="bgm" src="assets/music/daredevil.mp3" data-start="0" data-duration="84.913" data-track-index="10"></audio>
+      <audio id="sfx-tap" src="assets/sfx/interface/click_001.ogg" data-start="0.750" data-duration="0.13" data-track-index="20" data-volume="0.6"></audio>
+      <audio id="sfx-cut" src="assets/sfx/impact/impactBell_heavy_000.ogg" data-start="1.173" data-duration="1.51" data-track-index="21" data-volume="0.8"></audio>
+      <audio id="sfx-word" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="3.286" data-duration="0.21" data-track-index="22" data-volume="0.65"></audio>
+      <audio id="sfx-f-home" src="assets/sfx/interface/click_002.ogg" data-start="6.409" data-duration="0.04" data-track-index="23" data-volume="0.55"></audio>
+      <audio id="sfx-f-train" src="assets/sfx/impact/impactSoft_medium_002.ogg" data-start="10.681" data-duration="0.17" data-track-index="24" data-volume="0.55"></audio>
+      <audio id="sfx-f-plans" src="assets/sfx/interface/switch_001.ogg" data-start="14.953" data-duration="0.65" data-track-index="25" data-volume="0.55"></audio>
+      <audio id="sfx-f-focus" src="assets/sfx/impact/impactSoft_medium_003.ogg" data-start="19.226" data-duration="0.17" data-track-index="26" data-volume="0.55"></audio>
+      <audio id="sfx-f-nutrition" src="assets/sfx/interface/click_003.ogg" data-start="23.498" data-duration="0.04" data-track-index="27" data-volume="0.55"></audio>
+      <audio id="sfx-f-water" src="assets/sfx/interface/drop_002.ogg" data-start="27.770" data-duration="0.22" data-track-index="28" data-volume="0.55"></audio>
+      <audio id="sfx-f-sleep" src="assets/sfx/interface/click_004.ogg" data-start="32.043" data-duration="0.04" data-track-index="29" data-volume="0.55"></audio>
+      <audio id="sfx-f-study" src="assets/sfx/interface/click_005.ogg" data-start="36.315" data-duration="0.04" data-track-index="30" data-volume="0.55"></audio>
+      <audio id="sfx-f-fuel" src="assets/sfx/interface/drop_003.ogg" data-start="40.587" data-duration="0.22" data-track-index="31" data-volume="0.55"></audio>
+      <audio id="sfx-f-calendar" src="assets/sfx/casino/card-slide-1.ogg" data-start="44.860" data-duration="0.63" data-track-index="32" data-volume="0.55"></audio>
+      <audio id="sfx-f-hall" src="assets/sfx/impact/impactMetal_medium_000.ogg" data-start="49.132" data-duration="0.30" data-track-index="33" data-volume="0.55"></audio>
+      <audio id="sfx-f-stats" src="assets/sfx/interface/click_002.ogg" data-start="53.405" data-duration="0.04" data-track-index="34" data-volume="0.55"></audio>
+      <audio id="sfx-f-leaderboard" src="assets/sfx/impact/impactPlate_medium_000.ogg" data-start="57.677" data-duration="0.64" data-track-index="35" data-volume="0.55"></audio>
+      <audio id="sfx-f-quotes" src="assets/sfx/casino/card-slide-3.ogg" data-start="61.949" data-duration="0.63" data-track-index="36" data-volume="0.55"></audio>
+      <audio id="sfx-f-settings" src="assets/sfx/interface/click_003.ogg" data-start="66.222" data-duration="0.04" data-track-index="37" data-volume="0.55"></audio>
+      <audio id="sfx-climax" src="assets/sfx/impact/impactBell_heavy_004.ogg" data-start="71.053" data-duration="0.33" data-track-index="38" data-volume="0.9"></audio>
+      <audio id="sfx-stat1" src="assets/sfx/casino/chip-lay-1.ogg" data-start="75.300" data-duration="0.20" data-track-index="39" data-volume="0.55"></audio>
+      <audio id="sfx-stat2" src="assets/sfx/casino/chip-lay-2.ogg" data-start="75.834" data-duration="0.26" data-track-index="40" data-volume="0.55"></audio>
+      <audio id="sfx-stat3" src="assets/sfx/casino/chip-lay-3.ogg" data-start="76.368" data-duration="0.27" data-track-index="41" data-volume="0.55"></audio>
+      <audio id="sfx-stat4" src="assets/sfx/casino/chip-lay-1.ogg" data-start="76.903" data-duration="0.20" data-track-index="42" data-volume="0.55"></audio>
+      <audio id="sfx-outro" src="assets/sfx/impact/impactBell_heavy_003.ogg" data-start="79.723" data-duration="0.68" data-track-index="43" data-volume="0.6"></audio>
+    </div>
+    <script>
+      var tl = gsap.timeline({ paused: true });
+
+      tl.fromTo("#heartbeat", {scale:0, opacity:0}, {scale:1, opacity:1, duration:0.12, ease:"power2.out"}, 0.05);
+      tl.to("#heartbeat", {scale:1.6, duration:0.18, ease:"power1.inOut"}, 0.17);
+      tl.to("#heartbeat", {scale:1, duration:0.18, ease:"power1.inOut"}, 0.35);
+      tl.to("#heartbeat", {scale:1.8, duration:0.18, ease:"power1.inOut"}, 0.53);
+      tl.to("#heartbeat", {scale:1, opacity:0, duration:0.22, ease:"power2.in"}, 0.71);
+      tl.fromTo("#tap-label", {opacity:0, y:8}, {opacity:1, y:0, duration:0.15, ease:"power2.out"}, 0.55);
+      tl.fromTo("#tap-dot", {opacity:0}, {opacity:1, duration:0.05}, 0.75);
+      tl.fromTo("#tap-ripple", {opacity:0.9, scale:0.3}, {opacity:0, scale:2.2, duration:0.25, ease:"power2.out"}, 0.78);
+      tl.to(["#tap-label", "#tap-dot"], {opacity:0, duration:0.08}, 0.92);
+      tl.fromTo("#phone-quit-phone", {opacity:0, scale:0.94}, {opacity:1, scale:1, duration:0.14, ease:"power3.out"}, 1.1726); // beat-locked: 1.1726s (strong_beat)
+      tl.fromTo("#wordmark", {opacity:0, scale:0.86}, {opacity:1, scale:1, duration:0.46, ease:"back.out(1.7)"}, 3.2859); // beat-locked: 3.286s (strong_beat)
+      tl.fromTo("#tagline", {opacity:0, y:14}, {opacity:1, y:0, duration:0.36, ease:"power2.out"}, 4.2043);
+      tl.fromTo("#f-home-phone", {opacity:0, scale:0.92, x:-46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 6.409);
+      tl.fromTo("#f-home-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 6.489);
+      tl.fromTo("#f-home-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 6.569);
+      tl.fromTo("#f-home-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 6.629);
+      tl.fromTo("#f-home-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 6.909);
+      tl.fromTo("#f-train-phone", {opacity:0, scale:0.92, x:46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 10.681);
+      tl.fromTo("#f-train-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 10.761);
+      tl.fromTo("#f-train-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 10.841);
+      tl.fromTo("#f-train-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 10.901);
+      tl.fromTo("#f-train-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 11.181);
+      tl.fromTo("#f-plans-phone", {opacity:0, scale:0.92, x:-46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 14.953);
+      tl.fromTo("#f-plans-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 15.033);
+      tl.fromTo("#f-plans-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 15.113);
+      tl.fromTo("#f-plans-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 15.173);
+      tl.fromTo("#f-plans-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 15.453);
+      tl.fromTo("#f-focus-phone", {opacity:0, scale:0.92, x:46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 19.226);
+      tl.fromTo("#f-focus-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 19.306);
+      tl.fromTo("#f-focus-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 19.386);
+      tl.fromTo("#f-focus-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 19.446);
+      tl.fromTo("#f-focus-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 19.726);
+      tl.fromTo("#f-nutrition-phone", {opacity:0, scale:0.92, x:-46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 23.498);
+      tl.fromTo("#f-nutrition-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 23.578);
+      tl.fromTo("#f-nutrition-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 23.658);
+      tl.fromTo("#f-nutrition-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 23.718);
+      tl.fromTo("#f-nutrition-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 23.998);
+      tl.fromTo("#f-water-phone", {opacity:0, scale:0.92, x:46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 27.770);
+      tl.fromTo("#f-water-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 27.850);
+      tl.fromTo("#f-water-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 27.930);
+      tl.fromTo("#f-water-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 27.990);
+      tl.fromTo("#f-water-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 28.270);
+      tl.fromTo("#f-sleep-phone", {opacity:0, scale:0.92, x:-46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 32.043);
+      tl.fromTo("#f-sleep-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 32.123);
+      tl.fromTo("#f-sleep-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 32.203);
+      tl.fromTo("#f-sleep-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 32.263);
+      tl.fromTo("#f-sleep-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 32.543);
+      tl.fromTo("#f-study-phone", {opacity:0, scale:0.92, x:46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 36.315);
+      tl.fromTo("#f-study-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 36.395);
+      tl.fromTo("#f-study-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 36.475);
+      tl.fromTo("#f-study-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 36.535);
+      tl.fromTo("#f-study-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 36.815);
+      tl.fromTo("#f-fuel-phone", {opacity:0, scale:0.92, x:-46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 40.587);
+      tl.fromTo("#f-fuel-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 40.667);
+      tl.fromTo("#f-fuel-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 40.747);
+      tl.fromTo("#f-fuel-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 40.807);
+      tl.fromTo("#f-fuel-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 41.087);
+      tl.fromTo("#f-calendar-phone", {opacity:0, scale:0.92, x:46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 44.860);
+      tl.fromTo("#f-calendar-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 44.940);
+      tl.fromTo("#f-calendar-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 45.020);
+      tl.fromTo("#f-calendar-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 45.080);
+      tl.fromTo("#f-calendar-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 45.360);
+      tl.fromTo("#f-hall-phone", {opacity:0, scale:0.92, x:-46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 49.132);
+      tl.fromTo("#f-hall-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 49.212);
+      tl.fromTo("#f-hall-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 49.292);
+      tl.fromTo("#f-hall-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 49.352);
+      tl.fromTo("#f-hall-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 49.632);
+      tl.fromTo("#f-stats-phone", {opacity:0, scale:0.92, x:46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 53.405);
+      tl.fromTo("#f-stats-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 53.485);
+      tl.fromTo("#f-stats-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 53.565);
+      tl.fromTo("#f-stats-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 53.625);
+      tl.fromTo("#f-stats-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 53.905);
+      tl.fromTo("#f-leaderboard-phone", {opacity:0, scale:0.92, x:-46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 57.677);
+      tl.fromTo("#f-leaderboard-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 57.757);
+      tl.fromTo("#f-leaderboard-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 57.837);
+      tl.fromTo("#f-leaderboard-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 57.897);
+      tl.fromTo("#f-leaderboard-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 58.177);
+      tl.fromTo("#f-quotes-phone", {opacity:0, scale:0.92, x:46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 61.949);
+      tl.fromTo("#f-quotes-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 62.029);
+      tl.fromTo("#f-quotes-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 62.109);
+      tl.fromTo("#f-quotes-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 62.169);
+      tl.fromTo("#f-quotes-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 62.449);
+      tl.fromTo("#f-settings-phone", {opacity:0, scale:0.92, x:-46}, {opacity:1, scale:1, x:0, duration:0.36, ease:"power3.out"}, 66.222);
+      tl.fromTo("#f-settings-text .feature-icon", {opacity:0, scale:0.4}, {opacity:1, scale:1, duration:0.3, ease:"back.out(2.2)"}, 66.302);
+      tl.fromTo("#f-settings-text .feature-eyebrow", {opacity:0, y:10}, {opacity:1, y:0, duration:0.22, ease:"power2.out"}, 66.382);
+      tl.fromTo("#f-settings-text .feature-head", {opacity:0, y:16, scale:1.05}, {opacity:1, y:0, scale:1, duration:0.32, ease:"power4.out"}, 66.442);
+      tl.fromTo("#f-settings-text .feature-sub", {opacity:0, y:10}, {opacity:1, y:0, duration:0.3, ease:"power2.out"}, 66.722);
+      tl.fromTo("#climax-glow", {opacity:0, scale:0.7}, {opacity:1, scale:1, duration:0.16, ease:"power2.out"}, 70.494);
+      tl.to("#climax-glow", {opacity:0.4, scale:0.85, duration:0.16, ease:"power1.inOut"}, 70.694);
+      tl.to("#climax-glow", {opacity:1, scale:1.1, duration:0.16, ease:"power1.inOut"}, 70.874);
+      tl.fromTo("#flash", {opacity:0}, {opacity:1, duration:0.07, ease:"power1.in"}, 71.0530); // beat-locked: 71.053s (onset_peak)
+      tl.to("#flash", {opacity:0, duration:0.2, ease:"power2.out"}, 71.1230);
+      tl.fromTo("#phone-pr-phone", {opacity:0, scale:0.88}, {opacity:1, scale:1, duration:0.2, ease:"back.out(1.5)"}, 71.1230);
+      tl.fromTo("#stat1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.24, ease:"power2.out"}, 75.300); // beat-grid: stat1 at 75.300s
+      tl.fromTo("#stat2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.24, ease:"power2.out"}, 75.834); // beat-grid: stat2 at 75.834s
+      tl.fromTo("#stat3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.24, ease:"power2.out"}, 76.368); // beat-grid: stat3 at 76.368s
+      tl.fromTo("#stat4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.24, ease:"power2.out"}, 76.903); // beat-grid: stat4 at 76.903s
+      tl.fromTo("#wordmark2", {opacity:0, scale:0.92}, {opacity:1, scale:1, duration:0.42, ease:"power3.out"}, 79.723);
+      tl.fromTo("#tagline2", {opacity:0}, {opacity:1, duration:0.36}, 80.323);
+      tl.fromTo("#signature", {opacity:0}, {opacity:1, duration:0.36}, 80.773);
+      tl.fromTo("#bgm", {volume:0.34}, {volume:0.34, duration:0.001}, 0);
+      tl.to("#bgm", {volume:0, duration:1.8, ease:"power1.out"}, 82.913);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
