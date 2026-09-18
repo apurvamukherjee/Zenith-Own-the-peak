@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import type { DayExerciseDto, WorkoutDayDto, WorkoutSetDto, Effort, DropStageDto, MuscleGroup } from "../../db/types";
+import type { DayExerciseDto, WorkoutSetDto, Effort, DropStageDto, MuscleGroup } from "../../db/types";
 import { estimate1RM, bestE1RM } from "../../lib/workout.utils";
 import { todayKey, weekKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
@@ -119,10 +119,6 @@ export async function updateSet(
 export async function addWorkoutDay(name: string, muscles: string[]): Promise<number> {
   const count = await db.workoutDays.count();
   return db.workoutDays.add({ name, muscles: muscles as any, order: count });
-}
-
-export async function updateWorkoutDay(id: number, data: Partial<WorkoutDayDto>) {
-  await db.workoutDays.update(id, data);
 }
 
 export async function deleteWorkoutDay(id: number) {

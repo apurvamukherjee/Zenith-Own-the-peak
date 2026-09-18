@@ -129,8 +129,3 @@ export async function getTotalXP(): Promise<number> {
 }
 
 /** XP earned in the current ISO week. */
-export async function getWeekXP(): Promise<number> {
-  const wk = isoWeek();
-  const events = await db.xpEvents.where("weekKey").equals(wk).toArray();
-  return events.reduce((s, e) => s + e.xp, 0);
-}

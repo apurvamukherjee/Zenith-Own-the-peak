@@ -70,7 +70,6 @@ export function useEasterEggs(): EasterEggState {
         wordBufRef.current = (wordBufRef.current + raw.toLowerCase()).slice(-8);
         if (wordBufRef.current.endsWith("peak")) {
           setPeakFlash(Date.now());
-          void setSetting("eggPeak", 1);
         }
         if (wordBufRef.current.endsWith("iddqd")) {
           setShowDebug(true);

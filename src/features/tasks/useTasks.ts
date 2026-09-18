@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import type { TaskDto, TaskListDto, TaskStatus } from "../../db/types";
+import type { TaskDto, TaskStatus } from "../../db/types";
 import { todayKey } from "../../lib/date.utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -99,10 +99,6 @@ export async function completeTask(id: number): Promise<void> {
 
 export async function deleteTask(id: number): Promise<void> {
   await db.tasks.delete(id);
-}
-
-export async function addTaskList(list: Omit<TaskListDto, "createdAt">): Promise<void> {
-  await db.taskLists.put({ ...list, createdAt: Date.now() });
 }
 
 export async function deleteTaskList(id: string): Promise<void> {

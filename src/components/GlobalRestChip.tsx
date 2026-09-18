@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { TbX, TbPlayerPauseFilled, TbPlayerPlayFilled } from "react-icons/tb";
 import { useRestTimer } from "../hooks/useRestTimer";
 import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
+import { fmtMinSec } from "../lib/date.utils";
+import { RestRing } from "./RestRing";
 
 // Floating rest chip. Renders only when:
 //   • The global rest store is active, AND
@@ -15,7 +17,6 @@ export function GlobalRestChip() {
 
   const show = rest.active && location.pathname !== "/workout";
   const pct = rest.totalSec > 0 ? (1 - rest.remaining / rest.totalSec) * 100 : 0;
-  const CIRC = 100.5; // 2·π·16
 
   return (
     <AnimatePresence>
@@ -41,24 +42,11 @@ export function GlobalRestChip() {
             aria-label="Return to workout"
             style={{ position: "relative", width: 38, height: 38, cursor: "pointer" }}
           >
-            <svg width="38" height="38" viewBox="0 0 38 38" style={{ transform: "rotate(-90deg)" }}>
-              <circle cx="19" cy="19" r="16" fill="none" stroke="var(--border)" strokeWidth="3" />
-              <motion.circle
-                cx="19" cy="19" r="16" fill="none" stroke={rest.color}
-                strokeWidth="3" strokeLinecap="round"
-                strokeDasharray={CIRC}
-                strokeDashoffset={CIRC * (1 - pct / 100)}
-                initial={false}
-                animate={{ strokeDashoffset: CIRC * (1 - pct / 100) }}
-                transition={{ duration: 0.35, ease: "linear" }}
-              />
-            </svg>
-            <div style={{
-              position: "absolute", inset: 0, display: "flex", alignItems: "center",
-              justifyContent: "center", fontSize: 11, fontWeight: 800, color: rest.color,
-            }}>
-              {fmt(rest.remaining)}
-            </div>
+            <RestRing size={38} pct={pct} color={rest.color}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: rest.color }}>
+                {fmtMinSec(rest.remaining)}
+              </span>
+            </RestRing>
           </div>
           <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1, minWidth: 0 }}>
             <span style={{ fontSize: 10, color: "var(--ink-soft)", fontWeight: 700, letterSpacing: 0.4 }}>
@@ -96,9 +84,3 @@ const chipBtn: React.CSSProperties = {
   color: "var(--ink-soft)", padding: 4, display: "inline-flex",
   alignItems: "center", justifyContent: "center",
 };
-
-function fmt(secs: number): string {
-  const m = Math.floor(secs / 60);
-  const s = String(secs % 60).padStart(2, "0");
-  return `${m}:${s}`;
-}

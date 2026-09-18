@@ -70,15 +70,6 @@ export async function deleteExpense(id: number) {
 export async function addExpenseItem(item: Omit<ExpenseItemDto, "id" | "createdAt" | "favorite" | "isCustom">) {
   return db.expenseItems.add({ ...item, favorite: 0, isCustom: 1, createdAt: Date.now() });
 }
-export async function deleteExpenseItem(id: number) {
-  await db.expenseItems.delete(id);
-}
-export async function toggleExpenseItemFavorite(id: number) {
-  const it = await db.expenseItems.get(id);
-  if (!it) return;
-  await db.expenseItems.update(id, { favorite: it.favorite ? 0 : 1 });
-}
-
 // Save a quick-add amount preset onto an expense item (mirrors nutrition's
 // food presets — see useFoods.ts's savePreset/removePreset).
 export async function savePreset(itemId: number, preset: ExpensePresetDto) {

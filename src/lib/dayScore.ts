@@ -74,34 +74,3 @@ export async function computeScoresForMonth(dates: string[], waterGoal: number, 
 }
 
 // "On this day" comparison — same weekday, 7 and 30 days back.
-export interface OnThisDay { label: string; date: string; metrics: DayMetrics | null }
-export async function onThisDayComparisons(date: string, waterGoal: number, proteinTarget: number): Promise<OnThisDay[]> {
-  const base = new Date(date);
-  const lastWeek = new Date(base); lastWeek.setDate(base.getDate() - 7);
-  const lastMonth = new Date(base); lastMonth.setDate(base.getDate() - 30);
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
-  const targets = [
-    { label: "Last week", date: fmt(lastWeek) },
-    { label: "Last month", date: fmt(lastMonth) },
-  ];
-  const results: OnThisDay[] = [];
-  for (const t of targets) {
-    const m = await computeScoreForDate(t.date, waterGoal, proteinTarget);
-    results.push({ ...t, metrics: m.hasAny ? m : null });
-  }
-  return results;
-}
-
-// Auto-detect deload weeks: if this week's training volume dropped 30%+ vs
-// last week, we tag it a deload instead of penalizing it.
-export async function detectDeloadWeek(weekDates: string[], prevWeekDates: string[]): Promise<boolean> {
-  const [thisWeek, prevWeek] = await Promise.all([
-    db.workoutSets.where("date").anyOf(weekDates).toArray(),
-    db.workoutSets.where("date").anyOf(prevWeekDates).toArray(),
-  ]);
-  const vol = (arr: typeof thisWeek) => arr.reduce((s, x) => s + x.weightKg * x.reps, 0);
-  const cur = vol(thisWeek);
-  const prev = vol(prevWeek);
-  if (prev < 500) return false; // not enough prior data
-  return cur < prev * 0.7;
-}

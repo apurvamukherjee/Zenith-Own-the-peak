@@ -1,7 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import type { SleepDto } from "../../db/types";
-import { lastNDates, sleepDurationMin, todayKey } from "../../lib/date.utils";
+import { lastNDates, sleepDurationMin } from "../../lib/date.utils";
 
 export function useRecentSleep(n = 14) {
   const dates = lastNDates(n);
@@ -19,4 +19,3 @@ export async function upsertSleep(entry: Omit<SleepDto, "id" | "durationMin">) {
   else await db.sleep.add({ ...entry, durationMin });
 }
 
-export function useTonightKey() { return todayKey(); }

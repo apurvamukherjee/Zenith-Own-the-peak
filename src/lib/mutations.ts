@@ -1,13 +1,11 @@
 // Tiny mutation bus so cloud auto-backup knows when local data changed,
 // without every hook needing to import the sync layer.
-let last = 0;
 let suppressed = false;
 type Listener = (table?: string) => void;
 const listeners = new Set<Listener>();
 
 export function bumpMutation(table?: string) {
   if (suppressed) return;
-  last = Date.now();
   // Dispatched via a fresh macrotask, not inline: bumpMutation() itself runs
   // from inside a Dexie table hook (creating/updating/deleting), which fires
   // synchronously inside that write's own IndexedDB transaction — scoped only
@@ -19,7 +17,6 @@ export function bumpMutation(table?: string) {
   // own, correctly-scoped transaction.
   setTimeout(() => listeners.forEach((l) => l(table)), 0);
 }
-export function lastMutation() { return last; }
 export function suppressMutations(on: boolean) { suppressed = on; }
 
 /**

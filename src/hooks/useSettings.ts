@@ -46,7 +46,6 @@ export const DEFAULTS = {
   eggKonami: 0,
   eggSisyphus: 0,
   eggReflective: "",      // last YYYY collected (one per year)
-  eggPeak: 0,
   eggIddqd: 0,
   eggDramatic: 0,         // 1 = seen the "System overload…" intro (once per lifetime)
   hardcoreUntil: 0,       // epoch ms — Hardcore Mode active until

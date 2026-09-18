@@ -1,19 +1,12 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { todayKey } from "../../lib/date.utils";
-import type { MealDto, MealTemplateDto, MealTemplateItemDto, MealType } from "../../db/types";
+import type { MealDto, MealTemplateDto, MealType } from "../../db/types";
 import dayjs from "dayjs";
 import { computeMacros } from "./useFoods";
 
 export function useMealTemplates() {
   return useLiveQuery(() => db.mealTemplates.orderBy("createdAt").toArray(), []) ?? [];
-}
-
-export function useTemplateItems(templateId: number | undefined) {
-  return useLiveQuery(async () => {
-    if (!templateId) return [] as MealTemplateItemDto[];
-    return db.mealTemplateItems.where({ templateId }).sortBy("order");
-  }, [templateId]) ?? [];
 }
 
 export async function saveMealAsTemplate(meal: MealDto, name: string) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMediaQuery } from "./useMediaQuery";
 
 // Returns `"decimal"` on touch-first devices, `undefined` on hover-capable
 // ones. On desktop with a real keyboard, forcing inputMode="decimal" pops the
@@ -8,15 +8,6 @@ import { useEffect, useState } from "react";
 //
 // Usage: `<InputNumber inputMode={useNumericInputMode()} ... />`
 export function useNumericInputMode(): "decimal" | undefined {
-  const [mode, setMode] = useState<"decimal" | undefined>(() => {
-    if (typeof window === "undefined") return "decimal";
-    return window.matchMedia("(hover: hover)").matches ? undefined : "decimal";
-  });
-  useEffect(() => {
-    const m = window.matchMedia("(hover: hover)");
-    const on = () => setMode(m.matches ? undefined : "decimal");
-    m.addEventListener("change", on);
-    return () => m.removeEventListener("change", on);
-  }, []);
-  return mode;
+  // No matchMedia (SSR) → assume touch, matching the pre-hook default.
+  return useMediaQuery("(hover: hover)", false) ? undefined : "decimal";
 }

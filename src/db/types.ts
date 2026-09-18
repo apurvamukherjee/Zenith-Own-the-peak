@@ -177,15 +177,6 @@ export interface QuoteDto {
   createdAt: number;
 }
 
-// Legacy compat
-export type DayType = string;
-export interface ExercisePlan {
-  name: string; sets: number; repLow: number; repHigh: number; restSec: number;
-}
-export interface DayPlan {
-  dayType: DayType; label: string; focus: string; exercises: ExercisePlan[];
-}
-
 // ---- Calendar extensions ----
 export interface GoalDayDto { id?: number; date: string; title: string; createdAt: number; }
 export interface DayPhotoDto { id?: number; date: string; dataUrl: string; }

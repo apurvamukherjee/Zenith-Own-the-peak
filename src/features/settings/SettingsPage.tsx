@@ -10,7 +10,7 @@ import { MountainGrows } from "../../components/MountainGrows";
 import { AvatarFrame } from "../../components/AvatarFrame";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { exportAll, importAll } from "../../db/db";
-import { encryptString } from "../../lib/encryptedExport";
+import { encryptString, decryptString } from "../../lib/encryptedExport";
 import { fileToDataURL } from "../../lib/image.utils";
 import { RemindersCard } from "../reminders/RemindersCard";
 import { SyncCard } from "../sync/SyncCard";
@@ -77,8 +77,18 @@ export function SettingsPage() {
         content: "This replaces all current data on this device.",
         okText: "Restore", okButtonProps: { danger: true },
         onOk: async () => {
-          try { await importAll(String(reader.result)); message.success("Data restored"); }
-          catch { message.error("Invalid backup file"); }
+          try {
+            const raw = String(reader.result).trim();
+            let json = raw;
+            if (raw.startsWith("zn1.")) {
+              const pw = prompt("This backup is encrypted. Password:");
+              if (!pw) return;
+              json = await decryptString(raw, pw);
+            }
+            await importAll(json);
+            message.success("Data restored");
+          }
+          catch { message.error("Invalid backup file or wrong password"); }
         },
       });
     };
@@ -195,7 +205,7 @@ export function SettingsPage() {
           a.click(); URL.revokeObjectURL(url);
           message.success("Encrypted backup downloaded");
         }}>Encrypted export</Button>
-        <input ref={fileRef} type="file" accept="application/json" hidden
+        <input ref={fileRef} type="file" accept="application/json,text/plain" hidden
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ""; }} />
       </Card>
 

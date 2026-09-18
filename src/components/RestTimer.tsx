@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { TbPlayerPauseFilled, TbPlayerPlayFilled, TbX } from "react-icons/tb";
 import { useRestTimer } from "../hooks/useRestTimer";
 import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
+import { fmtMinSec } from "../lib/date.utils";
+import { RestRing } from "./RestRing";
 
 // In-card rest timer — reads from the global store. Renders nothing when the
 // store is inactive. Kept as a controlled *view*; ticking, haptics, and reset
@@ -37,7 +39,7 @@ export function RestTimer({ matchLabel }: { matchLabel?: string } = {}) {
               {rest.paused ? "Paused" : "Rest"}
             </div>
             <div className="display" style={{ fontSize: 18, fontWeight: 800, color: rest.color, lineHeight: 1 }}>
-              {fmt(rest.remaining)}
+              {fmtMinSec(rest.remaining)}
             </div>
           </div>
           <button
@@ -56,7 +58,6 @@ export function RestTimer({ matchLabel }: { matchLabel?: string } = {}) {
 function RestDial() {
   const rest = useRestTimer();
   const pct = rest.totalSec > 0 ? (1 - rest.remaining / rest.totalSec) * 100 : 0;
-  const CIRC = 107; // 2·π·17 ≈ 106.8
   return (
     <motion.div
       style={{ position: "relative", width: 40, height: 40, cursor: "pointer" }}
@@ -65,29 +66,11 @@ function RestDial() {
       role="button"
       aria-label={rest.paused ? "Resume rest" : "Pause rest"}
     >
-      <svg width="40" height="40" viewBox="0 0 40 40" style={{ transform: "rotate(-90deg)" }}>
-        <circle cx="20" cy="20" r="17" fill="none" stroke="var(--border)" strokeWidth="3" />
-        <motion.circle
-          cx="20" cy="20" r="17" fill="none" stroke={rest.color}
-          strokeWidth="3" strokeLinecap="round"
-          strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - pct / 100)}
-          initial={false}
-          animate={{ strokeDashoffset: CIRC * (1 - pct / 100) }}
-          transition={{ duration: 0.35, ease: "linear" }}
-        />
-      </svg>
-      <div style={{
-        position: "absolute", inset: 0, display: "flex", alignItems: "center",
-        justifyContent: "center", color: "var(--ink-soft)",
-      }}>
-        {rest.paused ? <TbPlayerPlayFilled size={12} /> : <TbPlayerPauseFilled size={12} />}
-      </div>
+      <RestRing size={40} pct={pct} color={rest.color}>
+        <span style={{ color: "var(--ink-soft)", display: "inline-flex" }}>
+          {rest.paused ? <TbPlayerPlayFilled size={12} /> : <TbPlayerPauseFilled size={12} />}
+        </span>
+      </RestRing>
     </motion.div>
   );
-}
-
-function fmt(secs: number): string {
-  const m = Math.floor(secs / 60);
-  const s = String(secs % 60).padStart(2, "0");
-  return `${m}:${s}`;
 }

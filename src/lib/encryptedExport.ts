@@ -1,7 +1,7 @@
-// Password-encrypted export using Web Crypto API AES-GCM. Not wired into any UI
-// yet — see Stats for the plain JSON export. Call encryptString(json, password)
-// to get a hex-encoded blob safe to email, and decryptString(blob, password)
-// on import. PBKDF2 100k rounds → AES-256-GCM.
+// Password-encrypted export using Web Crypto API AES-GCM. Encrypted blobs are
+// detected by their "zn1." prefix on the Settings import path and decrypted there.
+// PBKDF2 100k rounds → AES-256-GCM.
+
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();

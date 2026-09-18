@@ -59,31 +59,3 @@ export function useMonthScores(year: number, month: number, waterGoal: number, p
   return cells;
 }
 
-export interface DayDetail {
-  waterMl: number; sleepMin: number | null; sleepQuality: number | null;
-  sets: number; volume: number; protein: number; studyMin: number; fuelCost: number;
-}
-
-export function useDayDetail(date: string) {
-  return useLiveQuery(async () => {
-    const [water, sleep, sets, meals, study, fuel] = await Promise.all([
-      db.water.where({ date }).toArray(),
-      db.sleep.where({ date }).first(),
-      db.workoutSets.where("date").equals(date).toArray(),
-      db.meals.where({ date }).toArray(),
-      db.studySessions.where({ date }).toArray(),
-      db.fuel.where({ date }).toArray(),
-    ]);
-    const detail: DayDetail = {
-      waterMl: water.reduce((s, w) => s + w.amountMl, 0),
-      sleepMin: sleep?.durationMin ?? null,
-      sleepQuality: sleep?.quality ?? null,
-      sets: sets.length,
-      volume: Math.round(sets.reduce((s, x) => s + x.weightKg * x.reps, 0)),
-      protein: meals.reduce((s, m) => s + m.protein, 0),
-      studyMin: study.reduce((s, x) => s + x.minutes, 0),
-      fuelCost: fuel.reduce((s, f) => s + f.cost, 0),
-    };
-    return detail;
-  }, [date]) ?? null;
-}

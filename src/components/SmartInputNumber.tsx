@@ -14,9 +14,3 @@ export function SmartInputNumber(props: InputNumberProps) {
   return <InputNumber inputMode={inputMode} {...props} />;
 }
 
-// Convenience cast helper — lets callers narrow the onChange value to number
-// without wrapping every single handler: `onChange={(v) => setN(asNum(v, 0))}`.
-export function asNum(v: unknown, fallback = 0): number {
-  const n = Number(v);
-  return isNaN(n) ? fallback : n;
-}

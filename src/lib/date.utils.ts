@@ -34,6 +34,13 @@ export function fmtDuration(min: number): string {
   return `${h}h ${String(m).padStart(2, "0")}m`;
 }
 
+// Countdown/stopwatch display: m:ss.
+export function fmtMinSec(secs: number): string {
+  const m = Math.floor(secs / 60);
+  const s = String(secs % 60).padStart(2, "0");
+  return `${m}:${s}`;
+}
+
 export function lastNDates(n: number): string[] {
   const out: string[] = [];
   const d = new Date();

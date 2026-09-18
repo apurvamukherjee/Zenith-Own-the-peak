@@ -5,9 +5,8 @@ import { hapticSuccess } from "./haptics";
 // Any component that wants to react to a celebration subscribes via
 // `subscribeCelebrate`. The overlay lives once at the App root, so callers
 // never worry about which route they're on.
-export type CelebrationKind = "pr";
 export interface CelebrationPayload {
-  kind: CelebrationKind;
+  kind: "pr";
   title: string;      // headline shown on the overlay
   subtitle?: string;  // secondary line ("Bench Press · 62.5kg × 6 · e1RM 75")
 }

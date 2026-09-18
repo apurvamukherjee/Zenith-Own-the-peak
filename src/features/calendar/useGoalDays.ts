@@ -18,10 +18,6 @@ export function useGoalsForMonth(dates: string[]) {
   ) ?? [];
 }
 
-export function useGoalForDate(date: string) {
-  return useLiveQuery(() => db.goalDays.where({ date }).first(), [date]);
-}
-
 export async function addGoalDay(date: string, title: string) {
   return db.goalDays.add({ date, title: title.trim(), createdAt: Date.now() });
 }
