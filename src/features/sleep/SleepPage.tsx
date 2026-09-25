@@ -1,11 +1,11 @@
-import { Card, Rate, Input, Button, Statistic, Row, Col, App, DatePicker } from "antd";
+import { Card, Rate, Input, Button, Statistic, Row, Col, App, DatePicker, Popconfirm } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { TimeSelect } from "../../components/TimeSelect";
 import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
-import { useRecentSleep, upsertSleep, getSleep } from "./useSleep";
+import { useRecentSleep, upsertSleep, getSleep, deleteSleep } from "./useSleep";
 import { useSetting } from "../../hooks/useSettings";
 import { fmtDuration, sleepDurationMin, todayKey, prettyDate } from "../../lib/date.utils";
 import { VIOLET, TEAL, GOLD } from "../../theme";
@@ -61,6 +61,12 @@ export function SleepPage() {
     setEditing(true);
   }
 
+  async function remove() {
+    await deleteSleep(todayKey(date.toDate()));
+    message.success("Night deleted");
+    await pickDate(date);
+  }
+
   return (
     <PageTransition>
       <SectionTitle eyebrow="Recovery" title="Sleep" />
@@ -96,6 +102,11 @@ export function SleepPage() {
         <Rate value={quality} onChange={setQuality} style={{ marginBottom: 12 }} />
         <Input.TextArea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (optional)" rows={2} style={{ marginBottom: 12 }} />
         <Button type="primary" block size="large" onClick={save} style={{ fontWeight: 700 }}>{editing ? "Update night" : "Save night"}</Button>
+        {editing && (
+          <Popconfirm title="Delete this night?" okText="Yes" cancelText="No" onConfirm={() => void remove()}>
+            <Button danger block type="text" style={{ marginTop: 8 }}>Delete night</Button>
+          </Popconfirm>
+        )}
       </Card>
 
       {logged.length > 0 && (

@@ -23,3 +23,7 @@ export async function upsertSleep(entry: Omit<SleepDto, "id" | "durationMin">) {
 export function getSleep(date: string) {
   return db.sleep.where({ date }).first();
 }
+
+export function deleteSleep(date: string) {
+  return db.sleep.where({ date }).delete();
+}
