@@ -1,12 +1,13 @@
-import { Card, Rate, Input, Button, Statistic, Row, Col, App } from "antd";
+import { Card, Rate, Input, Button, Statistic, Row, Col, App, DatePicker } from "antd";
+import dayjs, { type Dayjs } from "dayjs";
 import { TimeSelect } from "../../components/TimeSelect";
 import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
-import { useRecentSleep, upsertSleep } from "./useSleep";
+import { useRecentSleep, upsertSleep, getSleep } from "./useSleep";
 import { useSetting } from "../../hooks/useSettings";
-import { fmtDuration, sleepDurationMin, todayKey } from "../../lib/date.utils";
+import { fmtDuration, sleepDurationMin, todayKey, prettyDate } from "../../lib/date.utils";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 import { hapticSuccess } from "../../lib/haptics";
@@ -21,6 +22,18 @@ export function SleepPage() {
   const [wakeAt, setWakeAt] = useState("07:00");
   const [quality, setQuality] = useState(3);
   const [notes, setNotes] = useState("");
+  const [date, setDate] = useState<Dayjs>(dayjs());
+  const [editing, setEditing] = useState(false);
+
+  async function pickDate(d: Dayjs) {
+    setDate(d);
+    const e = await getSleep(todayKey(d.toDate()));
+    setEditing(!!e);
+    setSleepAt(e?.sleepAt ?? "23:30");
+    setWakeAt(e?.wakeAt ?? "07:00");
+    setQuality(e?.quality ?? 3);
+    setNotes(e?.notes ?? "");
+  }
 
   const logged = recent.filter(Boolean) as NonNullable<(typeof recent)[number]>[];
   const last = logged[logged.length - 1];
@@ -37,15 +50,15 @@ export function SleepPage() {
 
   async function save() {
     await upsertSleep({
-      date: todayKey(),
+      date: todayKey(date.toDate()),
       sleepAt,
       wakeAt,
       quality, notes,
     });
     void hapticSuccess();
     playBellDing();
-    message.success(`Logged ${fmtDuration(preview)}`);
-    setNotes("");
+    message.success(`${editing ? "Updated" : "Logged"} ${fmtDuration(preview)}`);
+    setEditing(true);
   }
 
   return (
@@ -65,7 +78,9 @@ export function SleepPage() {
         </Card>
       )}
 
-      <Card title="Log last night" size="small" style={{ marginBottom: 16 }}>
+      <Card title={editing ? "Edit night" : "Log a night"} size="small" style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Night of (wake-up date)</div>
+        <DatePicker inputReadOnly value={date} onChange={(v) => v && void pickDate(v)} disabledDate={(d) => d.isAfter(dayjs(), "day")} style={{ width: "100%", marginBottom: 12 }} format="DD MMM YYYY" allowClear={false} />
         <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Slept at</div>
@@ -80,8 +95,19 @@ export function SleepPage() {
         <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Quality</div>
         <Rate value={quality} onChange={setQuality} style={{ marginBottom: 12 }} />
         <Input.TextArea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (optional)" rows={2} style={{ marginBottom: 12 }} />
-        <Button type="primary" block size="large" onClick={save} style={{ fontWeight: 700 }}>Save night</Button>
+        <Button type="primary" block size="large" onClick={save} style={{ fontWeight: 700 }}>{editing ? "Update night" : "Save night"}</Button>
       </Card>
+
+      {logged.length > 0 && (
+        <Card title="Recent nights" size="small" style={{ marginBottom: 16 }}>
+          {[...logged].reverse().map((e) => (
+            <div key={e.date} onClick={() => void pickDate(dayjs(e.date))} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)", cursor: "pointer" }}>
+              <span>{prettyDate(e.date)}</span>
+              <span style={{ color: "var(--ink-soft)" }}>{e.sleepAt}–{e.wakeAt} · {fmtDuration(e.durationMin)} · {e.quality}★</span>
+            </div>
+          ))}
+        </Card>
+      )}
 
       <Card title="Duration — last 14 nights" size="small">
         <div style={{ width: "100%", height: 180 }}>

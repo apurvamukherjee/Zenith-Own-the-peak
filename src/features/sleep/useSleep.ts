@@ -19,3 +19,7 @@ export async function upsertSleep(entry: Omit<SleepDto, "id" | "durationMin">) {
   else await db.sleep.add({ ...entry, durationMin });
 }
 
+
+export function getSleep(date: string) {
+  return db.sleep.where({ date }).first();
+}
