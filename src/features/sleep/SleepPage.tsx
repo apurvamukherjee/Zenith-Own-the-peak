@@ -1,39 +1,22 @@
-import { Card, Rate, Input, Button, Statistic, Row, Col, App, DatePicker, Popconfirm } from "antd";
+import { Card, Statistic, Row, Col, DatePicker } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
-import { TimeSelect } from "../../components/TimeSelect";
 import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
-import { useRecentSleep, upsertSleep, getSleep, deleteSleep } from "./useSleep";
+import { useRecentSleep } from "./useSleep";
+import { SleepForm } from "./SleepForm";
 import { useSetting } from "../../hooks/useSettings";
-import { fmtDuration, sleepDurationMin, todayKey, prettyDate } from "../../lib/date.utils";
+import { fmtDuration, todayKey, prettyDate } from "../../lib/date.utils";
 import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
-import { hapticSuccess } from "../../lib/haptics";
-import { playBellDing } from "../../lib/audio";
 
 export function SleepPage() {
   const t = useTokens();
-  const { message } = App.useApp();
   const recent = useRecentSleep(14);
   const target = useSetting("sleepTargetMin");
-  const [sleepAt, setSleepAt] = useState("23:30");
-  const [wakeAt, setWakeAt] = useState("07:00");
-  const [quality, setQuality] = useState(3);
-  const [notes, setNotes] = useState("");
   const [date, setDate] = useState<Dayjs>(dayjs());
-  const [editing, setEditing] = useState(false);
-
-  async function pickDate(d: Dayjs) {
-    setDate(d);
-    const e = await getSleep(todayKey(d.toDate()));
-    setEditing(!!e);
-    setSleepAt(e?.sleepAt ?? "23:30");
-    setWakeAt(e?.wakeAt ?? "07:00");
-    setQuality(e?.quality ?? 3);
-    setNotes(e?.notes ?? "");
-  }
+  const dateKey = todayKey(date.toDate());
 
   const logged = recent.filter(Boolean) as NonNullable<(typeof recent)[number]>[];
   const last = logged[logged.length - 1];
@@ -42,30 +25,10 @@ export function SleepPage() {
   const avgQual = avg7.length ? (avg7.reduce((s, e) => s + e.quality, 0) / avg7.length).toFixed(1) : "–";
   const debtMin = avg7.reduce((s, e) => s + (target - e.durationMin), 0);
 
-  const preview = sleepDurationMin(sleepAt, wakeAt);
   const chart = recent.map((e, i) => ({
     label: e ? e.date.slice(5) : lastLabel(i),
     hours: e ? +(e.durationMin / 60).toFixed(1) : null,
   }));
-
-  async function save() {
-    await upsertSleep({
-      date: todayKey(date.toDate()),
-      sleepAt,
-      wakeAt,
-      quality, notes,
-    });
-    void hapticSuccess();
-    playBellDing();
-    message.success(`${editing ? "Updated" : "Logged"} ${fmtDuration(preview)}`);
-    setEditing(true);
-  }
-
-  async function remove() {
-    await deleteSleep(todayKey(date.toDate()));
-    message.success("Night deleted");
-    await pickDate(date);
-  }
 
   return (
     <PageTransition>
@@ -84,35 +47,16 @@ export function SleepPage() {
         </Card>
       )}
 
-      <Card title={editing ? "Edit night" : "Log a night"} size="small" style={{ marginBottom: 16 }}>
+      <Card title="Log or edit a night" size="small" style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Night of (wake-up date)</div>
-        <DatePicker inputReadOnly value={date} onChange={(v) => v && void pickDate(v)} disabledDate={(d) => d.isAfter(dayjs(), "day")} style={{ width: "100%", marginBottom: 12 }} format="DD MMM YYYY" allowClear={false} />
-        <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Slept at</div>
-            <TimeSelect value={sleepAt} onChange={setSleepAt} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Woke at</div>
-            <TimeSelect value={wakeAt} onChange={setWakeAt} />
-          </div>
-        </div>
-        <div style={{ textAlign: "center", marginBottom: 12, fontWeight: 700, color: VIOLET }}>{fmtDuration(preview)}</div>
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Quality</div>
-        <Rate value={quality} onChange={setQuality} style={{ marginBottom: 12 }} />
-        <Input.TextArea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (optional)" rows={2} style={{ marginBottom: 12 }} />
-        <Button type="primary" block size="large" onClick={save} style={{ fontWeight: 700 }}>{editing ? "Update night" : "Save night"}</Button>
-        {editing && (
-          <Popconfirm title="Delete this night?" okText="Yes" cancelText="No" onConfirm={() => void remove()}>
-            <Button danger block type="text" style={{ marginTop: 8 }}>Delete night</Button>
-          </Popconfirm>
-        )}
+        <DatePicker inputReadOnly value={date} onChange={(v) => v && setDate(v)} disabledDate={(d) => d.isAfter(dayjs(), "day")} style={{ width: "100%", marginBottom: 12 }} format="DD MMM YYYY" allowClear={false} />
+        <SleepForm date={dateKey} />
       </Card>
 
       {logged.length > 0 && (
         <Card title="Recent nights" size="small" style={{ marginBottom: 16 }}>
           {[...logged].reverse().map((e) => (
-            <div key={e.date} onClick={() => void pickDate(dayjs(e.date))} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)", cursor: "pointer" }}>
+            <div key={e.date} onClick={() => setDate(dayjs(e.date))} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)", cursor: "pointer" }}>
               <span>{prettyDate(e.date)}</span>
               <span style={{ color: "var(--ink-soft)" }}>{e.sleepAt}–{e.wakeAt} · {fmtDuration(e.durationMin)} · {e.quality}★</span>
             </div>

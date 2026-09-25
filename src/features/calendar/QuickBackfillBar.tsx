@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Modal, Select, Button, App } from "antd";
-import { TbDroplet, TbToolsKitchen2, TbBarbell } from "react-icons/tb";
+import { TbDroplet, TbToolsKitchen2, TbBarbell, TbMoon } from "react-icons/tb";
 import dayjs from "dayjs";
 import { addWater } from "../water/useWater";
 import { backfillSession, useWorkoutDays } from "../gym/useGym";
 import { FoodPickerModal } from "../nutrition/FoodPickerModal";
+import { SleepForm } from "../sleep/SleepForm";
 import { hapticSuccess } from "../../lib/haptics";
 import { todayKey } from "../../lib/date.utils";
 
@@ -23,7 +24,7 @@ interface Props {
   defaultDayId?: number;
 }
 
-// Lets the user backfill water/meal/workout logs for a past day straight
+// Lets the user backfill water/meal/sleep/workout logs for a past day straight
 // from the calendar, without needing a pre-scheduled task for that date.
 export function QuickBackfillBar({ date, defaultDayId }: Props) {
   const { message } = App.useApp();
@@ -31,6 +32,7 @@ export function QuickBackfillBar({ date, defaultDayId }: Props) {
   const [waterOpen, setWaterOpen] = useState(false);
   const [mealOpen, setMealOpen] = useState(false);
   const [workoutOpen, setWorkoutOpen] = useState(false);
+  const [sleepOpen, setSleepOpen] = useState(false);
   const [pickedDay, setPickedDay] = useState<number | undefined>(defaultDayId);
 
   if (date > todayKey()) return null;
@@ -60,6 +62,7 @@ export function QuickBackfillBar({ date, defaultDayId }: Props) {
         <div style={{ display: "flex", gap: 8 }}>
           <BackfillChip icon={<TbDroplet size={14} />} label="Water" active={waterOpen} onClick={() => setWaterOpen((v) => !v)} />
           <BackfillChip icon={<TbToolsKitchen2 size={14} />} label="Meal" onClick={() => setMealOpen(true)} />
+          <BackfillChip icon={<TbMoon size={14} />} label="Sleep" onClick={() => setSleepOpen(true)} />
           <BackfillChip icon={<TbBarbell size={14} />} label="Workout" onClick={() => { setPickedDay(defaultDayId); setWorkoutOpen(true); }} />
         </div>
         {waterOpen && (
@@ -78,6 +81,10 @@ export function QuickBackfillBar({ date, defaultDayId }: Props) {
         defaultMealType={inferMealType()}
         title={`Log meal — ${dateLabel}`}
       />
+
+      <Modal open={sleepOpen} onCancel={() => setSleepOpen(false)} footer={null} destroyOnClose title={`Sleep — ${dateLabel}`}>
+        <SleepForm date={date} onDone={() => setSleepOpen(false)} />
+      </Modal>
 
       <Modal
         open={workoutOpen}
