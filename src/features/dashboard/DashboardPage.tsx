@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SisyphusOverlay } from "../../components/SisyphusOverlay";
 import { HomeQuoteCard } from "../../components/HomeQuoteCard";
+import { GlowBar } from "../../components/GlowBar";
 import { Skeleton } from "../../components/Skeleton";
 import { ColdIcon } from "../../components/ColdIcon";
 import { db } from "../../db/db";
@@ -513,7 +514,10 @@ export function DashboardPage() {
             }
           >
             <Progress type="dashboard" percent={score.score} size={120}
-              strokeColor={score.score >= 100 ? t.teal : scoreUrgent ? t.danger : t.accent} strokeWidth={8}
+              strokeColor={score.score >= 100
+                ? { "0%": t.teal, "100%": t.gold }
+                : scoreUrgent ? t.danger : { "0%": t.accent, "100%": t.gold }} strokeWidth={9}
+              className={`ring-glow${score.score >= 100 ? " ring-done" : ""}`}
               format={() => (
                 <div>
                   {/* Kinetic typography — bolder/wider weight while urgent so
@@ -622,8 +626,7 @@ export function DashboardPage() {
               </div>
             ) : (
               <div style={{ position: "relative", zIndex: 1, marginTop: 8 }}>
-                <Progress percent={trainPct} showInfo={false} size={[-1, 5]}
-                  strokeColor="#fff" trailColor="rgba(255,255,255,0.25)" />
+                <GlowBar percent={trainPct} onHero height={6} label="Training progress" />
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 3 }}>
                   {trainDoneSets}/{trainTotalSets} sets
                 </div>
