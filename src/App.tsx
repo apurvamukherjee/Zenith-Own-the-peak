@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { ConfigProvider, App as AntApp } from "antd";
 import { AnimatePresence, MotionConfig } from "framer-motion";
@@ -75,11 +75,16 @@ export default function App() {
     document.documentElement.style.setProperty("--time-grad", adaptive.grad);
   }, [adaptive.grad]);
 
-  // Enable theme-transition CSS only after first paint, so initial load never fades in.
+  // Transition class lives ~450ms around a theme change only: a permanent
+  // `*` transition re-animates every color change app-wide and janks mid-range Android.
+  const firstTheme = useRef(true);
   useEffect(() => {
-    const t = requestAnimationFrame(() => document.documentElement.classList.add("theme-ready"));
-    return () => cancelAnimationFrame(t);
-  }, []);
+    if (firstTheme.current) { firstTheme.current = false; return; }
+    const root = document.documentElement;
+    root.classList.add("theme-ready");
+    const t = window.setTimeout(() => root.classList.remove("theme-ready"), 450);
+    return () => window.clearTimeout(t);
+  }, [resolved]);
 
   // Seed exercise library + default PPL on first launch — MUST complete before rendering
   useEffect(() => {
