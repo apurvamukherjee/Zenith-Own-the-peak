@@ -253,11 +253,11 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
         {overdue.length > 0 && (
           <div style={{
             margin: "8px 16px 0", padding: "8px 12px", borderRadius: 10,
-            background: "#ff274015", border: "1px solid #ff274030",
+            background: "var(--accent)15", border: "1px solid var(--accent)30",
             display: "flex", alignItems: "center", gap: 8, fontSize: 12,
           }}>
-            <TbAlertTriangle size={16} style={{ color: "#ff2740", flexShrink: 0 }} />
-            <span style={{ color: "#ff2740", fontWeight: 600 }}>{overdue.length} overdue</span>
+            <TbAlertTriangle size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
+            <span style={{ color: "var(--accent)", fontWeight: 600 }}>{overdue.length} overdue</span>
             <span style={{ color: "var(--ink-soft)", fontSize: 12 }}>from previous days</span>
           </div>
         )}
@@ -288,7 +288,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
                 <button onClick={(e) => { e.stopPropagation(); if (!done) handleComplete(task); }}
                   style={{
                     width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                    border: `2px solid ${done ? "var(--teal)" : (task.priority === 1 ? "#ff2740" : "var(--ink-soft)")}`,
+                    border: `2px solid ${done ? "var(--teal)" : (task.priority === 1 ? "var(--accent)" : "var(--ink-soft)")}`,
                     background: done ? "var(--teal)" : "transparent",
                     cursor: done ? "default" : "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -303,7 +303,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
                     textDecoration: done ? "line-through" : "none",
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>
-                    {task.priority === 1 && !done && <span style={{ color: "#ff2740" }}>● </span>}
+                    {task.priority === 1 && !done && <span style={{ color: "var(--accent)" }}>● </span>}
                     {task.title}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", gap: 6, marginTop: 1 }}>

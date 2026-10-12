@@ -142,7 +142,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
                     background: "transparent", cursor: "pointer", flexShrink: 0,
                   }} />
                 <span style={{ fontSize: 12, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {task.priority === 1 && <span style={{ color: "#ff2740" }}>● </span>}
+                  {task.priority === 1 && <span style={{ color: "var(--accent)" }}>● </span>}
                   {task.title}
                 </span>
               </div>

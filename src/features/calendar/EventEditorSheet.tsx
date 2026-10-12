@@ -37,7 +37,7 @@ const TYPE_PRESETS = [
   { listId: "daily", label: "Personal", icon: TbHome },
 ];
 const PRIORITIES: { value: TaskPriority; label: string; color: string }[] = [
-  { value: 1, label: "Urgent", color: "#ff2740" },
+  { value: 1, label: "Urgent", color: "var(--accent)" },
   { value: 2, label: "Normal", color: "var(--ink-soft)" },
   { value: 3, label: "Low", color: "var(--teal)" },
 ];
