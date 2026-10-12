@@ -583,3 +583,8 @@ html[data-contrast="high"] .text-ember {
 .z-stat-label { font-size: var(--fs-xs); color: var(--ink-soft); font-weight: 600; }
 .z-stat-value { font-size: var(--fs-xl); font-weight: 800; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-variant-numeric: tabular-nums; }
 .z-ok { color: var(--success); } .z-warn { color: var(--warn); } .z-bad { color: var(--danger); }
+
+
+/* Touch: icon-only antd buttons keep a 40px hit area even at size="small". */
+.ant-btn.ant-btn-icon-only.ant-btn-sm { min-width: 40px; min-height: 40px; }
+.ant-btn-text.ant-btn-icon-only { border-radius: 12px; }
