@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SisyphusOverlay } from "../../components/SisyphusOverlay";
 import { HomeQuoteCard } from "../../components/HomeQuoteCard";
+import { Skeleton } from "../../components/Skeleton";
 import { ColdIcon } from "../../components/ColdIcon";
 import { db } from "../../db/db";
 import { useTokens } from "../../hooks/useTokens";
@@ -633,90 +634,39 @@ export function DashboardPage() {
       </Link>
       </motion.div>
 
-      {/* 2x2 compact grid: water, sleep, study, protein */}
-      <motion.div {...cascade(4)} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, flex: "0 0 auto", marginTop: 8 }}>
-        {/* Water */}
-        <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 10 }}>
-          <Progress type="circle" percent={score.waterPct} size={38} strokeColor={score.waterPct >= 100 ? t.teal : t.accent} strokeWidth={10}
-            format={() => <span style={{ fontSize: 12, fontWeight: 700 }}>{score.waterPct}%</span>} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <Link to="/water" style={{ color: "inherit" }}>
-              <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
-                <TbDroplet size={13} /> Water
-              </div>
-            </Link>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{(waterMl / 1000).toFixed(1)}L</div>
-          </div>
-          <Button size="small" type="text" icon={<TbPlus size={14} />} onClick={() => quickWater(500)} style={{ padding: "0 6px" }} />
-        </div>
-
-        {/* Sleep */}
-        <Link to="/sleep" style={{ color: "inherit" }}>
-          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", height: "100%" }}>
-            <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
-              <TbMoon size={13} /> Sleep
-            </div>
-            <div className="display" style={{ fontSize: 18, fontWeight: 800, color: "var(--accent)", marginTop: 2 }}>
-              {lastSleep ? fmtDuration(lastSleep.durationMin) : "–"}
-            </div>
-          </div>
-        </Link>
-
-        {/* Study */}
-        <Link to="/study" style={{ color: "inherit" }}>
-          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px" }}>
-            <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
-              <TbBook2 size={13} /> Study
-            </div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {upNext ?? "Add a path"}
-            </div>
-          </div>
-        </Link>
-
-        {/* Nutrition */}
-        <Link to="/nutrition" style={{ color: "inherit" }}>
-          <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px" }}>
-            <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
-              <TbMeat size={13} /> Nutrition
-            </div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
-              {score.proteinPct >= 100 ? "On target" : `${score.proteinPct}% protein`}
-            </div>
-          </div>
-        </Link>
+      {/* Today feed: what's next on the calendar, merged from tasks/meds/meals. */}
+      <motion.div {...cascade(4)}>
+        <TodayCard />
       </motion.div>
 
-      {/* Fuel + Calendar quick links — secondary tier: flatter and more
-          translucent than the primary ring/hero above, via color-mix on
-          --surface rather than a hardcoded rgba (stays correct in both
-          themes). No shadow, by design — that flatness is what signals
-          "behind" the elevated primary cards. */}
-      <motion.div {...cascade(5)} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        <Link to="/fuel" style={{ color: "inherit" }}>
-          <div style={{
-            background: "color-mix(in srgb, var(--surface) 55%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--border) 60%, transparent)",
-            borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8,
-          }}>
-            <TbGasStation size={16} style={{ color: "var(--accent)" }} />
-            <span style={{ fontWeight: 700, fontSize: 13 }}>Fuel</span>
-          </div>
-        </Link>
-        <Link to="/calendar" style={{ color: "inherit" }}>
-          <div style={{
-            background: "color-mix(in srgb, var(--surface) 55%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--border) 60%, transparent)",
-            borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 8,
-          }}>
-            <TbCalendar size={16} style={{ color: "var(--accent)" }} />
-            <span style={{ fontWeight: 700, fontSize: 13 }}>Calendar</span>
-          </div>
-        </Link>
+      {/* Module tiles */}
+      <motion.div {...cascade(5)} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div className="z-card" style={{ display: "flex", alignItems: "center", gap: 10, padding: 12 }}>
+          <Link to="/water" style={{ color: "inherit", display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+            <Progress type="circle" percent={score.waterPct} size={44} strokeColor={score.waterPct >= 100 ? t.teal : t.accent} strokeWidth={10}
+              format={() => <span style={{ fontSize: 12, fontWeight: 700 }}>{score.waterPct}%</span>} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: "var(--fs-sm)" }}>Water</div>
+              <div className="z-stat-label">{(waterMl / 1000).toFixed(1)}L</div>
+            </div>
+          </Link>
+          <button className="z-iconbtn" aria-label="Add 500ml water" onClick={() => quickWater(500)}
+            style={{ background: "var(--surface-3)" }}><TbPlus size={18} /></button>
+        </div>
+        <HomeTile to="/sleep" icon={<TbMoon size={15} />} label="Sleep"
+          value={lastSleep ? fmtDuration(lastSleep.durationMin) : "–"} />
+        <HomeTile to="/nutrition" icon={<TbMeat size={15} />} label="Protein"
+          value={score.proteinPct >= 100 ? "On target" : `${score.proteinPct}%`} ok={score.proteinPct >= 100} />
+        <HomeTile to="/study" icon={<TbBook2 size={15} />} label="Study" value={upNext ?? "Add a path"} small />
+      </motion.div>
+
+      <motion.div {...cascade(6)} style={{ display: "flex", gap: 8, overflowX: "auto" }}>
+        <Link to="/fuel" className="z-chip" style={{ minHeight: 40 }}><TbGasStation size={15} /> Fuel</Link>
+        <Link to="/calendar" className="z-chip" style={{ minHeight: 40 }}><TbCalendar size={15} /> Calendar</Link>
       </motion.div>
 
       {/* Motivation quote — tap card or shuffle button to draw a new one. */}
-      <motion.div {...cascade(6)}>
+      <motion.div {...cascade(7)}>
         <HomeQuoteCard />
       </motion.div>
 
@@ -819,5 +769,47 @@ function LevelBadge() {
         </div>
       )}
     </div>
+  );
+}
+
+function HomeTile({ to, icon, label, value, ok, small }: {
+  to: string; icon: React.ReactNode; label: string; value: string; ok?: boolean; small?: boolean;
+}) {
+  return (
+    <Link to={to} className="z-card z-card--press" style={{ color: "inherit", padding: 12, minHeight: 64 }}>
+      <div className="z-stat-label" style={{ display: "flex", alignItems: "center", gap: 5 }}>{icon} {label}</div>
+      <div className={`display ${ok ? "z-ok" : ""}`} style={{
+        fontSize: small ? "var(--fs-sm)" : "var(--fs-lg)", fontWeight: 800, marginTop: 4,
+        color: ok ? undefined : small ? "var(--ink-soft)" : "var(--ink)",
+        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+      }}>{value}</div>
+    </Link>
+  );
+}
+
+function TodayCard() {
+  const items = useLiveQuery(async () => {
+    const rows = await db.tasks.where("date").equals(todayKey()).toArray();
+    return rows
+      .filter((r) => r.status !== "done" && r.status !== "cancelled")
+      .sort((a, b) => (a.allDay ? "" : a.time ?? "99:99").localeCompare(b.allDay ? "" : b.time ?? "99:99"));
+  }, []);
+  if (items === undefined) return <Skeleton height={92} radius={18} />;
+  const top = items.slice(0, 3);
+  return (
+    <Link to="/calendar" className="z-card z-card--press" style={{ color: "inherit", display: "block" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <span className="gothic-eyebrow">Today</span>
+        <span className="z-stat-label">{items.length ? `${items.length} left` : ""}</span>
+      </div>
+      {top.length === 0 ? (
+        <div style={{ fontSize: "var(--fs-sm)", color: "var(--ink-soft)" }}>Nothing scheduled — tap to plan your day</div>
+      ) : top.map((r) => (
+        <div key={r.id} style={{ display: "flex", gap: 10, padding: "6px 0", fontSize: "var(--fs-md)", alignItems: "baseline" }}>
+          <span className="z-stat-label" style={{ width: 44, flexShrink: 0 }}>{r.allDay ? "All day" : r.time ?? "—"}</span>
+          <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
+        </div>
+      ))}
+    </Link>
   );
 }
