@@ -556,3 +556,30 @@ html[data-contrast="high"] .text-ember {
 /* Route transitions — the AnimatedRoutes wrapper reads this duration. */
 :root { --page-transition-ms: 180ms; }
 
+
+
+/* ---------- Revamp primitives ------------------------------------------- */
+.z-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+}
+.z-card--raised { background: var(--surface-2); box-shadow: 0 8px 24px -16px rgba(0,0,0,.55); }
+.z-card--press { cursor: pointer; transition: transform .12s ease; }
+.z-card--press:active { transform: scale(.98); }
+.z-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
+  padding: 0 12px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--ink-soft);
+}
+.z-chip--on { color: var(--accent); border-color: var(--accent); background: var(--ember-inner); }
+.z-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: var(--tap); min-height: var(--tap); border: 0; border-radius: 12px;
+  background: transparent; color: var(--ink); cursor: pointer;
+}
+.z-iconbtn:active { background: var(--surface-3); }
+.z-stat-label { font-size: var(--fs-xs); color: var(--ink-soft); font-weight: 600; }
+.z-stat-value { font-size: var(--fs-xl); font-weight: 800; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-variant-numeric: tabular-nums; }
+.z-ok { color: var(--success); } .z-warn { color: var(--warn); } .z-bad { color: var(--danger); }
