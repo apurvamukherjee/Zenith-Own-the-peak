@@ -103,7 +103,7 @@ export function PRCelebration() {
               position: "relative", zIndex: 2,
               padding: "16px 22px", borderRadius: 18,
               background: "linear-gradient(135deg,#0d0709,#241014)",
-              border: "1px solid #f6b93b",
+              border: "1px solid var(--gold)",
               boxShadow: "0 12px 40px rgba(246,185,59,0.35)",
               textAlign: "center", minWidth: 220, maxWidth: "80vw",
             }}
@@ -119,9 +119,9 @@ export function PRCelebration() {
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                <TbTrophy size={22} style={{ color: "#f6b93b" }} />
+                <TbTrophy size={22} style={{ color: "var(--gold)" }} />
                 <span className="display" style={{
-                  fontSize: 22, fontWeight: 800, letterSpacing: 0.5, color: "#f6b93b",
+                  fontSize: 22, fontWeight: 800, letterSpacing: 0.5, color: "var(--gold)",
                 }}>
                   {headline}
                 </span>

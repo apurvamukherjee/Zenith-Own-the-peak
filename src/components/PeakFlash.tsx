@@ -22,7 +22,7 @@ export function PeakFlash({ triggerKey }: { triggerKey: number }) {
           style={{
             position: "fixed", inset: 0, zIndex: 300,
             pointerEvents: "none",
-            background: "linear-gradient(135deg,#1a0509 0%,#6e0f1c 55%,#ff2740 100%)",
+            background: "linear-gradient(135deg,#1a0509 0%,#6e0f1c 55%,var(--accent) 100%)",
           }}
         />
       )}

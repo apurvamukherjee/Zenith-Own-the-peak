@@ -87,7 +87,7 @@ export function LevelUpOverlay({ level, name, onDone }: Props) {
                   transition={{ duration: 2, delay: p.delay, ease: "easeOut" }}
                   style={{
                     position: "absolute", bottom: "30%", width: p.size, height: p.size,
-                    borderRadius: "50%", background: "#ff2740",
+                    borderRadius: "50%", background: "var(--accent)",
                     boxShadow: "0 0 8px #ff2740",
                   }}
                 />
@@ -107,7 +107,7 @@ export function LevelUpOverlay({ level, name, onDone }: Props) {
             </div>
             <div style={{
               fontFamily: '"Cinzel", serif', fontWeight: 900,
-              fontSize: 72, lineHeight: 1, color: "#ff2740",
+              fontSize: 72, lineHeight: 1, color: "var(--accent)",
               textShadow: "0 0 30px rgba(255,39,64,0.6), 0 0 60px rgba(255,39,64,0.3)",
             }}>
               {level}

@@ -324,14 +324,14 @@ export function GymFocusMode({
             <>
               <button onClick={handleCloseAttempt} aria-label="Exit focus mode" style={{
                 position: "absolute", top: 8, right: 8, background: "transparent", border: "none",
-                color: "#948b98", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
+                color: "var(--ink-soft)", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
               }}>
                 <TbX size={24} />
               </button>
 
               <div style={{
                 fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
-                letterSpacing: "0.2em", textTransform: "uppercase", color: "#948b98", marginBottom: 16,
+                letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 16,
               }}>
                 {dayName}
               </div>
@@ -356,7 +356,7 @@ export function GymFocusMode({
                 ) : null}
               </AnimatePresence>
 
-              <div style={{ marginTop: 28, fontSize: 12, color: "#6b6470", display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ marginTop: 28, fontSize: 12, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 14 }}>
                 <span>{doneSets}/{totalSets} sets</span>
                 <span>{Math.round(volume).toLocaleString()}kg vol</span>
                 <span>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</span>
@@ -389,14 +389,14 @@ function LockInGate({ quote, dayName, onLockIn, onSkip, reducedMotion }: {
     >
       <button onClick={onSkip} aria-label="Exit focus mode" style={{
         position: "absolute", top: 8, right: 8, background: "transparent", border: "none",
-        color: "#948b98", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
+        color: "var(--ink-soft)", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
       }}>
         <TbX size={24} />
       </button>
-      <TbSkull size={32} style={{ color: "#ff2740", marginBottom: 14 }} />
+      <TbSkull size={32} style={{ color: "var(--accent)", marginBottom: 14 }} />
       <div style={{
         fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
-        letterSpacing: "0.25em", textTransform: "uppercase", color: "#948b98", marginBottom: 18,
+        letterSpacing: "0.25em", textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 18,
       }}>
         Focus mode · {dayName}
       </div>
@@ -421,7 +421,7 @@ function QuitShameGate({ quote, remaining, onKeepGoing, onQuitAnyway, reducedMot
     >
       <div style={{
         fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
-        letterSpacing: "0.25em", textTransform: "uppercase", color: "#ff2740", marginBottom: 18,
+        letterSpacing: "0.25em", textTransform: "uppercase", color: "var(--accent)", marginBottom: 18,
       }}>
         Wait.
       </div>
@@ -429,7 +429,7 @@ function QuitShameGate({ quote, remaining, onKeepGoing, onQuitAnyway, reducedMot
         {quote}
       </div>
       {remaining > 0 && (
-        <div style={{ fontSize: 12, color: "#948b98", marginBottom: 32 }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 32 }}>
           {remaining} set{remaining === 1 ? "" : "s"} left. Still leaving?
         </div>
       )}
@@ -437,7 +437,7 @@ function QuitShameGate({ quote, remaining, onKeepGoing, onQuitAnyway, reducedMot
         <TbFlameFilled size={18} /> Keep going
       </button>
       <button onClick={onQuitAnyway} style={{
-        background: "transparent", border: "none", color: "#6b6470", fontSize: 12,
+        background: "transparent", border: "none", color: "var(--ink-soft)", fontSize: 12,
         cursor: "pointer", padding: 8,
       }}>
         Exit anyway
@@ -466,7 +466,7 @@ function SetView({
       {superset && (
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 6,
-          background: "rgba(255,39,64,0.14)", color: "#ff2740",
+          background: "rgba(255,39,64,0.14)", color: "var(--accent)",
           borderRadius: 999, padding: "3px 12px", fontSize: 12, fontWeight: 800,
           letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 10,
         }}>
@@ -477,11 +477,11 @@ function SetView({
         {ex.name}
       </div>
       {superset && superset.partnerNames.length > 0 && (
-        <div style={{ fontSize: 12, color: "#6b6470", marginBottom: 4 }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>
           then → {superset.partnerNames.join(", ")}
         </div>
       )}
-      <div style={{ fontSize: 13, color: "#948b98", marginBottom: 16 }}>Set {setIndex} of {totalSets}</div>
+      <div style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 16 }}>Set {setIndex} of {totalSets}</div>
 
       {/* Tap-only — a swipe-to-log gesture used to live here (drag + an
           `animate` prop on the same element, a known Framer Motion conflict
@@ -493,7 +493,7 @@ function SetView({
         whileTap={editing ? undefined : { scale: 0.97 }}
         style={{
           width: 220, height: 220, borderRadius: "50%",
-          border: "3px solid #ff2740", boxShadow: "0 0 40px rgba(255,39,64,0.35)",
+          border: "3px solid var(--accent)", boxShadow: "0 0 40px rgba(255,39,64,0.35)",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           marginBottom: 20, cursor: "pointer",
         }}
@@ -513,14 +513,14 @@ function SetView({
               <div className="display" style={{ fontSize: 40, fontWeight: 800, lineHeight: 1 }}>
                 {w}<span style={{ fontSize: 18 }}>kg</span>
               </div>
-              <div className="display" style={{ fontSize: 28, fontWeight: 700, color: "#948b98" }}>× {r}</div>
+              <div className="display" style={{ fontSize: 28, fontWeight: 700, color: "var(--ink-soft)" }}>× {r}</div>
             </>
           )}
         </motion.div>
       </motion.div>
 
       {!editing && ghost && (
-        <div style={{ fontSize: 12, color: "#6b6470", marginBottom: 20, textAlign: "center" }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 20, textAlign: "center" }}>
           last week: {ghost.weightKg}kg × {ghost.reps}
         </div>
       )}
@@ -588,7 +588,7 @@ function RestView({ preview, trans, reducedMotion }: {
       initial={{ opacity: 0, scale: reducedMotion ? 1 : 0.95 }} animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: reducedMotion ? 1 : 0.95 }} transition={trans}
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <div style={{ fontSize: 13, color: "#948b98", marginBottom: 16, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
+      <div style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 16, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
         {rest.paused ? "Paused" : "Rest"}
       </div>
       <div
@@ -604,7 +604,7 @@ function RestView({ preview, trans, reducedMotion }: {
         </svg>
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           <div className="display" style={{ fontSize: 42, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{m}:{s}</div>
-          <div style={{ fontSize: 12, color: "#948b98" }}>{rest.label}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{rest.label}</div>
         </div>
       </div>
       <button onClick={skipRest} style={{
@@ -618,7 +618,7 @@ function RestView({ preview, trans, reducedMotion }: {
           textAlign: "center", padding: "10px 16px", borderRadius: 12,
           background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
         }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", color: "#6b6470", marginBottom: 3 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 3 }}>
             Up next · set {preview.setIndex}/{preview.totalSets}
           </div>
           <div style={{ fontSize: 14, fontWeight: 700 }}>
@@ -644,10 +644,10 @@ function CompleteView({ doneSets, totalSets, volume, elapsedMin, onClose, trans,
         animate={reducedMotion ? undefined : { scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 12 }}
       >
-        <TbTrophy size={56} style={{ color: "#f6b93b", marginBottom: 12 }} />
+        <TbTrophy size={56} style={{ color: "var(--gold)", marginBottom: 12 }} />
       </motion.div>
       <div className="display" style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Session complete</div>
-      <div style={{ fontSize: 13, color: "#948b98", marginBottom: 24 }}>
+      <div style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 24 }}>
         {doneSets}/{totalSets} sets · {Math.round(volume).toLocaleString()}kg · {elapsedMin}m
       </div>
       <button onClick={onClose} style={{ ...glassCtaStyle, width: "auto", padding: "14px 32px" }}>

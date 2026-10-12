@@ -71,7 +71,7 @@ export function FocusMode({ task, onClose }: Props) {
         <div style={{
           fontFamily: '"Cinzel", serif', fontWeight: 700,
           fontSize: 14, letterSpacing: "0.2em", textTransform: "uppercase",
-          color: "#948b98", marginBottom: 24,
+          color: "var(--ink-soft)", marginBottom: 24,
         }}>
           {task.title}
         </div>
@@ -98,14 +98,14 @@ export function FocusMode({ task, onClose }: Props) {
             }}>
               {remH > 0 && `${remH}:`}{String(remM).padStart(2, "0")}:{String(remS).padStart(2, "0")}
             </div>
-            <div style={{ fontSize: 12, color: "#948b98", marginTop: 4 }}>remaining</div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 4 }}>remaining</div>
           </div>
         </div>
 
         {/* Description */}
         {task.description && (
           <div style={{
-            fontSize: 13, color: "#948b98", maxWidth: 300, textAlign: "center",
+            fontSize: 13, color: "var(--ink-soft)", maxWidth: 300, textAlign: "center",
             marginBottom: 20, lineHeight: 1.5,
           }}>
             {task.description}
@@ -116,7 +116,7 @@ export function FocusMode({ task, onClose }: Props) {
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
           {isGym && (
             <button onClick={() => { onClose(); nav("/workout"); }} style={{
-              background: "#ff2740", color: "#fff", border: "none", borderRadius: 12,
+              background: "var(--accent)", color: "#fff", border: "none", borderRadius: 12,
               padding: "10px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer",
               display: "flex", alignItems: "center", gap: 6,
             }}>
@@ -125,7 +125,7 @@ export function FocusMode({ task, onClose }: Props) {
           )}
           {isStudy && (
             <button onClick={() => { onClose(); nav("/study"); }} style={{
-              background: "#ff2740", color: "#fff", border: "none", borderRadius: 12,
+              background: "var(--accent)", color: "#fff", border: "none", borderRadius: 12,
               padding: "10px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer",
               display: "flex", alignItems: "center", gap: 6,
             }}>
@@ -143,7 +143,7 @@ export function FocusMode({ task, onClose }: Props) {
 
         {remaining === 0 && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            style={{ marginTop: 24, fontWeight: 700, color: "#ff2740", fontSize: 16 }}>
+            style={{ marginTop: 24, fontWeight: 700, color: "var(--accent)", fontSize: 16 }}>
             Time's up — mark as done?
           </motion.div>
         )}

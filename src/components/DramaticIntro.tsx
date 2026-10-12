@@ -47,7 +47,7 @@ export function DramaticIntro() {
             position: "fixed", inset: 0, zIndex: 400,
             background: "linear-gradient(135deg,#08080a 0%,#3f0b15 100%)",
             display: "flex", flexDirection: "column", alignItems: "center",
-            justifyContent: "center", color: "#ff2740",
+            justifyContent: "center", color: "var(--accent)",
             fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
           }}
           aria-live="polite"
@@ -73,7 +73,7 @@ export function DramaticIntro() {
             initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
             transition={{ duration: 3.2, delay: 0.4, ease: "linear" }}
             style={{
-              width: 180, height: 2, background: "#ff2740",
+              width: 180, height: 2, background: "var(--accent)",
               transformOrigin: "left center", marginTop: 22,
             }}
           />

@@ -111,7 +111,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       <div style={{ position: "relative", width: 200, height: 2, marginTop: 12, overflow: "hidden", zIndex: 2 }}>
         <div className="scan-line" style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(90deg, transparent 0%, #ff2740 50%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%)",
         }} />
         <div style={{ position: "absolute", inset: 0, background: "rgba(255, 39, 64, 0.08)" }} />
       </div>
@@ -143,7 +143,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         style={{ position: "absolute", bottom: 52, zIndex: 2 }}
       >
         <span className="signature-glow gothic" style={{
-          fontSize: 13, letterSpacing: "0.35em", color: "#ff2740", fontWeight: 700,
+          fontSize: 13, letterSpacing: "0.35em", color: "var(--accent)", fontWeight: 700,
         }}>
           BY APURVA
         </span>
