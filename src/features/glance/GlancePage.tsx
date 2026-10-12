@@ -41,9 +41,9 @@ export function GlancePage() {
       color: "#fff", padding: "40px 20px", position: "relative",
     }}>
       <Button type="text" icon={<TbArrowLeft />} onClick={() => navigate(-1)}
-        style={{ position: "absolute", top: 20, left: 20, color: "#fff" }} />
+        style={{ position: "absolute", top: 20, left: 20, color: "#fff" }} aria-label="Back" />
       <Button type="text" icon={<TbShare />} onClick={share}
-        style={{ position: "absolute", top: 20, right: 20, color: "#fff" }} />
+        style={{ position: "absolute", top: 20, right: 20, color: "#fff" }} aria-label="Share" />
 
       <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.7, letterSpacing: 2, textTransform: "uppercase" }}>{today}</div>
       <div className="display" style={{ fontSize: 32, fontWeight: 800, marginTop: 2, marginBottom: 20 }}>{name}</div>

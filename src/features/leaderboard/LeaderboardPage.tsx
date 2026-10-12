@@ -111,7 +111,7 @@ function LeaderboardPageInner() {
           <span className="gothic" style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.08em", color: "var(--accent)" }}>
             {shareCode}
           </span>
-          <Button type="text" size="small" icon={<TbCopy size={14} />} onClick={copyCode} style={{ marginLeft: "auto" }} />
+          <Button type="text" size="small" icon={<TbCopy size={14} />} onClick={copyCode} style={{ marginLeft: "auto" }} aria-label="Duplicate" />
         </div>
       )}
 
@@ -200,7 +200,7 @@ function LeaderboardPageInner() {
 
               {/* Unfollow (not self) */}
               {!e.isMe && (
-                <Button type="text" size="small" danger icon={<TbUserMinus size={14} />}
+                <Button type="text" size="small" danger icon={<TbUserMinus size={14} />} aria-label="Unfollow"
                   onClick={() => handleUnfollow(e.userId)} style={{ padding: 4 }} />
               )}
             </div>

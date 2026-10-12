@@ -151,10 +151,10 @@ export function QuotesPage() {
 
           {/* Controls */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
-            <Button shape="circle" size="large" icon={<TbChevronLeft />} onClick={() => go(-1)} disabled={quotes.length < 2} />
-            <Button shape="circle" size="large" icon={<TbArrowsShuffle />} onClick={shuffle} disabled={quotes.length < 2}
+            <Button shape="circle" size="large" icon={<TbChevronLeft />} onClick={() => go(-1)} disabled={quotes.length < 2} aria-label="Previous" />
+            <Button shape="circle" size="large" icon={<TbArrowsShuffle />} aria-label="Shuffle quote" onClick={shuffle} disabled={quotes.length < 2}
               style={{ color: "var(--accent)" }} />
-            <Button shape="circle" size="large" icon={<TbChevronRight />} onClick={() => go(1)} disabled={quotes.length < 2} />
+            <Button shape="circle" size="large" icon={<TbChevronRight />} onClick={() => go(1)} disabled={quotes.length < 2} aria-label="Next" />
           </div>
           <div style={{ textAlign: "center", marginTop: 10, fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
             {safeIndex + 1} / {quotes.length}
