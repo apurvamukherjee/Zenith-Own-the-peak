@@ -104,7 +104,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
       {/* Scrollable timeline */}
       <div ref={scrollRef} style={{
         position: "relative", height: 360, overflowY: "auto",
-        background: "var(--surface)", borderRadius: 14,
+        background: "var(--surface)", borderRadius: 18,
         border: "1px solid var(--border)",
       }}>
         <TimeGridColumn date={date} onCreateAt={onCreateAt} style={{ height: TOTAL_H }}>

@@ -67,7 +67,7 @@ export function WeekView({ weekStart, onDayTap, onFocus, onTapTask, onToggleDone
     <div style={{ marginTop: 12 }}>
       <div ref={scrollRef} style={{
         position: "relative", height: 460, overflow: "auto",
-        background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)",
+        background: "var(--surface)", borderRadius: 18, border: "1px solid var(--border)",
         WebkitOverflowScrolling: "touch",
       }}>
         <div style={{ position: "relative", width: GUTTER + 7 * COL_W }}>
@@ -85,7 +85,7 @@ export function WeekView({ weekStart, onDayTap, onFocus, onTapTask, onToggleDone
                   <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 700 }}>{dayjs(d).format("ddd")}</div>
                   <div style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    width: 22, height: 22, borderRadius: "50%", margin: "2px auto 0",
+                    width: 26, height: 26, borderRadius: "50%", margin: "2px auto 0",
                     fontSize: 12, fontWeight: 800,
                     background: today ? "var(--accent)" : "transparent",
                     color: today ? "#fff" : "var(--ink)",

@@ -332,7 +332,7 @@ export function TimeBlock({ task, list, onFocus, onTap, onToggleDone, insetLeft 
         height: Math.max(20, height),
         background: done ? "var(--border)" : `${color}20`,
         borderLeft: `3px solid ${done ? "var(--ink-soft)" : color}`,
-        borderRadius: 6,
+        borderRadius: 10,
         padding: compact ? "1px 4px" : "2px 8px",
         cursor: onTap ? "pointer" : "grab",
         zIndex: dragging ? 20 : 2,
