@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { ConfigProvider, App as AntApp } from "antd";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, MotionConfig } from "framer-motion";
 import { getTheme, type Mode } from "./theme";
 import { useSetting } from "./hooks/useSettings";
 import { AppShell } from "./components/AppShell";
@@ -102,6 +102,7 @@ export default function App() {
   }, [ready]);
 
   return (
+    <MotionConfig reducedMotion="user">
     <ConfigProvider theme={getTheme(resolved, accentHex)}>
       <AntApp>
         <AnimatePresence>
@@ -120,5 +121,6 @@ export default function App() {
         )}
       </AntApp>
     </ConfigProvider>
+    </MotionConfig>
   );
 }
