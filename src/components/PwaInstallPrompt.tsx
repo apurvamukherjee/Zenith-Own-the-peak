@@ -53,7 +53,7 @@ export function PwaInstallPrompt() {
             <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Add to your home screen for a native feel.</div>
           </div>
           <Button type="primary" size="small" onClick={install}>Install</Button>
-          <button onClick={dismiss} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-soft)" }}><TbX /></button>
+          <button aria-label="Dismiss" onClick={dismiss} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-soft)", padding: 8 }}><TbX /></button>
         </motion.div>
       )}
     </AnimatePresence>

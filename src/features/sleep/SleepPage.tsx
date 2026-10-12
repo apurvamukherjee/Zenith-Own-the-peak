@@ -57,7 +57,7 @@ export function SleepPage() {
       {logged.length > 0 && (
         <Card title="Recent nights" size="small" style={{ marginBottom: 16 }}>
           {[...logged].reverse().map((e) => (
-            <div key={e.date} onClick={() => setDate(dayjs(e.date))} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)", cursor: "pointer" }}>
+            <div role="button" key={e.date} onClick={() => setDate(dayjs(e.date))} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border)", cursor: "pointer" }}>
               <span>{prettyDate(e.date)}</span>
               <span style={{ color: "var(--ink-soft)" }}>{e.sleepAt}–{e.wakeAt} · {fmtDuration(e.durationMin)} · {e.quality}★</span>
             </div>

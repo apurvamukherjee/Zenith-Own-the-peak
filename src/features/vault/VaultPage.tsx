@@ -99,7 +99,7 @@ function FrameCard({ def, unlocked, equipped, onEquip }: {
 
 function TitleChip({ name, equipped, onEquip }: { name: string; equipped: boolean; onEquip: () => void }) {
   return (
-    <div onClick={onEquip} style={{
+    <div role="button" onClick={onEquip} style={{
       padding: "6px 14px", borderRadius: 999, cursor: "pointer",
       background: equipped ? "var(--accent)" : "var(--surface)",
       color: equipped ? "#fff" : "var(--ink)",

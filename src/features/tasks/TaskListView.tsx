@@ -161,8 +161,8 @@ export function TaskListView() {
                     <span style={{ fontSize: 12, textDecoration: "line-through", flex: 1 }}>{t.title}</span>
                     <Popconfirm title="Delete this task?" okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
                       onConfirm={() => t.id && deleteTask(t.id)}>
-                      <button
-                        style={{ background: "transparent", border: "none", color: "var(--ink-soft)", cursor: "pointer", padding: 2 }}>
+                      <button aria-label="Delete task"
+                        style={{ background: "transparent", border: "none", color: "var(--ink-soft)", cursor: "pointer", padding: 6 }}>
                         <TbTrash size={12} />
                       </button>
                     </Popconfirm>

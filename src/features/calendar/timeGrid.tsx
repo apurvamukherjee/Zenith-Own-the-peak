@@ -368,8 +368,8 @@ export function TimeBlock({ task, list, onFocus, onTap, onToggleDone, insetLeft 
         )}
       </div>
       {!done && onFocus && isBlock && !compact && (
-        <button onClick={(e) => { e.stopPropagation(); onFocus(task); }}
-          style={{ background: "transparent", border: "none", cursor: "pointer", padding: 2, color: "var(--ink-soft)" }}>
+        <button aria-label={`Focus on ${task.title}`} onClick={(e) => { e.stopPropagation(); onFocus(task); }}
+          style={{ background: "transparent", border: "none", cursor: "pointer", padding: 4, color: "var(--ink-soft)" }}>
           <TbFocus2 size={14} />
         </button>
       )}

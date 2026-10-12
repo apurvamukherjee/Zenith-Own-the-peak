@@ -176,7 +176,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
           style={{ padding: "0 16px 10px", borderBottom: "1px solid var(--border)" }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <button onClick={() => { hapticLight(); onDateChange(prev); }}
+            <button aria-label="Previous day" onClick={() => { hapticLight(); onDateChange(prev); }}
               style={{ background: "transparent", border: "none", color: "var(--ink-soft)", cursor: "pointer", padding: 4 }}>
               <TbChevronLeft size={20} />
             </button>
@@ -190,7 +190,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
                 </div>
               )}
             </div>
-            <button onClick={() => { hapticLight(); onDateChange(next); }}
+            <button aria-label="Next day" onClick={() => { hapticLight(); onDateChange(next); }}
               style={{ background: "transparent", border: "none", color: "var(--ink-soft)", cursor: "pointer", padding: 4 }}>
               <TbChevronRight size={20} />
             </button>
@@ -297,7 +297,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
                 </button>
 
                 {/* Content — tap to edit */}
-                <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => openEditor(task)}>
+                <div role="button" style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => openEditor(task)}>
                   <div style={{
                     fontSize: 13, fontWeight: 600,
                     textDecoration: done ? "line-through" : "none",
@@ -321,8 +321,8 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
 
                 {/* Focus button for time blocks */}
                 {hasTimeBlock && !done && onFocus && (
-                  <button onClick={() => onFocus(task)}
-                    style={{ background: "transparent", border: "none", cursor: "pointer", padding: 4, color: "var(--ink-soft)" }}>
+                  <button aria-label={`Focus on ${task.title}`} onClick={() => onFocus(task)}
+                    style={{ background: "transparent", border: "none", cursor: "pointer", padding: 8, color: "var(--ink-soft)" }}>
                     <TbFocus2 size={16} />
                   </button>
                 )}

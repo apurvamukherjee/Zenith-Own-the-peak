@@ -236,7 +236,7 @@ function DayCard({ dayId }: { dayId: number }) {
         </div>
         <div style={{ maxHeight: 350, overflow: "auto" }}>
           {filtered.map((ex) => (
-            <div key={ex.id} onClick={() => handleAddEx(ex)}
+            <div role="button" key={ex.id} onClick={() => handleAddEx(ex)}
               style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 4px", cursor: "pointer", borderBottom: "1px solid var(--border)" }}>
               <MuscleIcon muscle={ex.primaryMuscle} size={16} color="var(--accent)" />
               <div style={{ flex: 1 }}>

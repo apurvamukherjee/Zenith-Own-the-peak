@@ -126,7 +126,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
           {unscheduled.map((task) => {
             const list = listMap.get(task.listId);
             return (
-              <div key={task.id} onClick={() => onTapTask?.(task)} style={{
+              <div role="button" key={task.id} onClick={() => onTapTask?.(task)} style={{
                 display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
                 marginBottom: 6, borderRadius: 12, background: "var(--surface)", cursor: "pointer",
                 border: "1px solid var(--border)", borderLeft: `3px solid ${list?.color ?? "var(--border)"}`,

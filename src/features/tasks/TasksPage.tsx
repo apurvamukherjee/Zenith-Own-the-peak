@@ -280,7 +280,7 @@ function TaskRow({ task, lists, onComplete, onTap, showDate }: {
       </button>
 
       {/* Content */}
-      <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={onTap}>
+      <div role="button" style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={onTap}>
         <div style={{
           fontWeight: 600, fontSize: 13,
           textDecoration: done ? "line-through" : "none",
