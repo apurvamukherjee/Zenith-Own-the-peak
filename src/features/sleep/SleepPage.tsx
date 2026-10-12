@@ -1,4 +1,5 @@
-import { Card, Statistic, Row, Col, DatePicker } from "antd";
+import { Card, Row, Col, DatePicker } from "antd";
+import { StatTile } from "../../components/StatTile";
 import dayjs, { type Dayjs } from "dayjs";
 import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -8,7 +9,6 @@ import { useRecentSleep } from "./useSleep";
 import { SleepForm } from "./SleepForm";
 import { useSetting } from "../../hooks/useSettings";
 import { fmtDuration, todayKey, prettyDate } from "../../lib/date.utils";
-import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 
 export function SleepPage() {
@@ -35,9 +35,10 @@ export function SleepPage() {
       <SectionTitle eyebrow="Recovery" title="Sleep" />
 
       <Row gutter={12} style={{ marginBottom: 16 }}>
-        <Col span={8}><Card size="small"><Statistic title="Last night" value={last ? fmtDuration(last.durationMin) : "–"} valueStyle={{ color: VIOLET, fontWeight: 800, fontSize: 20 }} /></Card></Col>
-        <Col span={8}><Card size="small"><Statistic title="7-day avg" value={avgMin ? fmtDuration(avgMin) : "–"} valueStyle={{ color: TEAL, fontWeight: 800, fontSize: 20 }} /></Card></Col>
-        <Col span={8}><Card size="small"><Statistic title="Avg quality" value={avgQual} suffix="/5" valueStyle={{ color: GOLD, fontWeight: 800, fontSize: 20 }} /></Card></Col>
+        <Col span={8}><StatTile label="Last night" value={last ? fmtDuration(last.durationMin) : "–"} tone="accent"
+          delta={last && avgMin ? ((last.durationMin - avgMin) / avgMin) * 100 : undefined} /></Col>
+        <Col span={8}><StatTile label="7-day avg" value={avgMin ? fmtDuration(avgMin) : "–"} tone="success" /></Col>
+        <Col span={8}><StatTile label="Avg quality" value={avgQual} suffix="/5" tone="warn" /></Col>
       </Row>
 
       {debtMin > 60 && (

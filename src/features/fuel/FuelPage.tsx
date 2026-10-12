@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Card, InputNumber, DatePicker, Button, Statistic, Row, Col, App, Alert, Popconfirm } from "antd";
+import { StatTile } from "../../components/StatTile";
+import { Card, InputNumber, DatePicker, Button, Row, Col, App, Alert, Popconfirm } from "antd";
 import { TbPlus, TbTrash } from "react-icons/tb";
 import dayjs from "dayjs";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -8,7 +9,7 @@ import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
 import { ColdIcon } from "../../components/ColdIcon";
 import { useFuel, addFuel, deleteFuel, computeRows, fuelStats } from "./useFuel";
-import { VIOLET, TEAL, GOLD } from "../../theme";
+import { VIOLET } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 import { prettyDate } from "../../lib/date.utils";
 
@@ -37,12 +38,13 @@ export function FuelPage() {
       <SectionTitle eyebrow="Bike" title="Fuel & mileage" />
 
       <Row gutter={12} style={{ marginBottom: 12 }}>
-        <Col span={12}><Card size="small"><Statistic title="Latest mileage" value={stats.latestMileage} suffix="km/L" valueStyle={{ color: VIOLET, fontWeight: 800 }} /></Card></Col>
-        <Col span={12}><Card size="small"><Statistic title="Avg mileage" value={stats.avgMileage} suffix="km/L" valueStyle={{ color: TEAL, fontWeight: 800 }} /></Card></Col>
+        <Col span={12}><StatTile label="Latest mileage" value={stats.latestMileage} suffix="km/L" tone="accent"
+          delta={stats.avgMileage > 0 ? ((stats.latestMileage - stats.avgMileage) / stats.avgMileage) * 100 : undefined} /></Col>
+        <Col span={12}><StatTile label="Avg mileage" value={stats.avgMileage} suffix="km/L" tone="success" /></Col>
       </Row>
       <Row gutter={12} style={{ marginBottom: 16 }}>
-        <Col span={12}><Card size="small"><Statistic title="This month" value={stats.monthSpend} prefix="₹" valueStyle={{ color: GOLD, fontWeight: 800 }} /></Card></Col>
-        <Col span={12}><Card size="small"><Statistic title="Cost / km" value={stats.costPerKm} prefix="₹" valueStyle={{ fontWeight: 800 }} /></Card></Col>
+        <Col span={12}><StatTile label="This month" value={stats.monthSpend} prefix="₹" tone="warn" /></Col>
+        <Col span={12}><StatTile label="Cost / km" value={stats.costPerKm} prefix="₹" /></Col>
       </Row>
 
       <EfficiencyCard rows={rows} />
