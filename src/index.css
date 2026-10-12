@@ -672,3 +672,13 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="month"]:focus {
   outline: none; border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--ember-inner);
 }
 [data-theme="dark"] { color-scheme: dark; }
+
+/* InputNumber with prefix/suffix nests .ant-input-number inside an affix wrapper: style the outer shell only. */
+.ant-input-number-affix-wrapper.ant-input-number-affix-wrapper {
+  background: var(--surface-3) !important; border: 1px solid var(--border) !important; border-radius: 12px !important;
+  min-height: 48px; box-shadow: none !important;
+}
+.ant-input-number-affix-wrapper .ant-input-number, .ant-input-number-group .ant-input-number {
+  background: transparent !important; border: 0 !important; box-shadow: none !important; min-height: 0;
+}
+.ant-input-number-affix-wrapper-focused { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--ember-inner) !important; }
