@@ -36,9 +36,9 @@ export function NavStrip() {
         <Link key={c.to} to={c.to} style={{ textDecoration: "none" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 5,
-            padding: "5px 12px", borderRadius: 10,
+            padding: "0 14px", minHeight: 36, borderRadius: 999,
             background: "var(--surface)", border: "1px solid var(--border)",
-            fontSize: 12, fontWeight: 600, color: "var(--ink-soft)", whiteSpace: "nowrap",
+            fontSize: 13, fontWeight: 600, color: "var(--ink-soft)", whiteSpace: "nowrap",
           }}>
             <c.icon size={14} /> {c.label}
           </div>
