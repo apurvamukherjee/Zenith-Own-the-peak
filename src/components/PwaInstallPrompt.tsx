@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import { TbDeviceMobile, TbX } from "react-icons/tb";
@@ -14,6 +15,8 @@ interface BeforeInstallPromptEvent extends Event {
 export function PwaInstallPrompt() {
   const [event, setEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
+  // Only on Home: a banner over every page's content (and the FAB) is nagging.
+  const onHome = useLocation().pathname === "/";
 
   useEffect(() => {
     const dismissed = localStorage.getItem("zenith:pwa-dismissed");
@@ -38,9 +41,9 @@ export function PwaInstallPrompt() {
 
   return (
     <AnimatePresence>
-      {show && (
+      {show && onHome && (
         <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-          style={{ position: "fixed", bottom: 120, left: 16, right: 16, zIndex: 40,
+          style={{ position: "fixed", bottom: "calc(var(--nav-offset) + 76px)", left: 16, right: 16, zIndex: 40,
             background: "var(--surface)", borderRadius: 14, padding: "12px 14px",
             border: "1px solid var(--border)", boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
             display: "flex", alignItems: "center", gap: 12 }}>
