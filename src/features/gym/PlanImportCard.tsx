@@ -130,7 +130,7 @@ export function PlanImportCard() {
               Full field reference in <code>docs/WORKOUT_PLAN_FORMAT.md</code>. Minimal example:
             </Typography.Paragraph>
             <pre style={{
-              fontSize: 11, background: "var(--nav-bg)", border: "1px solid var(--border)",
+              fontSize: 12, background: "var(--nav-bg)", border: "1px solid var(--border)",
               borderRadius: 8, padding: 10, overflowX: "auto", margin: 0,
             }}>{EXAMPLE}</pre>
           </div>

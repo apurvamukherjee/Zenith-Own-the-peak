@@ -147,7 +147,7 @@ function SetRow({
             <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
               <Button size="small" type="text" aria-label="Decrease weight" icon={<TbMinus />} onClick={() => setEw(Math.max(0, ew - 2.5))} />
-              <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{ew}<span style={{ fontSize: 10 }}>kg</span></span>
+              <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{ew}<span style={{ fontSize: 12 }}>kg</span></span>
               <Button size="small" type="text" aria-label="Increase weight" icon={<TbPlus />} onClick={() => setEw(ew + 2.5)} />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -165,11 +165,11 @@ function SetRow({
           <div style={{ marginLeft: 28, marginTop: 4, paddingLeft: 8, borderLeft: "2px dashed var(--accent)" }}>
             {eStages.map((stage, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                <span style={{ fontSize: 10, color: "var(--ink-soft)", width: 14 }}>↓{i + 1}</span>
+                <span style={{ fontSize: 12, color: "var(--ink-soft)", width: 14 }}>↓{i + 1}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
                   <Button size="small" type="text" aria-label="Decrease drop weight" icon={<TbMinus />}
                     onClick={() => updateEStage(i, { weightKg: Math.max(0, stage.weightKg - 2.5) })} />
-                  <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center", fontSize: 12 }}>{stage.weightKg}<span style={{ fontSize: 9 }}>kg</span></span>
+                  <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center", fontSize: 12 }}>{stage.weightKg}<span style={{ fontSize: 12 }}>kg</span></span>
                   <Button size="small" type="text" aria-label="Increase drop weight" icon={<TbPlus />}
                     onClick={() => updateEStage(i, { weightKg: stage.weightKg + 2.5 })} />
                 </div>
@@ -183,7 +183,7 @@ function SetRow({
                 <Button size="small" type="text" danger icon={<TbX />} aria-label="Remove drop stage" onClick={() => removeEStage(i)} />
               </div>
             ))}
-            <Button size="small" type="dashed" icon={<TbPlus />} onClick={addEStage} style={{ borderRadius: 8, fontSize: 11 }}>
+            <Button size="small" type="dashed" icon={<TbPlus />} onClick={addEStage} style={{ borderRadius: 8, fontSize: 12 }}>
               Add drop
             </Button>
           </div>
@@ -209,11 +209,11 @@ function SetRow({
           <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
           <span style={{ flex: 1, fontWeight: 700 }}>{logged.weightKg}kg × {logged.reps}</span>
           {drops.length > 0 && (
-            <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.5, color: "var(--accent)",
+            <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.5, color: "var(--accent)",
               background: "rgba(255,39,64,0.12)", borderRadius: 999, padding: "1px 6px" }}>DROP</span>
           )}
           {isWeaker && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 9, fontWeight: 800,
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 800,
               letterSpacing: 0.5, color: "var(--accent)", background: "rgba(255,39,64,0.14)",
               borderRadius: 999, padding: "1px 6px" }}>
               <TbTrendingDown size={11} /> WEAKER THAN LAST TIME
@@ -225,7 +225,7 @@ function SetRow({
         {drops.length > 0 && (
           <div style={{ marginLeft: 30, marginTop: 2 }}>
             {drops.map((stage, i) => (
-              <div key={i} style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 600 }}>
+              <div key={i} style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
                 ↓ {stage.weightKg}kg × {stage.reps}
               </div>
             ))}
@@ -273,7 +273,7 @@ function SetRow({
         <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
           <Button size="small" type="text" aria-label="Decrease weight" icon={<TbMinus />} onClick={() => setW(Math.max(0, w - 2.5))} />
-          <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{w}<span style={{ fontSize: 10 }}>kg</span></span>
+          <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{w}<span style={{ fontSize: 12 }}>kg</span></span>
           <Button size="small" type="text" aria-label="Increase weight" icon={<TbPlus />} onClick={() => setW(w + 2.5)} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -292,11 +292,11 @@ function SetRow({
         <div style={{ marginLeft: 28, marginTop: 4, paddingLeft: 8, borderLeft: "2px dashed var(--accent)" }}>
           {stages.map((stage, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-              <span style={{ fontSize: 10, color: "var(--ink-soft)", width: 14 }}>↓{i + 1}</span>
+              <span style={{ fontSize: 12, color: "var(--ink-soft)", width: 14 }}>↓{i + 1}</span>
               <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
                 <Button size="small" type="text" aria-label="Decrease drop weight" icon={<TbMinus />}
                   onClick={() => updateStage(i, { weightKg: Math.max(0, stage.weightKg - 2.5) })} />
-                <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center", fontSize: 12 }}>{stage.weightKg}<span style={{ fontSize: 9 }}>kg</span></span>
+                <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center", fontSize: 12 }}>{stage.weightKg}<span style={{ fontSize: 12 }}>kg</span></span>
                 <Button size="small" type="text" aria-label="Increase drop weight" icon={<TbPlus />}
                   onClick={() => updateStage(i, { weightKg: stage.weightKg + 2.5 })} />
               </div>
@@ -310,7 +310,7 @@ function SetRow({
               <Button size="small" type="text" danger icon={<TbX />} aria-label="Remove drop stage" onClick={() => removeStage(i)} />
             </div>
           ))}
-          <Button size="small" type="dashed" icon={<TbPlus />} onClick={addStage} style={{ borderRadius: 8, fontSize: 11 }}>
+          <Button size="small" type="dashed" icon={<TbPlus />} onClick={addStage} style={{ borderRadius: 8, fontSize: 12 }}>
             Add drop
           </Button>
         </div>
@@ -359,7 +359,7 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
             fontWeight: 800, fontSize: 15,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>{ex.name}</div>
-          {ex.cues && <div style={{ fontSize: 11, color: "var(--ink-soft)",
+          {ex.cues && <div style={{ fontSize: 12, color: "var(--ink-soft)",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ex.cues}</div>}
         </div>
         <Tag style={{
@@ -381,7 +381,7 @@ function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
           />
         )}
       </div>
-      <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 6 }}>
+      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6 }}>
         {plan.sets}×{plan.repLow}–{plan.repHigh} · rest {plan.restSec}s · {plan.weightKg}kg planned
       </div>
       <RestTimer matchLabel={ex.name} />
@@ -452,7 +452,7 @@ function SupersetBlock({ group, dayId, sets, getSessionId }: {
       <div style={{
         display: "inline-flex", alignItems: "center", gap: 6,
         background: "rgba(255,39,64,0.12)", color: "var(--accent)",
-        borderRadius: 999, padding: "2px 10px", fontSize: 10, fontWeight: 800,
+        borderRadius: 999, padding: "2px 10px", fontSize: 12, fontWeight: 800,
         letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 8,
       }}>
         <TbArrowsRightLeft size={12} /> Superset · round {Math.min(roundsCompleted + 1, targetSets)}/{targetSets}
@@ -501,7 +501,7 @@ function SupersetPartner({
             fontWeight: 700, fontSize: 13,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>{ex.name}</div>
-          <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
             {plan.sets}×{plan.repLow}–{plan.repHigh} · {plan.weightKg}kg
             {isLastInGroup ? ` · rest ${plan.restSec}s after round` : " · then →"}
           </div>
@@ -645,7 +645,7 @@ export function SessionLogger() {
           <Link to="/quotes" style={{ position: "absolute", top: 10, right: 10 }}>
             <Button type="text" shape="circle" icon={<TbQuote size={18} />} aria-label="Motivation quotes" />
           </Link>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
             {plan?.name ?? "Session"} · {prettyDate(todayKey())}
           </div>
           <div className="display" style={{ fontSize: 28, fontWeight: 800, margin: "2px 0 6px" }}>
@@ -654,7 +654,7 @@ export function SessionLogger() {
           {dayPlan && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
               {dayPlan.muscles.map((m) => (
-                <Tag key={m} style={{ borderRadius: 999, background: "var(--accent)", color: "#fff", border: "none", fontWeight: 700, fontSize: 10 }}>
+                <Tag key={m} style={{ borderRadius: 999, background: "var(--accent)", color: "#fff", border: "none", fontWeight: 700, fontSize: 12 }}>
                   {MUSCLE_LABELS[m]}
                 </Tag>
               ))}
@@ -691,7 +691,7 @@ export function SessionLogger() {
               <TbFocus2 size={20} style={{ flexShrink: 0, color: focusOn ? "var(--accent)" : "var(--ink-soft)" }} />
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 13 }}>Focus mode</div>
-                <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>Fullscreen, one set at a time — starts on your first set</div>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Fullscreen, one set at a time — starts on your first set</div>
               </div>
             </div>
             <Switch
@@ -749,26 +749,26 @@ export function SessionLogger() {
 
             <div style={{ background: "var(--surface)", borderRadius: 14,
               padding: "12px 16px", border: "1px solid var(--border)", marginTop: 18 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-soft)",
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)",
                 letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 10 }}>
                 Session summary
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 4 }}>
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: "var(--accent)" }}>{doneSets}/{totalSets}</div>
-                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>sets</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>sets</div>
                 </div>
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(volume).toLocaleString()}</div>
-                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>kg vol</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>kg vol</div>
                 </div>
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: t.gold }}><TbFlame style={{ verticalAlign: "-2px" }} /> {pct}%</div>
-                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>done</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>done</div>
                 </div>
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink-soft)" }}>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</div>
-                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>elapsed</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>elapsed</div>
                 </div>
               </div>
             </div>

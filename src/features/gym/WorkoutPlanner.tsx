@@ -35,12 +35,12 @@ function PlanHeroCard({ onOpenSwitcher }: { onOpenSwitcher: () => void }) {
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
             Active plan
           </div>
           <div className="display" style={{ fontSize: 22, fontWeight: 800, margin: "2px 0 4px", display: "flex", alignItems: "center", gap: 8 }}>
             {plan?.name ?? "—"}
-            {plan?.isBuiltIn === 1 && <Tag style={{ borderRadius: 6, fontSize: 9, margin: 0 }}>Built-in</Tag>}
+            {plan?.isBuiltIn === 1 && <Tag style={{ borderRadius: 6, fontSize: 12, margin: 0 }}>Built-in</Tag>}
           </div>
           <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
             {days.length} day{days.length === 1 ? "" : "s"} · {plan ? planExerciseCount(plan) : 0} exercises
@@ -120,7 +120,7 @@ function DayCard({ dayId }: { dayId: number }) {
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
             {day.muscles.map((m, i) => (
               <span key={i} style={{
-                display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 700,
+                display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 700,
                 borderRadius: 999, padding: "1px 8px", background: "rgba(255,39,64,0.12)", color: "var(--accent)",
               }}>
                 <MuscleIcon muscle={m} size={11} color="var(--accent)" /> {MUSCLE_LABELS[m]}
@@ -145,7 +145,7 @@ function DayCard({ dayId }: { dayId: number }) {
           message={
             <span>
               <strong>{s.exerciseName}</strong> — try <strong>{s.suggestKg}kg</strong>
-              <span style={{ fontSize: 11, color: "var(--ink-soft)", marginLeft: 4 }}>
+              <span style={{ fontSize: 12, color: "var(--ink-soft)", marginLeft: 4 }}>
                 (+{s.increment}kg · 3 sessions at top of rep range)
               </span>
             </span>
@@ -187,7 +187,7 @@ function DayCard({ dayId }: { dayId: number }) {
                 <MuscleIcon muscle={ex?.primaryMuscle as MuscleGroup} size={16} color="var(--accent)" />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{ex?.name ?? "?"}</div>
-                  <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
                     {de.sets}×{de.repLow}–{de.repHigh} · {de.weightKg}kg · rest {de.restSec}s
                   </div>
                 </div>
@@ -208,7 +208,7 @@ function DayCard({ dayId }: { dayId: number }) {
               </div>
               {linkedToNext && (
                 <div style={{
-                  fontSize: 10, fontWeight: 700, letterSpacing: 0.6,
+                  fontSize: 12, fontWeight: 700, letterSpacing: 0.6,
                   color: "var(--accent)", padding: "2px 0 2px 11px",
                   borderLeft: "3px solid var(--accent)",
                   textTransform: "uppercase",
@@ -241,7 +241,7 @@ function DayCard({ dayId }: { dayId: number }) {
               <MuscleIcon muscle={ex.primaryMuscle} size={16} color="var(--accent)" />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{ex.name}</div>
-                <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
                   {ex.equipment} · {ex.secondaryMuscles.map((m) => MUSCLE_LABELS[m]).join(", ") || "isolated"}
                 </div>
               </div>
@@ -342,7 +342,7 @@ export function WorkoutPlanner() {
       <PlanSwitcherSheet open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
 
       {/* Weekly schedule — 7-tile strip, Sun..Sat to match weekSchedule.weekday */}
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 8 }}>
         Weekly schedule
       </div>
       <div style={{
@@ -359,7 +359,7 @@ export function WorkoutPlanner() {
               background: isRest ? "var(--surface)" : "rgba(255,39,64,0.10)",
               border: isRest ? "1px solid var(--border)" : "1px solid var(--accent)",
             }}>
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, color: "var(--ink-soft)", marginBottom: 4 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.6, color: "var(--ink-soft)", marginBottom: 4 }}>
                 {name.toUpperCase()}
               </div>
               <Select size="small" variant="borderless" style={{ width: "100%", fontWeight: 700 }}
@@ -370,7 +370,7 @@ export function WorkoutPlanner() {
                 suffixIcon={isRest ? <TbMoon size={12} style={{ color: "var(--ink-soft)" }} /> : null}
               />
               {dayName === undefined && !isRest && (
-                <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>Unassigned</div>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Unassigned</div>
               )}
             </div>
           );

@@ -25,9 +25,9 @@ function PlanCard({ plan, isActive, onActivate, onReset, onRename, onDuplicate, 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
             {plan.name}
-            {plan.isBuiltIn === 1 && <Tag style={{ borderRadius: 6, fontSize: 9, margin: 0 }}>Built-in</Tag>}
+            {plan.isBuiltIn === 1 && <Tag style={{ borderRadius: 6, fontSize: 12, margin: 0 }}>Built-in</Tag>}
           </div>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
             {dayNames.length} day{dayNames.length === 1 ? "" : "s"} · {planExerciseCount(plan)} exercises
           </div>
         </div>
@@ -41,10 +41,10 @@ function PlanCard({ plan, isActive, onActivate, onReset, onRename, onDuplicate, 
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
         {dayNames.length === 0 ? (
-          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>No days yet</span>
+          <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>No days yet</span>
         ) : dayNames.map((n, i) => (
           <span key={i} style={{
-            fontSize: 10, fontWeight: 600, borderRadius: 999, padding: "2px 8px",
+            fontSize: 12, fontWeight: 600, borderRadius: 999, padding: "2px 8px",
             background: "var(--bg)", border: "1px solid var(--border)", color: "var(--ink-soft)",
           }}>{n}</span>
         ))}
@@ -120,7 +120,7 @@ export function PlanSwitcherSheet({ open, onClose }: Props) {
   return (
     <Sheet open={open} onCancel={onClose} footer={null} title={<span style={{ display: "flex", alignItems: "center", gap: 8 }}><TbBarbell /> Switch Plan</span>}>
       <div style={{ marginTop: 8, maxHeight: "70vh", overflowY: "auto" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 8 }}>
           Built-in
         </div>
         {builtIns.map((p) => (
@@ -129,7 +129,7 @@ export function PlanSwitcherSheet({ open, onClose }: Props) {
             onRename={() => handleRename(p)} onDuplicate={() => handleDuplicate(p)} onDelete={() => handleDelete(p)} />
         ))}
 
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", margin: "14px 0 8px" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", margin: "14px 0 8px" }}>
           My Plans
         </div>
         {custom.length === 0 && (
