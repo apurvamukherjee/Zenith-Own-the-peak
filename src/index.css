@@ -33,7 +33,7 @@
   --bg: #f5f0f0;
   --surface: #ffffff;
   --ink: #1a0f13;
-  --ink-soft: #6b5a5f;
+  --ink-soft: #5c4b50;
   --violet: #c8112a;
   --accent: #c8112a;
   --gold: #b8860b;
@@ -65,7 +65,7 @@
   --bg: #0d0608;
   --surface: #1a1013;
   --ink: #f3eef2;
-  --ink-soft: #948b98;
+  --ink-soft: #a89fac;
   --violet: #ff2740;
   --accent: #ff2740;
   --gold: #f6b93b;
@@ -171,10 +171,10 @@ h1, h2, h3, h4, .display {
 .gothic-eyebrow {
   font-family: "Cinzel", "Plus Jakarta Sans", serif;
   font-weight: 700;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--accent);
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 
 /* UI #2 — red-tinted shimmer, replaces the old grey shimmer keyframes.
