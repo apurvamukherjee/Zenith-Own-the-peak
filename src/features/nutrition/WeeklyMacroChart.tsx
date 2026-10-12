@@ -82,7 +82,7 @@ export function WeeklyMacroChart() {
 
 function Legend({ color, label }: { color: string; label: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "var(--ink-soft)" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--ink-soft)" }}>
       <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
       {label}
     </div>

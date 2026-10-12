@@ -26,7 +26,7 @@ export function MacroBar({ meals, proteinTarget, fatTarget, carbTarget, kcalTarg
         const pct = r.target > 0 ? Math.min(100, Math.round((r.value / r.target) * 100)) : 0;
         return (
           <div key={r.label}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}>
               <span style={{ fontWeight: 700, color: "var(--ink)" }}>{r.label}</span>
               <span style={{ color: "var(--ink-soft)" }}>
                 {Math.round(r.value)}<span style={{ opacity: 0.7 }}> / {r.target} {r.unit}</span>
@@ -63,7 +63,7 @@ export function TimeOfDayBar({ meals }: { meals: MealDto[] }) {
             style={{ width: `${pct}%`, background: i.color }} />;
         })}
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--ink-soft)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--ink-soft)" }}>
         {items.map((i) => (
           <span key={i.key}>
             <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: 2, background: i.color, marginRight: 3, verticalAlign: "middle" }} />

@@ -137,8 +137,8 @@ export function NutritionPage() {
               strokeColor={t.accent}
               format={() => (
                 <div style={{ lineHeight: 1.05, whiteSpace: "nowrap" }}>
-                  <div className="display" style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(protein)}<span style={{ fontSize: 11 }}>g</span></div>
-                  <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>of {proteinTarget}g</div>
+                  <div className="display" style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(protein)}<span style={{ fontSize: 12 }}>g</span></div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>of {proteinTarget}g</div>
                 </div>
               )} />
             <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>Protein</div>
@@ -218,7 +218,7 @@ export function NutritionPage() {
       {/* Quick water chips (add-on #7) — logging a meal often coincides with a drink */}
       <Card size="small" style={{ marginBottom: 12 }} styles={{ body: { padding: "10px 12px" } }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginRight: 4 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginRight: 4 }}>
             <TbDroplet style={{ verticalAlign: "-2px", color: "var(--teal)" }} /> Drink with your meal
           </span>
           {[200, 500, 1000].map((v) => (
@@ -238,7 +238,7 @@ export function NutritionPage() {
               {bulk.selected.size < meals.length && (
                 <Button size="small" type="text"
                   onClick={() => bulk.selectAll(meals.map((m) => m.id!).filter(Boolean))}
-                  style={{ fontSize: 11, padding: "0 6px", color: "var(--accent)", fontWeight: 700 }}>
+                  style={{ fontSize: 12, padding: "0 6px", color: "var(--accent)", fontWeight: 700 }}>
                   All {meals.length}
                 </Button>
               )}
@@ -381,7 +381,7 @@ function TemplatesRow({ onCreateCombo }: { onCreateCombo: () => void }) {
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Quick log</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>Quick log</span>
         <Button size="small" type="text" icon={<TbStack2 />} onClick={onCreateCombo}
           style={{ fontSize: 12 }}>New combo</Button>
       </div>

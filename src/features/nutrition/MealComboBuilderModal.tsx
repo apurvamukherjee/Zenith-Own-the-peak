@@ -66,7 +66,7 @@ export function MealComboBuilderModal({ open, onClose }: Props) {
                   ]}>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 13 }}>{it.food.name}</div>
-                    <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                    <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
                       {portionLabel(it.food, it.amount)} · {computeMacros(it.food, it.amount).kcal} kcal
                     </div>
                   </div>

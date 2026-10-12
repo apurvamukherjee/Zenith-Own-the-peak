@@ -112,7 +112,7 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
 
               {recent.length > 0 && !query && (
                 <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>Recent</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>Recent</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {recent.map((f) => (
                       <Tag key={f.id} onClick={() => { pickFood(f); }}
@@ -126,7 +126,7 @@ export function FoodPickerModal({ open, onClose, onPick, defaultMealType = "brea
 
               {favorites.length > 0 && !query && (
                 <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>
                     <TbHeart style={{ verticalAlign: "-2px" }} /> Favorites
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -211,7 +211,7 @@ function FoodRow({ food, onSelect }: { food: FoodDto; onSelect: () => void }) {
       }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 600, fontSize: 13.5, color: "var(--ink)" }}>{food.name}</div>
-        <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
           {food.unit === "g" || food.unit === "ml"
             ? `per 100${food.unit}: ${food.protein}p · ${food.fat}f · ${food.carbs}c · ${food.kcal}kcal`
             : `per ${food.unit}: ${food.protein}p · ${food.fat}f · ${food.carbs}c · ${food.kcal}kcal`}
@@ -260,7 +260,7 @@ function FoodDetail({ food, amount, setAmount, mealType, setMealType, hideMealTy
           onClick={() => toggleFoodFavorite(food.id!)} aria-label="Favorite" />
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>Portion</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>Portion</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
         {presets.map((p, i) => (
           <Button key={i} size="small" type={amount === p.amount ? "primary" : "default"} onClick={() => setAmount(p.amount)}>
@@ -279,7 +279,7 @@ function FoodDetail({ food, amount, setAmount, mealType, setMealType, hideMealTy
       {preview && (
         <div style={{ background: "var(--bg)", borderRadius: 12, padding: "10px 12px", marginBottom: 12,
           border: "1px solid var(--border)" }}>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 700, marginBottom: 4 }}>You'll add</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 700, marginBottom: 4 }}>You'll add</div>
           <div className="display" style={{ fontSize: 20, fontWeight: 800, color: "var(--accent)" }}>
             {preview.kcal} <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>kcal</span>
           </div>
@@ -291,7 +291,7 @@ function FoodDetail({ food, amount, setAmount, mealType, setMealType, hideMealTy
 
       {!hideMealType && (
         <>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>Meal</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>Meal</div>
           <Segmented block value={mealType} onChange={(v) => setMealType(v as MealType)}
             options={[
               { label: "Breakfast", value: "breakfast" },
@@ -338,7 +338,7 @@ function AddCustomFoodModal({ open, onClose, initialName, onCreated }: {
     <Modal open={open} onCancel={onClose} title="Add custom food" onOk={submit} okText="Add">
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
         <Input placeholder="Ma's aloo paratha" value={name} onChange={(e) => setName(e.target.value)} />
-        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Values are per…</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>Values are per…</div>
         <Segmented block value={unit} onChange={(v) => setUnit(v as FoodDto["unit"])}
           options={[
             { label: "100g", value: "g" },
@@ -360,7 +360,7 @@ function AddCustomFoodModal({ open, onClose, initialName, onCreated }: {
 function LabeledNum({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 2 }}>{label}</div>
       <SmartInputNumber value={value} min={0} step={0.1}
         onChange={(v) => onChange(Number(v ?? 0))} style={{ width: "100%" }} />
     </div>
