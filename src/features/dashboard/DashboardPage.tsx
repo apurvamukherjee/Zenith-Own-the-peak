@@ -359,7 +359,7 @@ export function DashboardPage() {
           <h2 className="display" style={{ margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1.05 }}>
             {name}
           </h2>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 2, fontStyle: "italic" }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2, fontStyle: "italic" }}>
             {g.tagline}
           </div>
         </div>
@@ -386,9 +386,9 @@ export function DashboardPage() {
                 />
               )}
             </div>
-            <div style={{ fontSize: 9, color: "var(--ink-soft)" }}>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
               streak{freezeAvailable && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 1, marginLeft: 4, fontSize: 8, opacity: 0.7 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 1, marginLeft: 4, fontSize: 12, opacity: 0.7 }}>
                   <TbSnowflake size={9} />1
                 </span>
               )}
@@ -449,7 +449,7 @@ export function DashboardPage() {
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 700 }}>A week in — targets still right?</div>
-            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>Your water, protein, and sleep goals are easy to adjust.</div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Your water, protein, and sleep goals are easy to adjust.</div>
           </div>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
             <Link to="/settings">
@@ -530,7 +530,7 @@ export function DashboardPage() {
                       letterSpacing: scoreUrgent ? "0.02em" : "normal",
                     }}
                   ><AnimatedNumber value={score.score} />%</motion.div>
-                  <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
                 </div>
               )} />
           </motion.div>
@@ -556,7 +556,7 @@ export function DashboardPage() {
         </div>
         {score.score === 0 && !hasAnyWriteToday && (
           <div style={{
-            fontSize: 10, color: "var(--ink-soft)", fontStyle: "italic",
+            fontSize: 12, color: "var(--ink-soft)", fontStyle: "italic",
             marginTop: 8, opacity: 0.7, letterSpacing: 0.3,
           }}>
             Ready when you are
@@ -598,7 +598,7 @@ export function DashboardPage() {
           </svg>
           <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, fontWeight: 600 }}>
+              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, fontWeight: 600 }}>
                 {todayDay ? "Today's training" : "Rest day"}
                 {todaySession?.durationMin ? ` · ${todaySession.durationMin}min` : ""}
               </div>
@@ -623,7 +623,7 @@ export function DashboardPage() {
               <div style={{ position: "relative", zIndex: 1, marginTop: 8 }}>
                 <Progress percent={trainPct} showInfo={false} size={[-1, 5]}
                   strokeColor="#fff" trailColor="rgba(255,255,255,0.25)" />
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", marginTop: 3 }}>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 3 }}>
                   {trainDoneSets}/{trainTotalSets} sets
                 </div>
               </div>
@@ -638,14 +638,14 @@ export function DashboardPage() {
         {/* Water */}
         <div style={{ background: "var(--surface)", borderRadius: 14, padding: "10px 12px", display: "flex", alignItems: "center", gap: 10 }}>
           <Progress type="circle" percent={score.waterPct} size={38} strokeColor={score.waterPct >= 100 ? t.teal : t.accent} strokeWidth={10}
-            format={() => <span style={{ fontSize: 8, fontWeight: 700 }}>{score.waterPct}%</span>} />
+            format={() => <span style={{ fontSize: 12, fontWeight: 700 }}>{score.waterPct}%</span>} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <Link to="/water" style={{ color: "inherit" }}>
               <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 3 }}>
                 <TbDroplet size={13} /> Water
               </div>
             </Link>
-            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{(waterMl / 1000).toFixed(1)}L</div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{(waterMl / 1000).toFixed(1)}L</div>
           </div>
           <Button size="small" type="text" icon={<TbPlus size={14} />} onClick={() => quickWater(500)} style={{ padding: "0 6px" }} />
         </div>
@@ -742,7 +742,7 @@ function MiniWeekStrip() {
   return (
     <Link to="/calendar" style={{ color: "inherit" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface)", borderRadius: 12, padding: "8px 12px" }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Last 7 days</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>Last 7 days</span>
         <div style={{ display: "flex", gap: 5 }}>
           {last7.map((c) => (
             <div key={c.date} title={c.date} style={{
@@ -765,7 +765,7 @@ function Pill({ done, label, icon }: { done: boolean; label: string; icon: React
   // not an error state.
   return (
     <div style={{
-      display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 600,
+      display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600,
       padding: "3px 8px", borderRadius: 999,
       color: done ? "var(--teal)" : "var(--accent)",
       border: done ? "1px solid transparent" : "1px solid var(--ember-inner)",
@@ -797,10 +797,10 @@ function LevelBadge() {
         padding: "3px 10px 3px 7px",
       }}>
         <span style={{
-          fontFamily: '"Cinzel", serif', fontWeight: 800, fontSize: 10,
+          fontFamily: '"Cinzel", serif', fontWeight: 800, fontSize: 12,
           color: "var(--accent)", letterSpacing: "0.05em",
         }}>Lv.{level.level}</span>
-        <span style={{ fontSize: 10, color: "var(--ink-soft)", letterSpacing: "0.03em" }}>
+        <span style={{ fontSize: 12, color: "var(--ink-soft)", letterSpacing: "0.03em" }}>
           {level.name}
         </span>
       </div>
@@ -814,7 +814,7 @@ function LevelBadge() {
         </div>
       )}
       {next && (
-        <div style={{ fontSize: 9, color: "var(--ink-soft)", opacity: 0.6 }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", opacity: 0.6 }}>
           {xpInLevel} / {xpToNext} XP → {next.name}
         </div>
       )}
