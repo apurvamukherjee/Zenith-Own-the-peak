@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { GlowBar } from "../../components/GlowBar";
 import { Link } from "react-router-dom";
-import { Button, Progress, Tag, Popconfirm, Switch } from "antd";
+import { Button, Tag, Popconfirm, Switch } from "antd";
 import { motion } from "framer-motion";
 import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX, TbFocus2, TbTrendingDown, TbPencil, TbTrash } from "react-icons/tb";
 import { RestTimer } from "../../components/RestTimer";
@@ -662,8 +663,7 @@ export function SessionLogger() {
           )}
           {!isRest && totalSets > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <Progress percent={pct} strokeColor={pct >= 100 ? t.teal : t.accent} showInfo={false}
-                style={{ flex: 1 }} size={[-1, 8]} />
+              <div style={{ flex: 1 }}><GlowBar percent={pct} onHero height={10} label="Session progress" /></div>
               <span style={{ fontSize: 12, fontWeight: 800, minWidth: 34, textAlign: "right" }}>{pct}%</span>
               {pct < 100 && (
                 <Popconfirm
