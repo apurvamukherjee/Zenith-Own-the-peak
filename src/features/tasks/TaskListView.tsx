@@ -84,7 +84,7 @@ export function TaskListView() {
     <PageTransition>
       <SectionTitle eyebrow={list.name.toUpperCase()} title={`${activeTasks.filter((t) => t.status !== "done").length} tasks`} right={
         <div style={{ display: "flex", gap: 6 }}>
-          <Button size="small" icon={<TbArrowLeft />} onClick={() => nav("/tasks")} />
+          <Button size="small" icon={<TbArrowLeft />} onClick={() => nav("/tasks")} aria-label="Back" />
           <Segmented size="small" value={view} onChange={(v) => setView(v as "list" | "kanban")}
             options={[
               { value: "list", icon: <TbList size={14} /> },
@@ -106,7 +106,7 @@ export function TaskListView() {
           onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
           placeholder={`Add to ${list.name}...`}
           style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "var(--ink)", fontSize: 13, fontFamily: "inherit" }} />
-        <Button type="primary" size="small" icon={<TbPlus />} onClick={handleQuickAdd} disabled={!input.trim()} style={{ borderRadius: 8 }} />
+        <Button type="primary" size="small" icon={<TbPlus />} onClick={handleQuickAdd} disabled={!input.trim()} style={{ borderRadius: 8 }} aria-label="Add" />
       </div>
 
       {/* Smart suggestions */}

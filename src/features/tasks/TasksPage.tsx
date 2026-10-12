@@ -116,7 +116,7 @@ function TaskHub() {
           }}
         />
         <Button type="primary" size="small" icon={<TbPlus />} onClick={handleQuickAdd}
-          disabled={!input.trim()} style={{ borderRadius: 10 }} />
+          disabled={!input.trim()} style={{ borderRadius: 10 }} aria-label="Add" />
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -10, marginBottom: 12 }}>
         <Button size="small" type="text" onClick={() => openEditor(undefined)} style={{ fontSize: 12, color: "var(--ink-soft)" }}>
