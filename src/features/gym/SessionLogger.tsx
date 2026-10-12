@@ -639,8 +639,8 @@ export function SessionLogger() {
         <div style={{
           borderRadius: 20, padding: "16px 18px", marginBottom: 14, position: "relative", overflow: "hidden",
           background: isRest
-            ? "linear-gradient(135deg, rgba(120,120,140,0.14), rgba(0,0,0,0.30))"
-            : "linear-gradient(135deg, rgba(255,39,64,0.22), rgba(0,0,0,0.38))",
+            ? "linear-gradient(135deg, var(--surface-3), var(--surface-2))"
+            : "linear-gradient(135deg, var(--ember-inner), var(--surface-2))",
           border: `1px solid ${isRest ? "var(--border)" : "var(--accent)"}`,
         }}>
           <Link to="/quotes" style={{ position: "absolute", top: 10, right: 10 }}>
