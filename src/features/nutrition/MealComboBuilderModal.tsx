@@ -61,7 +61,7 @@ export function MealComboBuilderModal({ open, onClose }: Props) {
                 <List.Item style={{ padding: "6px 0", borderBottom: "1px solid var(--border)" }}
                   actions={[
                     <Popconfirm key="d" title="Remove?" onConfirm={() => setItems((arr) => arr.filter((_, idx) => idx !== i))}>
-                      <Button type="text" size="small" danger icon={<TbTrash />} />
+                      <Button type="text" size="small" danger icon={<TbTrash />} aria-label="Delete" />
                     </Popconfirm>,
                   ]}>
                   <div>

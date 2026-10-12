@@ -273,7 +273,7 @@ function FoodDetail({ food, amount, setAmount, mealType, setMealType, hideMealTy
         <SmartInputNumber value={amount} min={0.1} step={food.unit === "g" || food.unit === "ml" ? 10 : 0.5}
           onChange={(v) => setAmount(Number(v ?? 0))} style={{ flex: 1 }}
           suffix={food.unit === "g" || food.unit === "ml" ? food.unit : food.unit + (amount === 1 ? "" : "s")} />
-        <Button icon={<TbBookmarkPlus />} onClick={savePresetHere} title="Save as preset" />
+        <Button icon={<TbBookmarkPlus />} onClick={savePresetHere} title="Save as preset" aria-label="Save as preset" />
       </div>
 
       {preview && (

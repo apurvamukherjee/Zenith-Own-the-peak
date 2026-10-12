@@ -125,7 +125,7 @@ function PathCard({ path }: { path: StudyPathDto }) {
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <Input placeholder="Add topic" value={newTopic} onChange={(e) => setNewTopic(e.target.value)}
                 onPressEnter={() => { if (newTopic.trim() && path.id) { addItem(path.id, newTopic.trim()); setNewTopic(""); } }} />
-              <Button icon={<TbPlus />} onClick={() => { if (newTopic.trim() && path.id) { addItem(path.id, newTopic.trim()); setNewTopic(""); } }} />
+              <Button icon={<TbPlus />} onClick={() => { if (newTopic.trim() && path.id) { addItem(path.id, newTopic.trim()); setNewTopic(""); } }} aria-label="Add" />
             </div>
           </>
         ),
