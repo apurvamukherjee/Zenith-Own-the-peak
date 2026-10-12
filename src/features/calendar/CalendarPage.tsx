@@ -334,42 +334,12 @@ export function CalendarPage() {
         >
           {view === "month" && (
             <>
-              {/* Weekly strip — this week zoomed */}
-              <div style={{ background: "var(--surface)", borderRadius: 10, padding: "8px 12px", marginBottom: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>This week</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
-                  {(() => {
-                    const today = new Date();
-                    const dow = today.getDay();
-                    const wStart = new Date(today); wStart.setDate(today.getDate() - dow);
-                    const week = Array.from({ length: 7 }, (_, i) => {
-                      const d = new Date(wStart); d.setDate(wStart.getDate() + i);
-                      return d.toISOString().slice(0, 10);
-                    });
-                    return week.map((iso) => {
-                      const cell = rawCells.find((c) => c.date === iso);
-                      const pct = cell ? filteredValue(cell, filter) : 0;
-                      const bg = cell?.hasAny ? colorFor(pct, cell.hasAny, t) : "var(--surface)";
-                      const bgImage = cell?.hasAny ? "none" : "radial-gradient(circle at 50% 50%, var(--ember-inner) 1px, transparent 1px)";
-                      return (
-                        <div key={iso} style={{
-                          aspectRatio: "1", borderRadius: 6, background: bg,
-                          backgroundImage: bgImage, backgroundSize: "6px 6px",
-                          opacity: cell?.isFuture ? 0.25 : 1,
-                          border: cell?.isToday ? `2px solid ${t.accent}` : "none",
-                        }} />
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-
-              <Segmented block size="small" value={filter} onChange={(v) => setFilter(v as ScoreFilter)}
+              <Segmented block value={filter} onChange={(v) => setFilter(v as ScoreFilter)}
                 options={FILTERS} style={{ marginBottom: 10 }} />
 
               <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-                <Button size="small" icon={<TbFlag />} onClick={() => setShowGoalAdd(true)}>Add goal</Button>
-                <Button size="small" icon={<TbShare />} onClick={exportMonth}>Share month</Button>
+                <Button size="middle" icon={<TbFlag />} onClick={() => setShowGoalAdd(true)}>Add goal</Button>
+                <Button size="middle" icon={<TbShare />} onClick={exportMonth}>Share month</Button>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 6 }}>
@@ -380,7 +350,7 @@ export function CalendarPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
                 {Array.from({ length: firstDow }, (_, i) => <div key={`pad-${i}`} />)}
-                {rawCells.map((c, idx) => {
+                {rawCells.map((c) => {
                   const dayNum = Number(c.date.slice(-2));
                   const pct = filteredValue(c, filter);
                   const inRange = rangeStart && rangeEnd && c.date >= [rangeStart, rangeEnd].sort()[0] && c.date <= [rangeStart, rangeEnd].sort()[1];
@@ -392,25 +362,19 @@ export function CalendarPage() {
                   return (
                     <motion.button
                       key={c.date}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: Math.min(idx * 0.006, 0.22), type: "spring", stiffness: 420, damping: 28 }}
-                      whileTap={{ scale: 0.9 }}
+                      whileTap={{ scale: 0.94 }}
                       onPointerDown={() => !c.isFuture && handlePressStart(c.date)}
                       onPointerUp={handlePressEnd}
                       onPointerLeave={handlePressEnd}
                       onClick={() => handleTap(c.date, c.isFuture)}
                       disabled={c.isFuture}
                       style={{
-                        position: "relative", aspectRatio: "1", borderRadius: 10, overflow: "hidden",
-                        border: c.isToday ? `2px solid ${t.accent}` : inRange ? `2px solid ${t.gold}` : "1px solid var(--border)",
-                        background: "var(--surface)",
-                        backgroundImage: !c.hasAny ? "radial-gradient(circle at 50% 50%, var(--ember-inner) 1px, transparent 1px)" : "none",
-                        backgroundSize: "6px 6px",
-                        opacity: c.isFuture ? 0.35 : 1,
-                        color: "var(--ink)",
-                        fontWeight: 700, fontSize: 12, cursor: c.isFuture ? "default" : "pointer",
+                        position: "relative", aspectRatio: "1", borderRadius: 12, overflow: "hidden",
+                        border: inRange ? `2px solid ${t.gold}` : "1px solid transparent",
+                        background: c.isToday ? "var(--ember-inner)" : "var(--surface)",
+                        opacity: c.isFuture ? 0.4 : 1,
+                        color: c.isToday ? "var(--accent)" : "var(--ink)",
+                        fontWeight: c.isToday ? 800 : 600, fontSize: "var(--fs-sm)", cursor: c.isFuture ? "default" : "pointer",
                         display: "flex", alignItems: "center", justifyContent: "center",
                       }}
                     >
@@ -449,7 +413,7 @@ export function CalendarPage() {
               <div style={{ display: "flex", gap: 12, marginTop: 16, fontSize: 12, color: "var(--ink-soft)", flexWrap: "wrap" }}>
                 <Legend color={t.teal} label="Strong (75%+)" />
                 <Legend color={t.gold} label="Okay (40–74%)" />
-                <Legend color="#ff5c7a" label="Rough (<40%)" />
+                <Legend color="var(--danger)" label="Rough (<40%)" />
                 <Legend color="var(--surface)" label="No data" bordered />
               </div>
               <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
