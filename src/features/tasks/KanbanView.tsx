@@ -82,7 +82,7 @@ function KanbanCard({ task, list, columns, currentCol, onMove }: {
         textDecoration: task.status === "done" ? "line-through" : "none",
         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
       }}>
-        {task.priority === 1 && <span style={{ color: "#ff2740" }}>● </span>}
+        {task.priority === 1 && <span style={{ color: "var(--accent)" }}>● </span>}
         {task.title}
       </div>
 

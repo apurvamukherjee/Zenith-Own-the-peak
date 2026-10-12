@@ -200,7 +200,7 @@ function TaskRowWithDeps({ task, list, allTasks }: { task: TaskDto; list: { colo
         }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {task.priority === 1 && <span style={{ color: "#ff2740" }}>● </span>}
+          {task.priority === 1 && <span style={{ color: "var(--accent)" }}>● </span>}
           {task.title}
         </div>
         {isBlocked && (

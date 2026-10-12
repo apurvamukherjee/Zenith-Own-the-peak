@@ -17,7 +17,7 @@ export function MacroBar({ meals, proteinTarget, fatTarget, carbTarget, kcalTarg
     { label: "Protein", value: protein, target: proteinTarget, color: t.accent, unit: "g" },
     { label: "Carbs", value: carbs, target: carbTarget, color: t.gold, unit: "g" },
     { label: "Fat", value: fat, target: fatTarget, color: t.teal, unit: "g" },
-    { label: "Calories", value: kcal, target: kcalTarget, color: "#ff5c7a", unit: "kcal" },
+    { label: "Calories", value: kcal, target: kcalTarget, color: "var(--danger)", unit: "kcal" },
   ];
 
   return (
@@ -50,7 +50,7 @@ export function TimeOfDayBar({ meals }: { meals: MealDto[] }) {
     { key: "breakfast", label: "B", color: t.gold },
     { key: "lunch", label: "L", color: t.accent },
     { key: "dinner", label: "D", color: t.teal },
-    { key: "snack", label: "S", color: "#ff5c7a" },
+    { key: "snack", label: "S", color: "var(--danger)" },
   ];
   if (total <= 1) return null;
   return (

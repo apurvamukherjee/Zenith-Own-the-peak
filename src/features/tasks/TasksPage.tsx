@@ -40,7 +40,7 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
 };
 
 const PRIORITY_LABEL: Record<number, { label: string; color: string }> = {
-  1: { label: "Urgent", color: "#ff2740" },
+  1: { label: "Urgent", color: "var(--accent)" },
   2: { label: "Normal", color: "var(--ink-soft)" },
   3: { label: "Low", color: "var(--teal)" },
 };
@@ -286,7 +286,7 @@ function TaskRow({ task, lists, onComplete, onTap, showDate }: {
           textDecoration: done ? "line-through" : "none",
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
-          {task.priority === 1 && <span style={{ color: "#ff2740", marginRight: 4 }}>●</span>}
+          {task.priority === 1 && <span style={{ color: "var(--accent)", marginRight: 4 }}>●</span>}
           {task.title}
         </div>
         <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
