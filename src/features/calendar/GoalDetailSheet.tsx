@@ -98,7 +98,7 @@ export function GoalDetailSheet({ open, onClose, goal }: Props) {
       <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
         <Input placeholder="Add a milestone" value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
           onPressEnter={addOne} />
-        <Button icon={<TbPlus />} onClick={addOne} disabled={!newTitle.trim()} />
+        <Button icon={<TbPlus />} onClick={addOne} disabled={!newTitle.trim()} aria-label="Add" />
       </div>
 
       <Popconfirm title="Delete this goal?" description="Its milestones stay in your Tasks list." okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}

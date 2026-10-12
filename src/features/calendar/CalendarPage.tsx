@@ -526,7 +526,7 @@ export function CalendarPage() {
               <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{dayjs(rangeStats.from).format("D MMM")} – {dayjs(rangeStats.to).format("D MMM")}</div>
               <div style={{ fontWeight: 700 }}>Avg {rangeStats.avg}% · {rangeStats.activeDays}/{rangeStats.days} active days</div>
             </div>
-            <Button type="text" icon={<TbX />} onClick={() => { setRangeStart(null); setRangeEnd(null); }} />
+            <Button type="text" icon={<TbX />} onClick={() => { setRangeStart(null); setRangeEnd(null); }} aria-label="Close" />
           </div>
         </div>
       )}

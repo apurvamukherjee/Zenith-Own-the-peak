@@ -243,7 +243,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
                 color: "var(--ink)", fontSize: 13, fontFamily: "inherit",
               }} />
             <Button type="primary" size="small" icon={<TbPlus />}
-              onClick={handleQuickAdd} disabled={!input.trim()} style={{ borderRadius: 8 }} />
+              onClick={handleQuickAdd} disabled={!input.trim()} style={{ borderRadius: 8 }} aria-label="Add" />
             <Button size="small" icon={<TbAdjustmentsHorizontal />} aria-label="More options"
               onClick={() => openEditor(undefined)} style={{ borderRadius: 8 }} />
           </div>
