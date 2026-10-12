@@ -331,7 +331,7 @@ export function DashboardPage() {
   }
 
   return (
-    <div style={{
+    <div className="home-grid" style={{
       display: "flex", flexDirection: "column", gap: 10,
       padding: "12px 16px 12px", minHeight: "calc(100dvh - 100px)",
     }}>
@@ -339,7 +339,7 @@ export function DashboardPage() {
           parallax (drifts slower than the cards below); opacity carries the
           entrance cascade — kept separate since a MotionValue and a static
           animate target can't both drive the same transform key. */}
-      <motion.div
+      <motion.div className="home-full"
         style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", y: greetingY }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       >
@@ -407,7 +407,7 @@ export function DashboardPage() {
           line when water/protein/session are ALL still untouched, instead of
           the milder default copy. Same slot, same buttons either way. */}
       {streakInDanger && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        <motion.div className="home-full" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           style={{ background: "linear-gradient(135deg, var(--accent), #6e0f1c)", borderRadius: 12,
             padding: "10px 12px", color: "#fff" }}>
           <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
@@ -430,7 +430,7 @@ export function DashboardPage() {
           (streakInDanger above requires streak > 0), since doing literally
           nothing all day deserves a callout either way. */}
       {!streakInDanger && didNothingToday && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        <motion.div className="home-full" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           style={{ background: "linear-gradient(135deg, var(--accent), #6e0f1c)", borderRadius: 12,
             padding: "10px 12px", color: "#fff" }}>
           <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
@@ -446,7 +446,7 @@ export function DashboardPage() {
 
       {/* 7-day review nudge — fires once on day 7+ after first launch */}
       {showReviewNudge && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        <motion.div className="home-full" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           style={{ background: "var(--surface)", borderRadius: 12,
             padding: "10px 14px", border: "1px solid var(--ember-inner)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
@@ -468,6 +468,7 @@ export function DashboardPage() {
           hardcoded rgba white) so it and the training hero read as the two
           things on this screen that matter, vs the flatter secondary cards
           below. */}
+      <div className="home-col">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4, delay: reducedMotion ? 0 : 0.06, ease: [0.22, 1, 0.36, 1] }}
@@ -639,6 +640,8 @@ export function DashboardPage() {
       </motion.div>
 
       {/* Today feed: what's next on the calendar, merged from tasks/meds/meals. */}
+      </div>
+      <div className="home-col">
       <motion.div {...cascade(4)}>
         <TodayCard />
       </motion.div>
@@ -672,6 +675,7 @@ export function DashboardPage() {
       <motion.div {...cascade(7)}>
         <HomeQuoteCard />
       </motion.div>
+      </div>
 
       <SisyphusOverlay open={sisyphusOpen} onClose={() => setSisyphusOpen(false)} />
     </div>

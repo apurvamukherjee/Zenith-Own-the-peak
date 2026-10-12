@@ -723,3 +723,13 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="month"]:focus {
 @keyframes ring-done-pop { 0% { transform: scale(.96); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
 .ant-select.z-select-sm .ant-select-selector { min-height: 36px !important; border-radius: 999px !important; }
+
+/* Wide Home: two columns on desktop. Narrow screens flatten .home-col into the flex column. */
+.home-col { display: contents; }
+@media (min-width: 1200px) {
+  .app-column:has(.home-grid) { max-width: 1080px !important; }
+  :root:has(.home-grid) { --col-half: 540px; }
+  .home-grid { display: grid !important; grid-template-columns: 1fr 1fr; align-items: start; align-content: start; column-gap: 16px; row-gap: 10px; min-height: 0 !important; }
+  .home-full { grid-column: 1 / -1; }
+  .home-col { display: flex; flex-direction: column; gap: 10px; }
+}
