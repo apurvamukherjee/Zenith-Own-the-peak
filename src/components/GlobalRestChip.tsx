@@ -27,7 +27,7 @@ export function GlobalRestChip() {
           exit={{ opacity: 0, y: 20, scale: 0.9 }}
           transition={{ type: "spring", stiffness: 380, damping: 26 }}
           style={{
-            position: "fixed", bottom: 132, right: 20, zIndex: 45,
+            position: "fixed", bottom: "calc(var(--nav-offset) + 68px)", right: 20, zIndex: 45,
             background: "var(--surface)", color: "var(--ink)",
             border: "1px solid var(--border)", borderRadius: 999,
             padding: "6px 10px 6px 6px",

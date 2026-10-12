@@ -519,7 +519,7 @@ export function CalendarPage() {
       <CalendarSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} onJumpTo={jumpToSearchResult} />
 
       {view === "month" && rangeStats && (
-        <div style={{ position: "fixed", bottom: 76, left: 16, right: 16, background: "var(--surface)", borderRadius: 14,
+        <div style={{ position: "fixed", bottom: "calc(var(--nav-offset) + 4px)", left: 16, right: 16, background: "var(--surface)", borderRadius: 14,
           padding: "12px 16px", boxShadow: "0 8px 30px rgba(0,0,0,0.25)", border: "1px solid var(--border)", zIndex: 40 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>

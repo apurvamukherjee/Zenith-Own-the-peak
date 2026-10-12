@@ -64,7 +64,7 @@ export function PRCelebration() {
   // Reduced-motion mode: skip confetti, just show a subtle bottom banner
   if (reducedMotion) {
     return payload ? (
-      <div style={{ position: "fixed", bottom: 80, left: 0, right: 0, zIndex: 10000, textAlign: "center", pointerEvents: "none" }}>
+      <div style={{ position: "fixed", bottom: "calc(var(--nav-offset) + 8px)", left: 0, right: 0, zIndex: 10000, textAlign: "center", pointerEvents: "none" }}>
         <span className="display" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--surface)", padding: "8px 16px", borderRadius: 12, fontSize: 14, fontWeight: 700, color: "var(--gold)", border: "1px solid var(--border)" }}>
           <TbTrophy size={16} /> {headline}
         </span>
