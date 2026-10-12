@@ -65,7 +65,7 @@ export function InboxCaptureModal({ open, onClose }: { open: boolean; onClose: (
         if (parsed.location) parts.push({ Icon: TbMapPin, text: parsed.location });
         if (parsed.recurring) parts.push({ Icon: TbRepeat, text: parsed.recurring.frequency });
         return parts.length > 0 ? (
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 11, color: "var(--ink-soft)", marginBottom: 10 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 12, color: "var(--ink-soft)", marginBottom: 10 }}>
             <span>Parsed: <strong>{parsed.title || "..."}</strong></span>
             {parts.map((p, i) => (
               <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 3, color: p.color ?? "var(--ink-soft)" }}>

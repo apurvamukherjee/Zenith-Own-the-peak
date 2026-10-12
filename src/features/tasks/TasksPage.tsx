@@ -135,7 +135,7 @@ function TaskHub() {
         if (p.location) parts.push({ Icon: TbMapPin, text: p.location });
         if (p.recurring) parts.push({ Icon: TbRepeat, text: p.recurring.frequency });
         return parts.length > 0 ? (
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 11, color: "var(--ink-soft)", marginTop: -10, marginBottom: 12, paddingLeft: 4 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 12, color: "var(--ink-soft)", marginTop: -10, marginBottom: 12, paddingLeft: 4 }}>
             <span>Parsed: <strong>{p.title || "..."}</strong></span>
             {parts.map((part, i) => (
               <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 3, color: part.color ?? "var(--ink-soft)" }}>
@@ -200,7 +200,7 @@ function TaskHub() {
                       fontSize: 13, fontWeight: 700, color: "var(--ink)",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>{l.name}</div>
-                    <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 1 }}>
+                    <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 1 }}>
                       {count > 0 ? `${count} active` : "No tasks"}
                     </div>
                   </div>
@@ -234,7 +234,7 @@ function TaskHub() {
               onTap={() => openEditor(t)} showDate />
           ))}
           {upcoming.length > 10 && (
-            <div style={{ fontSize: 11, color: "var(--ink-soft)", textAlign: "center", padding: 8 }}>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", textAlign: "center", padding: 8 }}>
               +{upcoming.length - 10} more
             </div>
           )}
@@ -289,7 +289,7 @@ function TaskRow({ task, lists, onComplete, onTap, showDate }: {
           {task.priority === 1 && <span style={{ color: "#ff2740", marginRight: 4 }}>●</span>}
           {task.title}
         </div>
-        <div style={{ fontSize: 10, color: "var(--ink-soft)", display: "flex", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
           {task.time && <span><TbClock size={10} style={{ verticalAlign: "-1px" }} /> {task.time}{task.endTime ? `–${task.endTime}` : ""}</span>}
           {showDate && task.date && <span><TbCalendar size={10} style={{ verticalAlign: "-1px" }} /> {prettyDate(task.date)}</span>}
           {task.location && <span><TbMapPin size={10} style={{ verticalAlign: "-1px" }} /> {task.location}</span>}
@@ -298,7 +298,7 @@ function TaskRow({ task, lists, onComplete, onTap, showDate }: {
       </div>
 
       {/* List tag */}
-      <Tag style={{ margin: 0, borderRadius: 6, fontSize: 10, background: `${list?.color}20`, color: list?.color, border: "none" }}>
+      <Tag style={{ margin: 0, borderRadius: 6, fontSize: 12, background: `${list?.color}20`, color: list?.color, border: "none" }}>
         {list?.name ?? "—"}
       </Tag>
     </motion.div>

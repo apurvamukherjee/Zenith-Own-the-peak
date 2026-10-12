@@ -95,7 +95,7 @@ export function TaskListView() {
 
       {/* Location banner */}
       {locationBanner && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--ink-soft)", marginBottom: 10, padding: "6px 10px", background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--ink-soft)", marginBottom: 10, padding: "6px 10px", background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
           <TbMapPin size={13} style={{ flexShrink: 0 }} /> {locationBanner}
         </div>
       )}
@@ -119,7 +119,7 @@ export function TaskListView() {
               message.success(`Added "${s}"`);
             }}
             style={{
-              fontSize: 11, padding: "3px 10px", borderRadius: 16,
+              fontSize: 12, padding: "3px 10px", borderRadius: 16,
               background: `${list.color}15`, color: list.color,
               border: `1px solid ${list.color}30`, cursor: "pointer", fontWeight: 600,
             }}>
@@ -149,7 +149,7 @@ export function TaskListView() {
             if (!done.length) return null;
             return (
               <details style={{ marginTop: 12 }}>
-                <summary style={{ fontSize: 11, color: "var(--ink-soft)", cursor: "pointer", fontWeight: 600 }}>
+                <summary style={{ fontSize: 12, color: "var(--ink-soft)", cursor: "pointer", fontWeight: 600 }}>
                   Completed ({done.length})
                 </summary>
                 {done.slice(0, 10).map((t) => (
@@ -204,11 +204,11 @@ function TaskRowWithDeps({ task, list, allTasks }: { task: TaskDto; list: { colo
           {task.title}
         </div>
         {isBlocked && (
-          <div style={{ fontSize: 10, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}>
             <TbLock size={10} /> Waiting on: {blocker?.title}
           </div>
         )}
-        <div style={{ fontSize: 10, color: "var(--ink-soft)", display: "flex", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
           {task.time && <span><TbClock size={10} /> {task.time}</span>}
           {task.location && <span><TbMapPin size={10} /> {task.location}</span>}
         </div>

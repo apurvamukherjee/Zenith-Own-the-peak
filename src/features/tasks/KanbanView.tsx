@@ -33,7 +33,7 @@ export function KanbanView({ tasks, list }: Props) {
           border: "1px solid var(--border)",
         }}>
           <div style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+            fontSize: 12, fontWeight: 700, letterSpacing: "0.08em",
             textTransform: "uppercase", color: "var(--ink-soft)",
             marginBottom: 8, textAlign: "center",
           }}>
@@ -46,7 +46,7 @@ export function KanbanView({ tasks, list }: Props) {
           ))}
 
           {col.tasks.length === 0 && (
-            <div style={{ fontSize: 11, color: "var(--ink-soft)", textAlign: "center", padding: "16px 0", opacity: 0.5 }}>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", textAlign: "center", padding: "16px 0", opacity: 0.5 }}>
               Empty
             </div>
           )}
@@ -87,7 +87,7 @@ function KanbanCard({ task, list, columns, currentCol, onMove }: {
       </div>
 
       {task.status === "in_progress" && elapsed > 0 && (
-        <div style={{ fontSize: 9, color: list.color, marginTop: 2, display: "flex", alignItems: "center", gap: 3 }}>
+        <div style={{ fontSize: 12, color: list.color, marginTop: 2, display: "flex", alignItems: "center", gap: 3 }}>
           <TbClock size={10} /> {elapsed}m
         </div>
       )}
@@ -96,13 +96,13 @@ function KanbanCard({ task, list, columns, currentCol, onMove }: {
       <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
         {prevCol && (
           <button onClick={() => task.id && onMove(task.id, prevCol)}
-            style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, border: "1px solid var(--border)", background: "transparent", color: "var(--ink-soft)", cursor: "pointer" }}>
+            style={{ fontSize: 12, padding: "1px 6px", borderRadius: 4, border: "1px solid var(--border)", background: "transparent", color: "var(--ink-soft)", cursor: "pointer" }}>
             ← Back
           </button>
         )}
         {nextCol && (
           <button onClick={() => task.id && onMove(task.id, nextCol)}
-            style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 9, padding: "1px 6px", borderRadius: 4, border: `1px solid ${list.color}40`, background: `${list.color}15`, color: list.color, cursor: "pointer", fontWeight: 700 }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, padding: "1px 6px", borderRadius: 4, border: `1px solid ${list.color}40`, background: `${list.color}15`, color: list.color, cursor: "pointer", fontWeight: 700 }}>
             {nextCol === "done" ? <><TbCheck size={10} /> Done</> : "Start →"}
           </button>
         )}
