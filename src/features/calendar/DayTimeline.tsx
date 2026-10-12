@@ -58,17 +58,13 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
 
   return (
     <div style={{ marginTop: 16 }}>
-      <div className="gothic-eyebrow" style={{ marginBottom: 8 }}>
-        {new Date(date + "T00:00").toLocaleDateString("en", { weekday: "long", day: "numeric", month: "short" })}
-      </div>
-
       {/* Gym-day overlay chip — synthetic, not a real task row */}
       {gym && (
         <button onClick={() => onGymTap?.(date, gym.dayId, gym.done)} style={{
           display: "flex", alignItems: "center", gap: 8, width: "100%",
           background: `${gym.done ? t.teal : t.accent}22`,
           border: `1px solid ${gym.done ? t.teal : t.accent}40`,
-          borderRadius: 10, padding: "8px 12px", marginBottom: 10,
+          borderRadius: 14, padding: "10px 14px", marginBottom: 10,
           cursor: "pointer", textAlign: "left",
         }}>
           <TbBarbell size={16} style={{ color: gym.done ? t.teal : t.accent }} />
@@ -91,7 +87,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
               <button key={task.id} onClick={() => onTapTask?.(task)} style={{
                 display: "flex", alignItems: "center", gap: 6, width: "100%", textAlign: "left",
                 background: `${color}20`, border: `1px solid ${color}40`,
-                borderRadius: 8, padding: "6px 10px", cursor: "pointer",
+                borderRadius: 12, padding: "8px 12px", cursor: "pointer",
               }}>
                 <span style={{ fontSize: 12, fontWeight: 800, color, textTransform: "uppercase" }}>All day</span>
                 <span style={{ fontSize: 12, fontWeight: 700, flex: 1 }}>{task.title}</span>
@@ -131,13 +127,13 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
             const list = listMap.get(task.listId);
             return (
               <div key={task.id} onClick={() => onTapTask?.(task)} style={{
-                display: "flex", alignItems: "center", gap: 8, padding: "6px 10px",
-                marginBottom: 3, borderRadius: 8, background: "var(--surface)", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                marginBottom: 6, borderRadius: 12, background: "var(--surface)", cursor: "pointer",
                 border: "1px solid var(--border)", borderLeft: `3px solid ${list?.color ?? "var(--border)"}`,
               }}>
-                <button onClick={(e) => { e.stopPropagation(); onToggleDone?.(task); }}
+                <button aria-label={`Complete ${task.title}`} onClick={(e) => { e.stopPropagation(); onToggleDone?.(task); }}
                   style={{
-                    width: 18, height: 18, borderRadius: 4,
+                    width: 22, height: 22, borderRadius: 7,
                     border: `2px solid ${list?.color ?? "var(--ink-soft)"}`,
                     background: "transparent", cursor: "pointer", flexShrink: 0,
                   }} />
