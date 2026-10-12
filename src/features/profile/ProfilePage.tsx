@@ -71,10 +71,10 @@ export function ProfilePage() {
 
       {/* Reward Vault entry */}
       <Link to="/vault" style={{ textDecoration: "none" }}>
-        <Card size="small" hoverable style={{ marginBottom: 16, overflow: "hidden" }}
+        <Card size="small" hoverable style={{ marginBottom: 10, overflow: "hidden" }}
           styles={{ body: { padding: 0 } }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, background: "var(--hero)", color: "#fff" }}>
-            <div style={{ position: "relative", width: 46, height: 46, borderRadius: 13, background: "rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 12, background: "var(--surface-2)", color: "var(--ink)" }}>
+            <div style={{ position: "relative", width: 38, height: 38, borderRadius: 11, background: "var(--ember-inner)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <TbSparkles size={24} />
               {unseenCosmetics > 0 && (
                 <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
@@ -88,17 +88,17 @@ export function ProfilePage() {
                 {unseenCosmetics > 0 ? `${unseenCosmetics} new — go claim ${unseenCosmetics === 1 ? "it" : "them"}` : "Accent themes, frames & titles"}
               </div>
             </div>
-            <span style={{ fontSize: 20, opacity: 0.8 }}>→</span>
+            <span style={{ fontSize: 18, color: "var(--ink-soft)" }}>→</span>
           </div>
         </Card>
       </Link>
 
       {/* Hall of Frame entry */}
       <Link to="/hall" style={{ textDecoration: "none" }}>
-        <Card size="small" hoverable style={{ marginBottom: 16, overflow: "hidden" }}
+        <Card size="small" hoverable style={{ marginBottom: 10, overflow: "hidden" }}
           styles={{ body: { padding: 0 } }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, background: "var(--hero)", color: "#fff" }}>
-            <div style={{ position: "relative", width: 46, height: 46, borderRadius: 13, background: "rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 12, background: "var(--surface-2)", color: "var(--ink)" }}>
+            <div style={{ position: "relative", width: 38, height: 38, borderRadius: 11, background: "var(--ember-inner)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <TbTrophy size={24} />
               {unseen > 0 && (
                 <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
@@ -112,7 +112,7 @@ export function ProfilePage() {
                 {unseen > 0 ? `${unseen} new — go claim ${unseen === 1 ? "it" : "them"}` : `${unlockedCount} of ${total} conquered`}
               </div>
             </div>
-            <span style={{ fontSize: 20, opacity: 0.8 }}>→</span>
+            <span style={{ fontSize: 18, color: "var(--ink-soft)" }}>→</span>
           </div>
         </Card>
       </Link>
