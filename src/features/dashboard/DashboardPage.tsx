@@ -379,7 +379,7 @@ export function DashboardPage() {
                   transition={{ duration: 3, times: [0, 0.15, 0.85, 1] }}
                   style={{
                     position: "absolute", left: -8, right: -8, top: -14, bottom: -6,
-                    background: "radial-gradient(circle at 50% 60%, #d81f34 0%, #ff2740 50%, rgba(255,39,64,0) 75%)",
+                    background: "radial-gradient(circle at 50% 60%, #d81f34 0%, var(--accent) 50%, rgba(255,39,64,0) 75%)",
                     filter: "blur(6px)", pointerEvents: "none", borderRadius: "50%",
                     mixBlendMode: "screen",
                   }}
@@ -405,7 +405,7 @@ export function DashboardPage() {
           the milder default copy. Same slot, same buttons either way. */}
       {streakInDanger && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: "linear-gradient(135deg, #ff2740, #6e0f1c)", borderRadius: 12,
+          style={{ background: "linear-gradient(135deg, var(--accent), #6e0f1c)", borderRadius: 12,
             padding: "10px 12px", color: "#fff" }}>
           <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
             <TbFlame /> {didNothingToday ? nothingTodayQuote : "Streak at risk — protect it now"}
@@ -428,7 +428,7 @@ export function DashboardPage() {
           nothing all day deserves a callout either way. */}
       {!streakInDanger && didNothingToday && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: "linear-gradient(135deg, #ff2740, #6e0f1c)", borderRadius: 12,
+          style={{ background: "linear-gradient(135deg, var(--accent), #6e0f1c)", borderRadius: 12,
             padding: "10px 12px", color: "#fff" }}>
           <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
             <TbFlame /> {nothingTodayQuote}
