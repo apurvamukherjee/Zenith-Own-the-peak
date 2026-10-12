@@ -98,7 +98,7 @@ export function FocusMode({ task, onClose }: Props) {
             }}>
               {remH > 0 && `${remH}:`}{String(remM).padStart(2, "0")}:{String(remS).padStart(2, "0")}
             </div>
-            <div style={{ fontSize: 11, color: "#948b98", marginTop: 4 }}>remaining</div>
+            <div style={{ fontSize: 12, color: "#948b98", marginTop: 4 }}>remaining</div>
           </div>
         </div>
 

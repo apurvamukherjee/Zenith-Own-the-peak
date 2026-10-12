@@ -69,7 +69,7 @@ export function HomeQuoteCard() {
               "{current?.text}"
             </div>
             {current?.author && (
-              <div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 2, fontWeight: 600 }}>
+              <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2, fontWeight: 600 }}>
                 — {current.author}
               </div>
             )}

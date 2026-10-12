@@ -120,7 +120,7 @@ export function QuickLogFab() {
                       display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <a.icon size={22} style={{ color: a.color }} />
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{a.label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{a.label}</span>
                   </motion.button>
                 ))}
               </div>

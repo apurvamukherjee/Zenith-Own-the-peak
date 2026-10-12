@@ -43,13 +43,13 @@ export function GlobalRestChip() {
             style={{ position: "relative", width: 38, height: 38, cursor: "pointer" }}
           >
             <RestRing size={38} pct={pct} color={rest.color}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: rest.color }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: rest.color }}>
                 {fmtMinSec(rest.remaining)}
               </span>
             </RestRing>
           </div>
           <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1, minWidth: 0 }}>
-            <span style={{ fontSize: 10, color: "var(--ink-soft)", fontWeight: 700, letterSpacing: 0.4 }}>
+            <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 700, letterSpacing: 0.4 }}>
               {rest.paused ? "PAUSED" : "REST"}
             </span>
             {rest.label && (

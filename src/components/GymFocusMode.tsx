@@ -356,7 +356,7 @@ export function GymFocusMode({
                 ) : null}
               </AnimatePresence>
 
-              <div style={{ marginTop: 28, fontSize: 11, color: "#6b6470", display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ marginTop: 28, fontSize: 12, color: "#6b6470", display: "flex", alignItems: "center", gap: 14 }}>
                 <span>{doneSets}/{totalSets} sets</span>
                 <span>{Math.round(volume).toLocaleString()}kg vol</span>
                 <span>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</span>
@@ -364,7 +364,7 @@ export function GymFocusMode({
                   <button onClick={handleUndoTap} style={{
                     display: "flex", alignItems: "center", gap: 4, background: "transparent", border: "none",
                     color: confirmUndo ? "#ff2740" : "#6b6470", fontWeight: confirmUndo ? 800 : 400,
-                    cursor: "pointer", fontSize: 11, padding: "6px 4px",
+                    cursor: "pointer", fontSize: 12, padding: "6px 4px",
                   }}>
                     <TbArrowBackUp size={13} /> {confirmUndo ? "tap to confirm" : "undo last"}
                   </button>
@@ -395,7 +395,7 @@ function LockInGate({ quote, dayName, onLockIn, onSkip, reducedMotion }: {
       </button>
       <TbSkull size={32} style={{ color: "#ff2740", marginBottom: 14 }} />
       <div style={{
-        fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 11,
+        fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
         letterSpacing: "0.25em", textTransform: "uppercase", color: "#948b98", marginBottom: 18,
       }}>
         Focus mode · {dayName}
@@ -420,7 +420,7 @@ function QuitShameGate({ quote, remaining, onKeepGoing, onQuitAnyway, reducedMot
       style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", maxWidth: 340 }}
     >
       <div style={{
-        fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 11,
+        fontFamily: '"Cinzel", serif', fontWeight: 700, fontSize: 12,
         letterSpacing: "0.25em", textTransform: "uppercase", color: "#ff2740", marginBottom: 18,
       }}>
         Wait.
@@ -467,7 +467,7 @@ function SetView({
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 6,
           background: "rgba(255,39,64,0.14)", color: "#ff2740",
-          borderRadius: 999, padding: "3px 12px", fontSize: 10, fontWeight: 800,
+          borderRadius: 999, padding: "3px 12px", fontSize: 12, fontWeight: 800,
           letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 10,
         }}>
           <TbArrowsRightLeft size={12} /> Superset · round {superset.round}/{superset.target}
@@ -520,7 +520,7 @@ function SetView({
       </motion.div>
 
       {!editing && ghost && (
-        <div style={{ fontSize: 11, color: "#6b6470", marginBottom: 20, textAlign: "center" }}>
+        <div style={{ fontSize: 12, color: "#6b6470", marginBottom: 20, textAlign: "center" }}>
           last week: {ghost.weightKg}kg × {ghost.reps}
         </div>
       )}
@@ -604,7 +604,7 @@ function RestView({ preview, trans, reducedMotion }: {
         </svg>
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           <div className="display" style={{ fontSize: 42, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{m}:{s}</div>
-          <div style={{ fontSize: 11, color: "#948b98" }}>{rest.label}</div>
+          <div style={{ fontSize: 12, color: "#948b98" }}>{rest.label}</div>
         </div>
       </div>
       <button onClick={skipRest} style={{
@@ -618,7 +618,7 @@ function RestView({ preview, trans, reducedMotion }: {
           textAlign: "center", padding: "10px 16px", borderRadius: 12,
           background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
         }}>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", color: "#6b6470", marginBottom: 3 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", color: "#6b6470", marginBottom: 3 }}>
             Up next · set {preview.setIndex}/{preview.totalSets}
           </div>
           <div style={{ fontSize: 14, fontWeight: 700 }}>

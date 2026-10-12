@@ -48,7 +48,7 @@ export function BottomNav() {
                   position: "relative", zIndex: 1,
                   color: isActive ? "var(--accent)" : "var(--ink-soft)",
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-                  fontSize: 11, fontWeight: 600,
+                  fontSize: 12, fontWeight: 600,
                 }}
               >
                 <Icon size={22} />

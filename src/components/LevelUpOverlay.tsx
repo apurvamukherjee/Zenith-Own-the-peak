@@ -101,7 +101,7 @@ export function LevelUpOverlay({ level, name, onDone }: Props) {
             animate={{ scale: 1, opacity: 1 }}
             transition={reducedMotion ? { duration: 0.01 } : { type: "spring", stiffness: 200, damping: 14, delay: 0.15 }}
           >
-            <div style={{ fontSize: 11, letterSpacing: "0.5em", color: "var(--ink-soft)", marginBottom: 8,
+            <div style={{ fontSize: 12, letterSpacing: "0.5em", color: "var(--ink-soft)", marginBottom: 8,
               fontFamily: '"Cinzel", serif', fontWeight: 600, textTransform: "uppercase" }}>
               Level up
             </div>
@@ -131,11 +131,11 @@ export function LevelUpOverlay({ level, name, onDone }: Props) {
           </motion.div>
 
           {/* XP required label */}
-          <div style={{ marginTop: 24, fontSize: 11, color: "var(--ink-soft)", letterSpacing: "0.3em", fontStyle: "italic", fontFamily: '"Cinzel", serif' }}>
+          <div style={{ marginTop: 24, fontSize: 12, color: "var(--ink-soft)", letterSpacing: "0.3em", fontStyle: "italic", fontFamily: '"Cinzel", serif' }}>
             {LEVELS.find((l) => l.level === level)?.xpRequired.toLocaleString()} XP
           </div>
 
-          <div style={{ marginTop: 40, fontSize: 10, color: "var(--ink-soft)", opacity: 0.5 }}>
+          <div style={{ marginTop: 40, fontSize: 12, color: "var(--ink-soft)", opacity: 0.5 }}>
             tap to continue
           </div>
         </motion.div>

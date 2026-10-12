@@ -55,7 +55,7 @@ export function MountainGrows() {
         <rect x={0} y={110} width={300} height={10} fill="#08080a" />
       </svg>
       <div style={{
-        color: "var(--ink-soft)", fontSize: 11, textAlign: "center",
+        color: "var(--ink-soft)", fontSize: 12, textAlign: "center",
         padding: "4px 0 10px", fontStyle: "italic", letterSpacing: 0.3,
       }}>
         Mythic peaks earned: {Math.max(0, peaks - 1)} · own the peak

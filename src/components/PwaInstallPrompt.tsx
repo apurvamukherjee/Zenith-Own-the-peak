@@ -47,7 +47,7 @@ export function PwaInstallPrompt() {
           <TbDeviceMobile size={22} style={{ color: "var(--accent)" }} />
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 13 }}>Install Zenith</div>
-            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>Add to your home screen for a native feel.</div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Add to your home screen for a native feel.</div>
           </div>
           <Button type="primary" size="small" onClick={install}>Install</Button>
           <button onClick={dismiss} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-soft)" }}><TbX /></button>

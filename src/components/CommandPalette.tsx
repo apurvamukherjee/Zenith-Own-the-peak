@@ -142,12 +142,12 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
               <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>
                 {c.label}
               </span>
-              {c.hint && <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{c.hint}</span>}
+              {c.hint && <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>{c.hint}</span>}
             </button>
           );
         })}
       </div>
-      <div style={{ padding: "6px 12px", fontSize: 10, color: "var(--ink-soft)", borderTop: "1px solid var(--border)" }}>
+      <div style={{ padding: "6px 12px", fontSize: 12, color: "var(--ink-soft)", borderTop: "1px solid var(--border)" }}>
         ↑↓ navigate · ↵ run · esc close
       </div>
     </Modal>

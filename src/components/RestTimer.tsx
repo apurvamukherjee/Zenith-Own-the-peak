@@ -35,7 +35,7 @@ export function RestTimer({ matchLabel }: { matchLabel?: string } = {}) {
         >
           <RestDial />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 600 }}>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
               {rest.paused ? "Paused" : "Rest"}
             </div>
             <div className="display" style={{ fontSize: 18, fontWeight: 800, color: rest.color, lineHeight: 1 }}>

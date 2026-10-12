@@ -186,14 +186,14 @@ export function VoiceLogModal({ open, onClose }: Props) {
           {transcript && (
             <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10,
               padding: "8px 12px", marginBottom: 10, textAlign: "left" }}>
-              <div style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 700 }}>You said</div>
+              <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 700 }}>You said</div>
               <div style={{ fontSize: 14 }}>{transcript}</div>
             </div>
           )}
           {resolved && resolved.kind !== "unresolved" && (
             <div style={{ background: "var(--surface)", border: "1px solid var(--accent)", borderRadius: 12,
               padding: "10px 12px", marginBottom: 10, textAlign: "left" }}>
-              <div style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 700,
+              <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 700,
                 display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {resolved.kind === "water" && <><TbDroplet /> Water</>}
                 {resolved.kind === "meal" && <><TbMeat /> Meal</>}

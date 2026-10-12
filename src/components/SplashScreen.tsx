@@ -121,7 +121,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}
         style={{
           fontFamily: "Cinzel, serif",
-          fontSize: 11, fontWeight: 600, letterSpacing: "0.5em",
+          fontSize: 12, fontWeight: 600, letterSpacing: "0.5em",
           textTransform: "uppercase", marginTop: 18, opacity: 0.65,
           color: "#c9a3a8", zIndex: 2, marginLeft: "0.5em",
         }}
