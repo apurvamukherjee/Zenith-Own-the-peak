@@ -17,7 +17,10 @@ import { SyncCard } from "../sync/SyncCard";
 import { GoogleCalendarCard } from "../googleCalendar/GoogleCalendarCard";
 import { PlanImportCard } from "../gym/PlanImportCard";
 
+type Tab = "you" | "sync" | "data";
+
 export function SettingsPage() {
+  const [tab, setTab] = useState<Tab>("you");
   const { message, modal } = App.useApp();
   const name = useSetting("name");
   const themeMode = useSetting("themeMode");
@@ -106,7 +109,10 @@ export function SettingsPage() {
   return (
     <PageTransition>
       <SectionTitle title="Settings" />
+      <Segmented block value={tab} onChange={(v) => setTab(v as Tab)} style={{ marginBottom: 12 }}
+        options={[{ label: "You", value: "you" }, { label: "Sync", value: "sync" }, { label: "Data", value: "data" }]} />
 
+      {tab === "you" && <>
       {/* Profile & targets */}
       <Card size="small" style={{ marginBottom: 12 }} title={<span><TbUser /> Profile</span>}>
         <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Name</div>
@@ -180,9 +186,15 @@ export function SettingsPage() {
           onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f, "bgImage"); e.target.value = ""; }} />
       </Card>
 
+      </>}
+
+      {tab === "sync" && <>
       <RemindersCard />
       <SyncCard />
       <GoogleCalendarCard />
+      </>}
+
+      {tab === "data" && <>
 
       {/* Backup */}
       <Card size="small" style={{ marginBottom: 20 }} title="Data backup">
@@ -210,7 +222,9 @@ export function SettingsPage() {
       </Card>
 
       <PlanImportCard />
+      </>}
 
+      {tab === "you" && <>
       {/* Accessibility */}
       <Card size="small" style={{ marginBottom: 12 }} title={<span><TbAccessible /> Accessibility</span>}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -233,6 +247,10 @@ export function SettingsPage() {
         </div>
       </Card>
 
+      </>}
+
+      {tab === "data" && (
+      <>
       {/* About — Zenith mountain grows quietly with each mythic unlock */}
       <Card size="small" style={{ marginBottom: 20 }} title={<span><TbInfoCircle /> About</span>}>
         <MountainGrows />
@@ -241,6 +259,7 @@ export function SettingsPage() {
           <div style={{ opacity: 0.7 }}>by Apurva</div>
         </div>
       </Card>
+      </>)}
     </PageTransition>
   );
 }
