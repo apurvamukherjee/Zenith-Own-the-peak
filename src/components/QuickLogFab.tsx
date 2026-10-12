@@ -68,7 +68,7 @@ export function QuickLogFab() {
         whileTap={{ scale: 0.9 }}
         onClick={() => setOpen(true)}
         style={{
-          position: "fixed", bottom: "calc(var(--nav-offset) + 8px)", right: "max(16px, calc(50vw - 240px + 16px))", zIndex: 50,
+          position: "fixed", bottom: "calc(var(--nav-offset) + 8px)", right: "max(16px, calc(50vw - var(--col-half) + 16px))", zIndex: 50,
           width: 56, height: 56, borderRadius: 18,
           background: "var(--accent)", color: "#fff", border: "none",
           display: "flex", alignItems: "center", justifyContent: "center",

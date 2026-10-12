@@ -55,6 +55,7 @@
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
   --tap: 44px;
   --nav-offset: calc(84px + env(safe-area-inset-bottom, 0px));
+  --col-half: 240px;
 }
 
 /* Gothic dark: near-black with a faint blood-red undertone + aggressive red + ember accents.
@@ -570,6 +571,7 @@ html[data-contrast="high"] .text-ember {
 .z-ok { color: var(--success); } .z-warn { color: var(--warn); } .z-bad { color: var(--danger); }
 
 @media (min-width: 900px) {
+  :root { --col-half: 360px; }
   .app-column { max-width: 720px !important; }
 }
 
