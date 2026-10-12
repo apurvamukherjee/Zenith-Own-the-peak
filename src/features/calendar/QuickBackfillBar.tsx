@@ -114,7 +114,7 @@ function BackfillChip({ icon, label, active, onClick }: { icon: React.ReactNode;
     <button onClick={onClick} style={{
       display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 20,
       border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
-      background: active ? "var(--accent)22" : "var(--bg)",
+      background: active ? "var(--ember-inner)" : "var(--bg)",
       color: "var(--ink)", fontSize: 12, fontWeight: 600, cursor: "pointer", flex: 1, justifyContent: "center",
     }}>
       {icon} {label}

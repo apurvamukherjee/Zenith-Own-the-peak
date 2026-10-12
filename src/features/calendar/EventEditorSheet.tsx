@@ -202,9 +202,9 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
               const active = listId === p.listId;
               return (
                 <button key={p.listId} onClick={() => setListId(p.listId)} style={{
-                  display: "flex", alignItems: "center", gap: 5, padding: "6px 10px", borderRadius: 10,
+                  display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", borderRadius: 999,
                   border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
-                  background: active ? "var(--accent)18" : "var(--surface)",
+                  background: active ? "var(--ember-inner)" : "var(--surface)",
                   color: active ? "var(--accent)" : "var(--ink)",
                   fontSize: 12, fontWeight: 700, cursor: "pointer",
                 }}>
@@ -213,7 +213,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
               );
             })}
             {morePresetLists.length > 0 && (
-              <Select size="small" placeholder="More…" value={undefined}
+              <Select className="z-select-sm" size="small" placeholder="More…" value={undefined}
                 onChange={(v: string) => setListId(v)}
                 options={morePresetLists.map((l) => ({ label: l.name, value: l.id }))}
                 style={{ minWidth: 90 }} />
@@ -304,9 +304,9 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
             <div style={{ display: "flex", gap: 6 }}>
               {(["none", "daily", "weekly", "monthly"] as Recurrence[]).map((r) => (
                 <button key={r} onClick={() => setRecurrence(r)} style={{
-                  flex: 1, padding: "6px 0", borderRadius: 8, fontSize: 12, fontWeight: 700, textTransform: "capitalize",
+                  flex: 1, padding: "10px 0", borderRadius: 12, fontSize: 12, fontWeight: 700, textTransform: "capitalize",
                   border: `1px solid ${recurrence === r ? "var(--accent)" : "var(--border)"}`,
-                  background: recurrence === r ? "var(--accent)18" : "var(--surface)",
+                  background: recurrence === r ? "var(--ember-inner)" : "var(--surface)",
                   color: recurrence === r ? "var(--accent)" : "var(--ink)", cursor: "pointer",
                 }}>
                   {r}
@@ -317,7 +317,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
               <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
                 {WEEKDAYS.map((label, i) => (
                   <button key={i} onClick={() => toggleWeekday(i)} style={{
-                    width: 30, height: 30, borderRadius: "50%", fontSize: 12, fontWeight: 700,
+                    width: 38, height: 38, borderRadius: "50%", fontSize: 12, fontWeight: 700,
                     border: `1px solid ${weekdays.includes(i) ? "var(--accent)" : "var(--border)"}`,
                     background: weekdays.includes(i) ? "var(--accent)" : "transparent",
                     color: weekdays.includes(i) ? "#fff" : "var(--ink)", cursor: "pointer",
@@ -343,7 +343,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
         <div style={{ display: "flex", gap: 6 }}>
           {PRIORITIES.map((p) => (
             <button key={p.value} onClick={() => setPriority(p.value)} style={{
-              flex: 1, padding: "6px 0", borderRadius: 8, fontSize: 12, fontWeight: 700,
+              flex: 1, padding: "10px 0", borderRadius: 12, fontSize: 12, fontWeight: 700,
               border: `1px solid ${priority === p.value ? p.color : "var(--border)"}`,
               background: priority === p.value ? `${p.color}18` : "var(--surface)",
               color: priority === p.value ? p.color : "var(--ink)", cursor: "pointer",

@@ -721,3 +721,5 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="month"]:focus {
 .ring-glow .ant-progress-circle-trail { stroke: color-mix(in srgb, var(--ink) 9%, transparent); }
 .ring-done { animation: ring-done-pop .7s cubic-bezier(.22, 1, .36, 1); }
 @keyframes ring-done-pop { 0% { transform: scale(.96); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+.ant-select.z-select-sm .ant-select-selector { min-height: 36px !important; border-radius: 999px !important; }

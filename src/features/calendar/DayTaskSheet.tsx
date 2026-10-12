@@ -253,7 +253,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
         {overdue.length > 0 && (
           <div style={{
             margin: "8px 16px 0", padding: "8px 12px", borderRadius: 10,
-            background: "var(--accent)15", border: "1px solid var(--accent)30",
+            background: "var(--ember-inner)", border: "1px solid var(--accent)",
             display: "flex", alignItems: "center", gap: 8, fontSize: 12,
           }}>
             <TbAlertTriangle size={16} style={{ color: "var(--accent)", flexShrink: 0 }} />
