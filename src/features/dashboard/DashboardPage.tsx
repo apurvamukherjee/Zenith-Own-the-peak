@@ -590,7 +590,7 @@ export function DashboardPage() {
       <Link to="/workout" style={{ color: "inherit", display: "block", flex: "0 0 auto" }}>
         <div className="ember-corner" style={{
           borderRadius: 16, padding: "12px 16px", position: "relative", overflow: "hidden",
-          background: "linear-gradient(135deg, rgba(26,5,9,0.64) 0%, rgba(110,15,28,0.58) 55%, rgba(200,17,42,0.52) 100%)",
+          background: "var(--hero)",
           border: "1px solid rgba(255,255,255,0.20)",
           backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 20px 46px -18px rgba(0,0,0,0.6), 0 4px 16px -6px var(--ember-glow)",
