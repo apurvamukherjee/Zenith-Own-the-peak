@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SisyphusOverlay } from "../../components/SisyphusOverlay";
 import { HomeQuoteCard } from "../../components/HomeQuoteCard";
+import { Ring } from "../../components/Ring";
 import { GlowBar } from "../../components/GlowBar";
 import { Skeleton } from "../../components/Skeleton";
 import { ColdIcon } from "../../components/ColdIcon";
@@ -646,8 +647,7 @@ export function DashboardPage() {
       <motion.div {...cascade(5)} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <div className="z-card" style={{ display: "flex", alignItems: "center", gap: 10, padding: 12 }}>
           <Link to="/water" style={{ color: "inherit", display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
-            <Progress type="circle" percent={score.waterPct} size={44} strokeColor={score.waterPct >= 100 ? t.teal : t.accent} strokeWidth={10}
-              format={() => <span style={{ fontSize: 12, fontWeight: 700 }}>{score.waterPct}%</span>} />
+            <Ring percent={score.waterPct} size={44} strokeWidth={10} />
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: "var(--fs-sm)" }}>Water</div>
               <div className="z-stat-label">{(waterMl / 1000).toFixed(1)}L</div>

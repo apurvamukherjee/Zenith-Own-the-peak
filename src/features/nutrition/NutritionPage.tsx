@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Ring } from "../../components/Ring";
 import {
-  Card, Progress, Button, Modal, Input, Segmented,
+  Card, Button, Modal, Input, Segmented,
   Tag, App, Empty, Row, Col, Switch, Popconfirm, Checkbox,
 } from "antd";
 import {
@@ -23,7 +24,6 @@ import {
 import { useReminders, requestReminderPermission } from "../../hooks/useReminders";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { VIOLET, GOLD } from "../../theme";
-import { useTokens } from "../../hooks/useTokens";
 import {
   useMealTemplates, logFromTemplate, saveMealAsTemplate,
   deleteMealTemplate, copyYesterdayMeals,
@@ -47,7 +47,6 @@ const STATUS_TAG = {
 };
 
 export function NutritionPage() {
-  const t = useTokens();
   const { message } = App.useApp();
   const schedules = useSchedules();
   const logs = useTodayLogs();
@@ -133,14 +132,12 @@ export function NutritionPage() {
       <Card size="small" style={{ marginBottom: 12 }}>
         <Row gutter={16} align="middle">
           <Col span={10} style={{ textAlign: "center" }}>
-            <Progress type="circle" size={104} percent={Math.min(100, Math.round((protein / proteinTarget) * 100))}
-              strokeColor={t.accent}
-              format={() => (
+            <Ring size={104} percent={(protein / proteinTarget) * 100}>
                 <div style={{ lineHeight: 1.05, whiteSpace: "nowrap" }}>
                   <div className="display" style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(protein)}<span style={{ fontSize: 12 }}>g</span></div>
                   <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>of {proteinTarget}g</div>
                 </div>
-              )} />
+              </Ring>
             <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>Protein</div>
           </Col>
           <Col span={14}>
