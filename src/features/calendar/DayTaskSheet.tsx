@@ -185,7 +185,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
                 {isToday ? "Today" : dayLabel}
               </div>
               {totalCount > 0 && (
-                <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
                   {doneCount} of {totalCount} done · {pct}%
                 </div>
               )}
@@ -219,7 +219,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
             }}>
               <TbBarbell size={15} style={{ color: gym.done ? t.teal : t.accent }} />
               <span style={{ flex: 1, fontSize: 12, fontWeight: 700 }}>{gym.dayName}</span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-soft)" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, color: "var(--ink-soft)" }}>
                 {gym.done ? <><TbCheck size={11} /> Done</> : "Planned"}
               </span>
             </button>
@@ -258,7 +258,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
           }}>
             <TbAlertTriangle size={16} style={{ color: "#ff2740", flexShrink: 0 }} />
             <span style={{ color: "#ff2740", fontWeight: 600 }}>{overdue.length} overdue</span>
-            <span style={{ color: "var(--ink-soft)", fontSize: 11 }}>from previous days</span>
+            <span style={{ color: "var(--ink-soft)", fontSize: 12 }}>from previous days</span>
           </div>
         )}
 
@@ -306,7 +306,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
                     {task.priority === 1 && !done && <span style={{ color: "#ff2740" }}>● </span>}
                     {task.title}
                   </div>
-                  <div style={{ fontSize: 10, color: "var(--ink-soft)", display: "flex", gap: 6, marginTop: 1 }}>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", gap: 6, marginTop: 1 }}>
                     {task.time && (
                       <span><TbClock size={10} style={{ verticalAlign: "-1px" }} /> {task.time}{task.endTime ? `–${task.endTime}` : ""}</span>
                     )}

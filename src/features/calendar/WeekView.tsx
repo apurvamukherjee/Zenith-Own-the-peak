@@ -82,7 +82,7 @@ export function WeekView({ weekStart, onDayTap, onFocus, onTapTask, onToggleDone
                   width: COL_W, flexShrink: 0, background: "transparent", border: "none",
                   cursor: "pointer", padding: "6px 0 8px", textAlign: "center",
                 }}>
-                  <div style={{ fontSize: 10, color: "var(--ink-soft)", fontWeight: 700 }}>{dayjs(d).format("ddd")}</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 700 }}>{dayjs(d).format("ddd")}</div>
                   <div style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: "50%", margin: "2px auto 0",
@@ -116,7 +116,7 @@ export function WeekView({ weekStart, onDayTap, onFocus, onTapTask, onToggleDone
                       const color = listMap.get(t.listId)?.color ?? "var(--accent)";
                       return (
                         <button key={t.id} onClick={() => onTapTask?.(t)} style={{
-                          fontSize: 9, fontWeight: 700, padding: "1px 3px", borderRadius: 4,
+                          fontSize: 12, fontWeight: 700, padding: "1px 3px", borderRadius: 4,
                           background: `${color}30`, color, border: "none", cursor: "pointer",
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "left",
                         }}>

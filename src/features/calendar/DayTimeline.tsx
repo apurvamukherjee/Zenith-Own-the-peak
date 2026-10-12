@@ -73,7 +73,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
         }}>
           <TbBarbell size={16} style={{ color: gym.done ? t.teal : t.accent }} />
           <span style={{ flex: 1, fontSize: 12, fontWeight: 700 }}>{gym.dayName}</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-soft)" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, color: "var(--ink-soft)" }}>
             {gym.done ? <><TbCheck size={11} /> Done</> : "Planned"}
           </span>
         </button>
@@ -93,7 +93,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
                 background: `${color}20`, border: `1px solid ${color}40`,
                 borderRadius: 8, padding: "6px 10px", cursor: "pointer",
               }}>
-                <span style={{ fontSize: 9, fontWeight: 800, color, textTransform: "uppercase" }}>All day</span>
+                <span style={{ fontSize: 12, fontWeight: 800, color, textTransform: "uppercase" }}>All day</span>
                 <span style={{ fontSize: 12, fontWeight: 700, flex: 1 }}>{task.title}</span>
               </button>
             );
@@ -124,7 +124,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
       {/* Unscheduled tasks */}
       {unscheduled.length > 0 && (
         <div style={{ marginTop: 10 }}>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 6, fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6, fontWeight: 600 }}>
             UNSCHEDULED ({unscheduled.length})
           </div>
           {unscheduled.map((task) => {

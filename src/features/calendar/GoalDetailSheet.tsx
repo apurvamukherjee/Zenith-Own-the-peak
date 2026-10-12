@@ -60,7 +60,7 @@ export function GoalDetailSheet({ open, onClose, goal }: Props) {
         {days === 0 ? "Today!" : days > 0 ? `${days} days away` : `${Math.abs(days)} days ago`}
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>
         Milestones {total > 0 && `(${done}/${total})`}
       </div>
 

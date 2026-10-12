@@ -195,7 +195,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
       <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
         {/* Type presets */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>Type</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>Type</div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {TYPE_PRESETS.map((p) => {
               const Icon = p.icon;
@@ -220,7 +220,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
             )}
           </div>
           {!TYPE_PRESETS.some((p) => p.listId === listId) && (
-            <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 4 }}>
               List: {lists.find((l) => l.id === listId)?.name ?? listId}
             </div>
           )}
@@ -250,7 +250,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
             </div>
             {isMultiDay && (
               <div>
-                <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 4 }}>Until</div>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Until</div>
                 <input type="date" value={spanEnd} min={date} onChange={(e) => setSpanEnd(e.target.value)}
                   style={{ padding: 8, borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--ink)", width: "100%" }} />
               </div>
@@ -317,7 +317,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
               <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
                 {WEEKDAYS.map((label, i) => (
                   <button key={i} onClick={() => toggleWeekday(i)} style={{
-                    width: 30, height: 30, borderRadius: "50%", fontSize: 11, fontWeight: 700,
+                    width: 30, height: 30, borderRadius: "50%", fontSize: 12, fontWeight: 700,
                     border: `1px solid ${weekdays.includes(i) ? "var(--accent)" : "var(--border)"}`,
                     background: weekdays.includes(i) ? "var(--accent)" : "transparent",
                     color: weekdays.includes(i) ? "#fff" : "var(--ink)", cursor: "pointer",
@@ -330,7 +330,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
           </div>
         )}
         {isRecurringInstance && (
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", fontStyle: "italic" }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontStyle: "italic" }}>
             Part of a repeating series — editing here only changes this occurrence.
           </div>
         )}

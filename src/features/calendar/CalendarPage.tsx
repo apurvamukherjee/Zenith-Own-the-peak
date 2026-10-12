@@ -281,12 +281,12 @@ export function CalendarPage() {
             return (
               <div key={g.id} onClick={() => setGoalDetail(g)} role="button" tabIndex={0}
                 style={{ background: "var(--surface)", borderRadius: 12, padding: "8px 12px", whiteSpace: "nowrap", border: "1px solid var(--border)", cursor: "pointer" }}>
-                <div style={{ fontSize: 11, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 4 }}><TbFlag size={12} />{g.title}</div>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 4 }}><TbFlag size={12} />{g.title}</div>
                 <div style={{ fontWeight: 800, color: "var(--accent)", fontSize: 14 }}>
                   {daysUntil(g.date) === 0 ? "Today!" : `${daysUntil(g.date)}d away`}
                 </div>
                 {counts && counts.total > 0 && (
-                  <div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 1 }}>{counts.done}/{counts.total} milestones</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 1 }}>{counts.done}/{counts.total} milestones</div>
                 )}
               </div>
             );
@@ -337,7 +337,7 @@ export function CalendarPage() {
             <>
               {/* Weekly strip — this week zoomed */}
               <div style={{ background: "var(--surface)", borderRadius: 10, padding: "8px 12px", marginBottom: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>This week</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}>This week</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
                   {(() => {
                     const today = new Date();
@@ -375,7 +375,7 @@ export function CalendarPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 6 }}>
                 {WEEKDAY_HEADERS.map((d, i) => (
-                  <div key={i} style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>{d}</div>
+                  <div key={i} style={{ textAlign: "center", fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>{d}</div>
                 ))}
               </div>
 
@@ -447,13 +447,13 @@ export function CalendarPage() {
                 })}
               </div>
 
-              <div style={{ display: "flex", gap: 12, marginTop: 16, fontSize: 11, color: "var(--ink-soft)", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 12, marginTop: 16, fontSize: 12, color: "var(--ink-soft)", flexWrap: "wrap" }}>
                 <Legend color={t.teal} label="Strong (75%+)" />
                 <Legend color={t.gold} label="Okay (40–74%)" />
                 <Legend color="#ff5c7a" label="Rough (<40%)" />
                 <Legend color="var(--surface)" label="No data" bordered />
               </div>
-              <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 6 }}>
+              <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
                 Hold a day, then tap another to see stats for that range.
               </div>
             </>
@@ -523,7 +523,7 @@ export function CalendarPage() {
           padding: "12px 16px", boxShadow: "0 8px 30px rgba(0,0,0,0.25)", border: "1px solid var(--border)", zIndex: 40 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{dayjs(rangeStats.from).format("D MMM")} – {dayjs(rangeStats.to).format("D MMM")}</div>
+              <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{dayjs(rangeStats.from).format("D MMM")} – {dayjs(rangeStats.to).format("D MMM")}</div>
               <div style={{ fontWeight: 700 }}>Avg {rangeStats.avg}% · {rangeStats.activeDays}/{rangeStats.days} active days</div>
             </div>
             <Button type="text" icon={<TbX />} onClick={() => { setRangeStart(null); setRangeEnd(null); }} />
@@ -553,7 +553,7 @@ export function CalendarPage() {
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ background: "var(--bg)", borderRadius: 10, padding: "10px 12px" }}>
-      <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{label}</div>
+      <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{label}</div>
       <div className="display" style={{ fontSize: 17, fontWeight: 800 }}>{value}</div>
     </div>
   );

@@ -62,7 +62,7 @@ export function CalendarSearchSheet({ open, onClose, onJumpTo }: Props) {
                   <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {t.title}
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
                     {t.date ? dayjs(t.date).format("ddd, D MMM YYYY") : "No date"}{t.time ? ` · ${t.time}` : ""}
                   </div>
                 </div>

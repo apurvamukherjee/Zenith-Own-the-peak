@@ -36,7 +36,7 @@ export function HourGridLines({ showLabels = true }: { showLabels?: boolean }) {
             {showLabels && (
               <span style={{
                 position: "absolute", top: 2, left: 8,
-                fontSize: 10, color: "var(--ink-soft)", fontWeight: 600,
+                fontSize: 12, color: "var(--ink-soft)", fontWeight: 600,
                 fontVariantNumeric: "tabular-nums",
               }}>
                 {String(h).padStart(2, "0")}:00
@@ -362,7 +362,7 @@ export function TimeBlock({ task, list, onFocus, onTap, onToggleDone, insetLeft 
           {task.priority === 1 && "● "}{task.title}
         </div>
         {isBlock && !compact && (
-          <div style={{ fontSize: 9, color: "var(--ink-soft)" }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
             {task.time}–{task.endTime} · {height}min
           </div>
         )}

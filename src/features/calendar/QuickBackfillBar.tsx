@@ -56,7 +56,7 @@ export function QuickBackfillBar({ date, defaultDayId }: Props) {
   return (
     <>
       <div style={{ marginBottom: 10 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.04em" }}>
           Backfill this day
         </div>
         <div style={{ display: "flex", gap: 8 }}>
