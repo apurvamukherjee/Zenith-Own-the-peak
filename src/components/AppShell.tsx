@@ -69,7 +69,7 @@ export function AppShell() {
           filter: `blur(${bgBlur}px)`, opacity: bgOpacity / 100, transform: "scale(1.1)",
         }} />
       )}
-      <div style={{ position: "relative", zIndex: 2, maxWidth: 480, margin: "0 auto",
+      <div className="app-column" style={{ position: "relative", zIndex: 2, maxWidth: 480, margin: "0 auto",
         minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
         <AppBar />
         <NavStrip />
