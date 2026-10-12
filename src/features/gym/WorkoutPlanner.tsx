@@ -133,10 +133,10 @@ function DayCard({ dayId }: { dayId: number }) {
         <Button size="small" icon={<TbCopy />} onClick={() => {
           const name = prompt("Clone name", `${day.name} copy`);
           if (name) cloneDay(dayId, name);
-        }} />
+        }} aria-label="Duplicate" />
         <Button size="small" danger icon={<TbTrash />} onClick={() => {
           modal.confirm({ title: `Delete ${day.name}?`, onOk: () => deleteWorkoutDay(dayId), okButtonProps: { danger: true } });
-        }} />
+        }} aria-label="Delete" />
       </div>}>
       {/* Progressive overload suggestions — fires after 3 sessions all hitting repHigh */}
       {activeSuggestions.map((s) => (
@@ -203,8 +203,8 @@ function DayCard({ dayId }: { dayId: number }) {
                     }}
                   />
                 )}
-                <Button size="small" type="text" icon={<TbEdit />} onClick={() => setEditEx(de)} />
-                <Button size="small" type="text" danger icon={<TbTrash />} onClick={() => de.id && removeDayExercise(de.id)} />
+                <Button size="small" type="text" icon={<TbEdit />} onClick={() => setEditEx(de)} aria-label="Edit" />
+                <Button size="small" type="text" danger icon={<TbTrash />} onClick={() => de.id && removeDayExercise(de.id)} aria-label="Delete" />
               </div>
               {linkedToNext && (
                 <div style={{

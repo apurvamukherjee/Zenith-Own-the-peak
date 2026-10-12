@@ -52,20 +52,20 @@ function PlanCard({ plan, isActive, onActivate, onReset, onRename, onDuplicate, 
       <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
         {onReset && (
           <Popconfirm title="Reset to default?" description="Discards your edits to this built-in plan." onConfirm={onReset} okText="Reset" okButtonProps={{ danger: true }}>
-            <Button size="small" type="text" icon={<TbRefresh size={14} />} title="Reset to default" />
+            <Button size="small" type="text" icon={<TbRefresh size={14} />} title="Reset to default" aria-label="Refresh" />
           </Popconfirm>
         )}
-        <Button size="small" type="text" icon={<TbCopy size={14} />} title="Duplicate as new plan" onClick={onDuplicate} />
+        <Button size="small" type="text" icon={<TbCopy size={14} />} title="Duplicate as new plan" onClick={onDuplicate} aria-label="Duplicate" />
         {plan.isBuiltIn !== 1 && (
           <>
-            <Button size="small" type="text" icon={<TbEdit size={14} />} title="Rename" onClick={onRename} />
+            <Button size="small" type="text" icon={<TbEdit size={14} />} title="Rename" onClick={onRename} aria-label="Edit" />
             <Popconfirm
               title={isActive ? "Can't delete the active plan" : "Delete this plan?"}
               description={isActive ? "Switch to another plan first." : "This can't be undone."}
               onConfirm={onDelete} okText="Delete" okButtonProps={{ danger: true, disabled: isActive }}
               disabled={isActive}
             >
-              <Button size="small" type="text" danger icon={<TbTrash size={14} />} title="Delete" disabled={isActive} />
+              <Button size="small" type="text" danger icon={<TbTrash size={14} />} title="Delete" disabled={isActive} aria-label="Delete" />
             </Popconfirm>
           </>
         )}
