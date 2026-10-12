@@ -4,7 +4,7 @@ import { Modal, Button, App, Segmented, Input } from "antd";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import {
   TbChevronLeft, TbChevronRight, TbFlag, TbCamera, TbShare, TbX,
-  TbCalendarMonth, TbCalendarWeek, TbCalendarEvent, TbPlus, TbSearch,
+  TbPlus, TbSearch,
   TbStack2, TbFileExport,
 } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
@@ -54,9 +54,9 @@ const FILTERS: { label: string; value: ScoreFilter }[] = [
 ];
 type ViewMode = "month" | "week" | "day";
 const VIEW_OPTIONS: { label: React.ReactNode; value: ViewMode }[] = [
-  { label: <TbCalendarMonth size={15} />, value: "month" },
-  { label: <TbCalendarWeek size={15} />, value: "week" },
-  { label: <TbCalendarEvent size={15} />, value: "day" },
+  { label: "Month", value: "month" },
+  { label: "Week", value: "week" },
+  { label: "Day", value: "day" },
 ];
 const SWIPE_THRESHOLD = 70;
 const VELOCITY_THRESHOLD = 300;
@@ -295,9 +295,8 @@ export function CalendarPage() {
       )}
 
       {/* View switcher + layers/search/export/new-event */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 6, marginBottom: 10 }}>
-        <div />
-        <Segmented size="small" value={view} onChange={(v) => changeView(v as ViewMode)} options={VIEW_OPTIONS} />
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+        <Segmented style={{ flex: 1, minWidth: 0 }} value={view} onChange={(v) => changeView(v as ViewMode)} options={VIEW_OPTIONS} />
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 4 }}>
           <Button size="small" type="text" icon={<TbSearch size={15} />} aria-label="Search" onClick={() => setSearchOpen(true)} />
           <Button size="small" type="text" icon={<TbStack2 size={15} />} aria-label="Layers" onClick={() => setLayersOpen(true)} />
