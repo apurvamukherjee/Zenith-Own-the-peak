@@ -513,7 +513,7 @@ export function DashboardPage() {
             }
           >
             <Progress type="dashboard" percent={score.score} size={120}
-              strokeColor={score.score >= 100 ? t.teal : scoreUrgent ? "#ff2740" : t.accent} strokeWidth={8}
+              strokeColor={score.score >= 100 ? t.teal : scoreUrgent ? t.danger : t.accent} strokeWidth={8}
               format={() => (
                 <div>
                   {/* Kinetic typography — bolder/wider weight while urgent so
@@ -697,7 +697,7 @@ function MiniWeekStrip() {
           {last7.map((c) => (
             <div key={c.date} title={c.date} style={{
               width: 16, height: 16, borderRadius: 5,
-              background: c.hasAny ? (c.score >= 75 ? t.teal : c.score >= 40 ? t.gold : "#ff5c7a") : "var(--border)",
+              background: c.hasAny ? (c.score >= 75 ? t.teal : c.score >= 40 ? t.gold : t.danger) : "var(--border)",
               border: c.isToday ? `2px solid ${t.accent}` : "none",
             }} />
           ))}
@@ -717,9 +717,9 @@ function Pill({ done, label, icon }: { done: boolean; label: string; icon: React
     <div style={{
       display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600,
       padding: "3px 8px", borderRadius: 999,
-      color: done ? "var(--teal)" : "var(--accent)",
+      color: done ? "var(--success)" : "var(--accent)",
       border: done ? "1px solid transparent" : "1px solid var(--ember-inner)",
-      background: done ? "rgba(18,179,161,0.10)" : "transparent",
+      background: done ? "color-mix(in srgb, var(--success) 14%, transparent)" : "transparent",
       opacity: done ? 1 : 0.75,
     }}>
       {icon} {label} {done && <TbCheck size={11} />}
