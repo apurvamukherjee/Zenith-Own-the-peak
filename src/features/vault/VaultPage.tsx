@@ -11,6 +11,7 @@ import {
   type AccentThemeDef, type FrameDef,
 } from "../../lib/rewardVault";
 import { useEquippableTitles, useEquippedTitle, useVaultUnlocks, markAllCosmeticsSeen } from "./useRewardVault";
+import { pressable } from "../../lib/a11y";
 
 function LockDot() {
   return (
@@ -99,7 +100,7 @@ function FrameCard({ def, unlocked, equipped, onEquip }: {
 
 function TitleChip({ name, equipped, onEquip }: { name: string; equipped: boolean; onEquip: () => void }) {
   return (
-    <div role="button" onClick={onEquip} style={{
+    <div {...pressable(onEquip)} style={{
       padding: "6px 14px", borderRadius: 999, cursor: "pointer",
       background: equipped ? "var(--accent)" : "var(--surface)",
       color: equipped ? "#fff" : "var(--ink)",

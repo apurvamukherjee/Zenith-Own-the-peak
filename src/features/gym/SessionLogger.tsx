@@ -27,6 +27,7 @@ import { hapticLight } from "../../lib/haptics";
 import { useUsageValue, recordUsage } from "../../hooks/useUsageHistory";
 import { CoachMark } from "../../components/CoachMark";
 import { useSetting, setSetting } from "../../hooks/useSettings";
+import { pressable } from "../../lib/a11y";
 
 // -----------------------------------------------------------------------------
 // SessionLogger — the "execute today's workout" surface.
@@ -201,8 +202,8 @@ function SetRow({
     const isWeaker = !logged.isPR && !!ghost && logged.e1rm < ghost.e1rm;
     return (
       <motion.div initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }}
-        onClick={() => { setEw(logged.weightKg); setEr(logged.reps); setEStages(logged.dropStages ?? []); setEditingLogged(true); }}
-        role="button" aria-label={`Edit set ${setIndex}: ${logged.weightKg}kg × ${logged.reps}`}
+        {...pressable(() => { setEw(logged.weightKg); setEr(logged.reps); setEStages(logged.dropStages ?? []); setEditingLogged(true); })}
+        aria-label={`Edit set ${setIndex}: ${logged.weightKg}kg × ${logged.reps}`}
         style={{ padding: "6px 10px", cursor: "pointer",
           background: logged.isPR ? "rgba(255,176,32,0.12)" : isWeaker ? "rgba(255,39,64,0.12)" : "rgba(18,179,161,0.10)",
           borderRadius: 10, marginBottom: 4 }}>

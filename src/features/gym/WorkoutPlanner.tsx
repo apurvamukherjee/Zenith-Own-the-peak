@@ -18,6 +18,7 @@ import {
 import { useActivePlan, planExerciseCount, resetBuiltInPlan } from "./usePlans";
 import { PlanSwitcherSheet } from "./PlanSwitcherSheet";
 import { useOverloadSuggestions } from "./useOverloadSuggestions";
+import { pressable } from "../../lib/a11y";
 
 const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -236,7 +237,7 @@ function DayCard({ dayId }: { dayId: number }) {
         </div>
         <div style={{ maxHeight: 350, overflow: "auto" }}>
           {filtered.map((ex) => (
-            <div role="button" key={ex.id} onClick={() => handleAddEx(ex)}
+            <div key={ex.id} {...pressable(() => handleAddEx(ex))}
               style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 4px", cursor: "pointer", borderBottom: "1px solid var(--border)" }}>
               <MuscleIcon muscle={ex.primaryMuscle} size={16} color="var(--accent)" />
               <div style={{ flex: 1 }}>

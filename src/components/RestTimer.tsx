@@ -4,6 +4,7 @@ import { useRestTimer } from "../hooks/useRestTimer";
 import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
 import { fmtMinSec } from "../lib/date.utils";
 import { RestRing } from "./RestRing";
+import { pressable } from "../lib/a11y";
 
 // In-card rest timer — reads from the global store. Renders nothing when the
 // store is inactive. Kept as a controlled *view*; ticking, haptics, and reset
@@ -62,8 +63,7 @@ function RestDial() {
     <motion.div
       style={{ position: "relative", width: 40, height: 40, cursor: "pointer" }}
       whileTap={{ scale: 0.9 }}
-      onClick={() => (rest.paused ? resumeRest() : pauseRest())}
-      role="button"
+      {...pressable(() => (rest.paused ? resumeRest() : pauseRest()))}
       aria-label={rest.paused ? "Resume rest" : "Pause rest"}
     >
       <RestRing size={40} pct={pct} color={rest.color}>

@@ -38,6 +38,7 @@ import { backfillSession } from "../gym/useGym";
 import { buildICS, exportICS } from "../../lib/icsExport";
 import type { TaskDto, GoalDayDto } from "../../db/types";
 import dayjs from "dayjs";
+import { pressable } from "../../lib/a11y";
 
 function inferMealType() {
   const h = new Date().getHours();
@@ -279,7 +280,7 @@ export function CalendarPage() {
           {upcomingGoals.map((g) => {
             const counts = g.id ? milestoneCounts.get(g.id) : undefined;
             return (
-              <div key={g.id} onClick={() => setGoalDetail(g)} role="button" tabIndex={0}
+              <div key={g.id} {...pressable(() => setGoalDetail(g))}
                 style={{ background: "var(--surface)", borderRadius: 12, padding: "8px 12px", whiteSpace: "nowrap", border: "1px solid var(--border)", cursor: "pointer" }}>
                 <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 4 }}><TbFlag size={12} />{g.title}</div>
                 <div style={{ fontWeight: 800, color: "var(--accent)", fontSize: 14 }}>

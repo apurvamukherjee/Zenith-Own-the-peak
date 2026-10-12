@@ -9,6 +9,7 @@ import { useAllDayEvents } from "./useAllDayEvents";
 import { QuickBackfillBar } from "./QuickBackfillBar";
 import { TbBarbell, TbCheck } from "react-icons/tb";
 import { useTokens } from "../../hooks/useTokens";
+import { pressable } from "../../lib/a11y";
 
 interface Props {
   date: string;
@@ -126,7 +127,7 @@ export function DayTimeline({ date, onFocus, onGymTap, onTapTask, onToggleDone, 
           {unscheduled.map((task) => {
             const list = listMap.get(task.listId);
             return (
-              <div role="button" key={task.id} onClick={() => onTapTask?.(task)} style={{
+              <div key={task.id} {...pressable(() => onTapTask?.(task))} style={{
                 display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
                 marginBottom: 6, borderRadius: 12, background: "var(--surface)", cursor: "pointer",
                 border: "1px solid var(--border)", borderLeft: `3px solid ${list?.color ?? "var(--border)"}`,

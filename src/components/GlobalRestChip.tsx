@@ -5,6 +5,7 @@ import { useRestTimer } from "../hooks/useRestTimer";
 import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
 import { fmtMinSec } from "../lib/date.utils";
 import { RestRing } from "./RestRing";
+import { pressable } from "../lib/a11y";
 
 // Floating rest chip. Renders only when:
 //   • The global rest store is active, AND
@@ -37,8 +38,7 @@ export function GlobalRestChip() {
           }}
         >
           <div
-            onClick={() => navigate("/workout")}
-            role="button"
+            {...pressable(() => navigate("/workout"))}
             aria-label="Return to workout"
             style={{ position: "relative", width: 38, height: 38, cursor: "pointer" }}
           >

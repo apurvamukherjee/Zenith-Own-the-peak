@@ -25,6 +25,7 @@ import { EventEditorSheet } from "../calendar/EventEditorSheet";
 import { FoodPickerModal } from "../nutrition/FoodPickerModal";
 import { useMealCompletion } from "../calendar/useMealCompletion";
 import type { TaskDto, TaskListDto } from "../../db/types";
+import { pressable } from "../../lib/a11y";
 
 function inferMealType() {
   const h = new Date().getHours();
@@ -280,7 +281,7 @@ function TaskRow({ task, lists, onComplete, onTap, showDate }: {
       </button>
 
       {/* Content */}
-      <div role="button" style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={onTap}>
+      <div {...pressable(onTap)} style={{ flex: 1, minWidth: 0, cursor: "pointer" }}>
         <div style={{
           fontWeight: 600, fontSize: 13,
           textDecoration: done ? "line-through" : "none",

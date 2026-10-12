@@ -13,6 +13,7 @@ import { unlockAudio, playTick } from "../lib/audio";
 import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "../db/types";
 import { useExercise, useExerciseLibrary, useGhostSets, logSet, deleteSet } from "../features/gym/useGym";
 import { buildItems } from "../features/gym/groupExercises";
+import { pressable } from "../lib/a11y";
 
 // Fullscreen "one set at a time" view for /workout. Sits ON TOP of
 // SessionLogger (which stays mounted underneath, unchanged) rather than
@@ -592,8 +593,8 @@ function RestView({ preview, trans, reducedMotion }: {
         {rest.paused ? "Paused" : "Rest"}
       </div>
       <div
-        onClick={() => (rest.paused ? resumeRest() : pauseRest())}
-        role="button" aria-label={rest.paused ? "Resume rest" : "Pause rest"}
+        {...pressable(() => (rest.paused ? resumeRest() : pauseRest()))}
+        aria-label={rest.paused ? "Resume rest" : "Pause rest"}
         style={{ position: "relative", width: 220, height: 220, cursor: "pointer", marginBottom: 20 }}
       >
         <svg viewBox="0 0 220 220" width="220" height="220">

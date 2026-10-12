@@ -18,6 +18,7 @@ import { EventEditorSheet } from "./EventEditorSheet";
 import { FoodPickerModal } from "../nutrition/FoodPickerModal";
 import { useTokens } from "../../hooks/useTokens";
 import type { TaskDto } from "../../db/types";
+import { pressable } from "../../lib/a11y";
 
 function inferMealType() {
   const h = new Date().getHours();
@@ -297,7 +298,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
                 </button>
 
                 {/* Content — tap to edit */}
-                <div role="button" style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => openEditor(task)}>
+                <div {...pressable(() => openEditor(task))} style={{ flex: 1, minWidth: 0, cursor: "pointer" }}>
                   <div style={{
                     fontSize: 13, fontWeight: 600,
                     textDecoration: done ? "line-through" : "none",

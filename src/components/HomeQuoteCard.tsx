@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { TbArrowsShuffle, TbQuote } from "react-icons/tb";
 import { useQuotes, pickRandomIndex } from "../features/quotes/useQuotes";
 import { hapticLight } from "../lib/haptics";
+import { pressable } from "../lib/a11y";
 
 // Compact quote card for the bottom of the dashboard. Picks a random quote
 // on mount, and the whole card (or the dedicated shuffle button) advances to
@@ -43,9 +44,8 @@ export function HomeQuoteCard() {
 
   return (
     <div
-      role="button"
+      {...pressable(shuffle)}
       aria-label="Shuffle quote"
-      onClick={shuffle}
       style={{ ...cardBase, cursor: quotes.length > 1 ? "pointer" : "default" }}
     >
       <TbQuote size={16} style={{ color: "var(--accent)", flex: "0 0 auto", marginTop: 2 }} aria-hidden />
