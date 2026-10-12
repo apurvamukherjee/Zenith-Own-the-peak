@@ -43,7 +43,7 @@ export function PwaInstallPrompt() {
     <AnimatePresence>
       {show && onHome && (
         <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-          style={{ position: "fixed", bottom: "calc(var(--nav-offset) + 76px)", left: 16, right: 16, zIndex: 40,
+          style={{ position: "fixed", bottom: "calc(var(--nav-offset) + 128px)", left: 0, right: 0, margin: "0 auto", width: "min(calc(100% - 32px), 448px)", zIndex: 40,
             background: "var(--surface)", borderRadius: 14, padding: "12px 14px",
             border: "1px solid var(--border)", boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
             display: "flex", alignItems: "center", gap: 12 }}>
