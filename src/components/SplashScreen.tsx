@@ -14,7 +14,10 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     const g1off = setTimeout(() => setGlitching(false), 1120);
     const g2 = setTimeout(() => setGlitching(true), 2200);
     const g2off = setTimeout(() => setGlitching(false), 2500);
-    const end = setTimeout(onDone, 3800);
+    // Full cinematic once; returning launches get a short beat so opening the app isn't a 4s wait.
+    let seen = false;
+    try { seen = localStorage.getItem("zenith:splash-seen") === "1"; localStorage.setItem("zenith:splash-seen", "1"); } catch { /* storage blocked: play full splash */ }
+    const end = setTimeout(onDone, seen ? 1300 : 3800);
     return () => [g1, g1off, g2, g2off, end].forEach(clearTimeout);
   }, [onDone]);
 
