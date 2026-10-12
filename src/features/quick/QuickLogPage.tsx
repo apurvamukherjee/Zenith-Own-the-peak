@@ -104,7 +104,7 @@ export function QuickLogPage() {
             <a.icon size={34} />
             <div style={{ marginTop: "auto" }}>
               <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.3 }}>{a.label}</div>
-              <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 600 }}>{a.hint}</div>
+              <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}>{a.hint}</div>
             </div>
           </motion.button>
         ))}

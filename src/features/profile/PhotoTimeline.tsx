@@ -13,7 +13,7 @@ export function PhotoTimeline() {
         {photos.map((p) => (
           <div key={p.id} style={{ flex: "0 0 90px", textAlign: "center" }}>
             <img src={p.dataUrl} alt={p.date} style={{ width: 90, height: 120, borderRadius: 8, objectFit: "cover" }} />
-            <div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 4 }}>{dayjs(p.date).format("D MMM")}</div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 4 }}>{dayjs(p.date).format("D MMM")}</div>
           </div>
         ))}
       </div>

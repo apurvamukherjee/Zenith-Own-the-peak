@@ -111,7 +111,7 @@ export function QuotesPage() {
                     alignSelf: "flex-start", padding: "4px 10px", borderRadius: 8,
                     background: `${CATEGORY_META[current.category].color}18`,
                     color: CATEGORY_META[current.category].color,
-                    fontSize: 11, fontWeight: 700, marginBottom: 18, zIndex: 1,
+                    fontSize: 12, fontWeight: 700, marginBottom: 18, zIndex: 1,
                   }}>
                     {(() => { const Icon = CATEGORY_META[current.category].icon; return <Icon size={13} />; })()}
                     {CATEGORY_META[current.category].label.toUpperCase()}

@@ -63,8 +63,8 @@ function AccentCard({ def, unlocked, equipped, mode, onEquip }: {
         }} />
         {equipped ? <CheckDot /> : !unlocked && <LockDot />}
       </div>
-      <div style={{ fontSize: 11, fontWeight: 700, textAlign: "center", opacity: unlocked ? 1 : 0.6 }}>{def.label}</div>
-      {!unlocked && <div style={{ fontSize: 9.5, color: "var(--ink-soft)", textAlign: "center" }}>{def.hint}</div>}
+      <div style={{ fontSize: 12, fontWeight: 700, textAlign: "center", opacity: unlocked ? 1 : 0.6 }}>{def.label}</div>
+      {!unlocked && <div style={{ fontSize: 12.5, color: "var(--ink-soft)", textAlign: "center" }}>{def.hint}</div>}
     </div>
   );
 }
@@ -91,8 +91,8 @@ function FrameCard({ def, unlocked, equipped, onEquip }: {
         {equipped && <CheckDot />}
         {!unlocked && <LockDot />}
       </div>
-      <div style={{ fontSize: 11, fontWeight: 700, textAlign: "center", opacity: unlocked ? 1 : 0.6 }}>{def.label}</div>
-      {!unlocked && <div style={{ fontSize: 9.5, color: "var(--ink-soft)", textAlign: "center" }}>{def.hint}</div>}
+      <div style={{ fontSize: 12, fontWeight: 700, textAlign: "center", opacity: unlocked ? 1 : 0.6 }}>{def.label}</div>
+      {!unlocked && <div style={{ fontSize: 12.5, color: "var(--ink-soft)", textAlign: "center" }}>{def.hint}</div>}
     </div>
   );
 }
@@ -187,7 +187,7 @@ export function VaultPage() {
           <TitleChip key={l.name} name={l.name} equipped={equippedTitle === l.name} onEquip={() => equipTitle(l.name)} />
         ))}
       </div>
-      <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 20 }}>
+      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 20 }}>
         Every title you've reached stays equippable, even after leveling past it.
       </div>
     </PageTransition>

@@ -38,7 +38,7 @@ export function EfficiencyCard() {
 function Tile({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ background: "var(--bg)", borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
-      <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>{label}</div>
+      <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{label}</div>
       <div className="display" style={{ fontSize: 15, fontWeight: 800 }}>{value}</div>
     </div>
   );

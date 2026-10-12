@@ -216,7 +216,7 @@ export function SettingsPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>High contrast</div>
-            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
               WCAG-AAA text, no gradients. Better for low-vision use.
             </div>
           </div>
@@ -225,7 +225,7 @@ export function SettingsPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>Reduce motion</div>
-            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
               Turns off ember pulse, page slides, and celebratory flourishes.
             </div>
           </div>
@@ -236,7 +236,7 @@ export function SettingsPage() {
       {/* About — Zenith mountain grows quietly with each mythic unlock */}
       <Card size="small" style={{ marginBottom: 20 }} title={<span><TbInfoCircle /> About</span>}>
         <MountainGrows />
-        <div style={{ textAlign: "center", fontSize: 11, color: "var(--ink-soft)", marginTop: 10 }}>
+        <div style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)", marginTop: 10 }}>
           <div style={{ fontWeight: 700, letterSpacing: 0.3 }}>Zenith · Own the peak</div>
           <div style={{ opacity: 0.7 }}>by Apurva</div>
         </div>

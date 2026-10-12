@@ -53,7 +53,7 @@ export function GlancePage() {
           format={() => (
             <div>
               <div className="display" style={{ fontSize: 48, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{score.score}%</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>discipline</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>discipline</div>
             </div>
           )} />
       </motion.div>
@@ -64,7 +64,7 @@ export function GlancePage() {
 
       <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 6, opacity: 0.6 }}>
         <img src="/logo-mark.png" alt="" width={14} height={14} style={{ objectFit: "contain" }} />
-        <span style={{ fontSize: 11, letterSpacing: 2 }}>ZENITH · OWN THE PEAK</span>
+        <span style={{ fontSize: 12, letterSpacing: 2 }}>ZENITH · OWN THE PEAK</span>
       </div>
     </div>
   );

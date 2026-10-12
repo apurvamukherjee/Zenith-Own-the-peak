@@ -107,7 +107,7 @@ function LeaderboardPageInner() {
           background: "var(--surface)", borderRadius: 12, padding: "8px 14px",
           marginBottom: 12, border: "1px solid var(--border)",
         }}>
-          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>Your code:</span>
+          <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>Your code:</span>
           <span className="gothic" style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.08em", color: "var(--accent)" }}>
             {shareCode}
           </span>
@@ -132,7 +132,7 @@ function LeaderboardPageInner() {
       )}
 
       {/* Week label */}
-      <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 10, letterSpacing: "0.1em" }}>
+      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 10, letterSpacing: "0.1em" }}>
         {weekKey} · Mon–Sun
       </div>
 
@@ -182,9 +182,9 @@ function LeaderboardPageInner() {
                   fontWeight: 700, fontSize: 14,
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>
-                  {e.displayName} {e.isMe && <Tag color="red" style={{ margin: "0 0 0 4px", fontSize: 10, borderRadius: 6 }}>you</Tag>}
+                  {e.displayName} {e.isMe && <Tag color="red" style={{ margin: "0 0 0 4px", fontSize: 12, borderRadius: 6 }}>you</Tag>}
                 </div>
-                <div style={{ fontSize: 10, color: "var(--ink-soft)" }}>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
                   Lv.{e.level} {levelDef.name} · {e.badgeCount} badges
                 </div>
               </div>
@@ -192,7 +192,7 @@ function LeaderboardPageInner() {
               {/* Stats */}
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ fontWeight: 800, fontSize: 16, color: "var(--accent)" }}>{e.discipline}%</div>
-                <div style={{ fontSize: 10, color: "var(--ink-soft)", display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", gap: 6, justifyContent: "flex-end" }}>
                   <span><TbFlame size={10} style={{ verticalAlign: "-1px" }} /> {e.streak}</span>
                   <span><TbBarbell size={10} style={{ verticalAlign: "-1px" }} /> {(e.volumeKg / 1000).toFixed(1)}t</span>
                 </div>
@@ -213,7 +213,7 @@ function LeaderboardPageInner() {
               }}>
                 {e.topBadges.map((b) => (
                   <span key={b.id} style={{
-                    fontSize: 10, fontWeight: 700, padding: "2px 8px",
+                    fontSize: 12, fontWeight: 700, padding: "2px 8px",
                     borderRadius: 6, letterSpacing: "0.03em",
                     background: `${TIER_COLOR[b.tier] ?? "var(--border)"}20`,
                     color: TIER_COLOR[b.tier] ?? "var(--ink-soft)",

@@ -77,7 +77,7 @@ export function ProfilePage() {
             <div style={{ position: "relative", width: 46, height: 46, borderRadius: 13, background: "rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <TbSparkles size={24} />
               {unseenCosmetics > 0 && (
-                <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+                <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
                   {unseenCosmetics}
                 </span>
               )}
@@ -101,7 +101,7 @@ export function ProfilePage() {
             <div style={{ position: "relative", width: 46, height: 46, borderRadius: 13, background: "rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <TbTrophy size={24} />
               {unseen > 0 && (
-                <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+                <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
                   {unseen}
                 </span>
               )}
@@ -156,11 +156,11 @@ export function ProfilePage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
             {review.stats.slice(0, 6).map((s) => (
               <div key={s.key} style={{ padding: "8px 10px", background: "var(--bg)", borderRadius: 10 }}>
-                <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{s.label}</div>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{s.label}</div>
                 <div className="display" style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.2 }}>
                   {s.prefix}<AnimatedNumber value={s.value} decimals={s.decimals} />{s.suffix}
                   {s.deltaPct != null && (
-                    <span style={{ fontSize: 11, marginLeft: 4, color: s.deltaPct >= 0 ? "var(--teal)" : "#ff5c7a" }}>
+                    <span style={{ fontSize: 12, marginLeft: 4, color: s.deltaPct >= 0 ? "var(--teal)" : "#ff5c7a" }}>
                       {s.deltaPct >= 0 ? <TbTrendingUp style={{ verticalAlign: "-2px" }} /> : <TbTrendingDown style={{ verticalAlign: "-2px" }} />}{Math.abs(s.deltaPct)}%
                     </span>
                   )}

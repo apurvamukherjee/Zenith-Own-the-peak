@@ -129,7 +129,7 @@ function EfficiencyCard({ rows }: { rows: { date: string; mileage: number | null
           <div style={{ color: improving ? "var(--teal)" : "#ff5c7a", fontWeight: 700, fontSize: 14 }}>
             {improving ? "▲" : "▼"} {Math.abs(delta)}%
           </div>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>vs earlier fills</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>vs earlier fills</div>
         </div>
       </div>
     </Card>

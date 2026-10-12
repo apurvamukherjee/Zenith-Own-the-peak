@@ -73,7 +73,7 @@ function BadgeCard({ v, index }: { v: AchievementView; index: number }) {
           }}>
             {title}
           </div>
-          <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginTop: 2, fontStyle: hidden ? "italic" : "normal" }}>
+          <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 2, fontStyle: hidden ? "italic" : "normal" }}>
             {sub}
           </div>
         </div>
@@ -81,7 +81,7 @@ function BadgeCard({ v, index }: { v: AchievementView; index: number }) {
 
       <div style={{ marginTop: 12 }}>
         {unlocked ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11, fontWeight: 700 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, fontWeight: 700 }}>
             <span style={{ textTransform: "uppercase", letterSpacing: 1, color: tier.ring, textShadow: `0 0 12px ${tier.glow}` }}>
               {tier.label}
             </span>
@@ -90,13 +90,13 @@ function BadgeCard({ v, index }: { v: AchievementView; index: number }) {
             </span>
           </div>
         ) : hidden ? (
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "var(--ink-soft)", opacity: 0.7 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "var(--ink-soft)", opacity: 0.7 }}>
             Locked · Mystery
           </div>
         ) : (
           <div>
             <Progress percent={Math.round(ratio * 100)} showInfo={false} size="small" strokeColor={tier.ring} trailColor="var(--border)" />
-            <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 2 }}>{value}</div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>{value}</div>
           </div>
         )}
       </div>
@@ -140,10 +140,10 @@ export function HallOfFrame() {
                 Lv.{level.level} — {level.name}
               </span>
               {next && (
-                <span style={{ fontSize: 10, opacity: 0.65, marginLeft: 8 }}>→ {next.name}</span>
+                <span style={{ fontSize: 12, opacity: 0.65, marginLeft: 8 }}>→ {next.name}</span>
               )}
             </div>
-            <div style={{ textAlign: "right", fontSize: 11, opacity: 0.8 }}>
+            <div style={{ textAlign: "right", fontSize: 12, opacity: 0.8 }}>
               <div style={{ fontWeight: 700 }}>{totalXP.toLocaleString()} XP</div>
               <div style={{ opacity: 0.65 }}>+{weekXP} this week</div>
             </div>

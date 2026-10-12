@@ -200,7 +200,7 @@ function ExpenseEntryModal({ open, onClose, categories }: {
 
       {categoryId && items.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>Saved items</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>Saved items</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {items.map((it) => (
               <Tag key={it.id} onClick={() => pickItem(it)} style={{ borderRadius: 8, cursor: "pointer", padding: "4px 10px", fontSize: 12 }}>

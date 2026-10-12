@@ -111,15 +111,15 @@ function AddHabitSheet({ open, onClose }: { open: boolean; onClose: () => void }
     <Sheet open={open} onCancel={() => { reset(); onClose(); }} title="New habit" footer={null} destroyOnHidden>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 4 }}>Trigger</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Trigger</div>
           <Input placeholder="e.g. After waking up" value={triggerLabel} onChange={(e) => setTriggerLabel(e.target.value)} />
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 4 }}>Action</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Action</div>
           <Input placeholder="e.g. Cold shower" value={actionLabel} onChange={(e) => setActionLabel(e.target.value)} />
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 6 }}>Icon</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6 }}>Icon</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {HABIT_ICON_NAMES.map((name) => {
               const Icon = habitIconFor(name);

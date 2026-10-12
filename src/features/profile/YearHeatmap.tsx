@@ -50,7 +50,7 @@ export function YearHeatmap() {
                 <div key={d.date} style={{ width: 6, height: 6, borderRadius: 1.5, background: colorFor(d.score, d.hasAny) }} />
               ))}
             </div>
-            <div style={{ fontSize: 9, color: "var(--ink-soft)", marginTop: 4 }}>{MONTH_LABELS[mg.month]}</div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 4 }}>{MONTH_LABELS[mg.month]}</div>
           </button>
         ))}
       </div>

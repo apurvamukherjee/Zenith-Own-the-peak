@@ -50,11 +50,11 @@ export function BeforeAfterSlider() {
     <Card size="small" title={<span><TbArrowsLeftRight /> Before / after</span>} style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 130 }}>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 2 }}>Before</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 2 }}>Before</div>
           <Select value={beforeId ?? undefined} onChange={setBeforeId} options={options} style={{ width: "100%" }} />
         </div>
         <div style={{ flex: 1, minWidth: 130 }}>
-          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 2 }}>After</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 2 }}>After</div>
           <Select value={afterId ?? undefined} onChange={setAfterId} options={options} style={{ width: "100%" }} />
         </div>
       </div>
@@ -91,11 +91,11 @@ export function BeforeAfterSlider() {
           </div>
           {/* Labels */}
           <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.55)", color: "#fff",
-            fontSize: 10, padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
+            fontSize: 12, padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
             {dayjs(before.date).format("D MMM YY")}
           </div>
           <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.55)", color: "#fff",
-            fontSize: 10, padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
+            fontSize: 12, padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
             {dayjs(after.date).format("D MMM YY")}
           </div>
         </div>
