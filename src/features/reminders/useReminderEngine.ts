@@ -22,7 +22,7 @@ export function useReminderEngine(): ReminderConfig {
   const suppSchedules = useLiveQuery(async () => {
     const rules = await db.recurringRules.toArray();
     return rules
-      .filter((r) => r.active && (r.templateListId === "medicine" || r.templateListId === "supplement"))
+      .filter((r) => r.active && (r.templateListId === "medicine" || r.templateListId === "supplement" || r.templateListId === "mealtime"))
       .map((r) => ({ id: r.id ?? 0, label: r.templateTitle, time: r.templateTime ?? "09:00" }));
   }, []) ?? [];
 

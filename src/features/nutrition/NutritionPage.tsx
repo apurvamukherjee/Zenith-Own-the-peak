@@ -21,7 +21,7 @@ import {
   useSchedules, useTodayLogs, useTodayMeals, addSchedule, deleteSchedule, markDone,
   deleteMeal, addMeal, slotStatus, KIND_META,
 } from "./useNutrition";
-import { useReminders, requestReminderPermission } from "../../hooks/useReminders";
+import { requestNotificationPermission } from "../../lib/notifications";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { VIOLET, GOLD } from "../../theme";
 import {
@@ -56,15 +56,13 @@ export function NutritionPage() {
   const [comboOpen, setComboOpen] = useState(false);
   const withUndo = useUndo();
   const bulk = useBulkSelect<number>();
-  const [remindersOn, setRemindersOn] = useState(typeof Notification !== "undefined" && Notification.permission === "granted");
+  const remindersOn = Number(useSetting("remSupps")) === 1;
   const coachDone = Number(useSetting("coachNutrition"));
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
   const NUTRITION_COACH = [
     { title: "Log from catalog", body: "Tap the + button and search for food (e.g. 'chicken breast') to get auto-calculated macros by weight." },
     { title: "Bulk delete", body: "Long-press any meal to enter selection mode. Then tap 'All N' to select everything and delete in one go." },
   ];
-
-  useReminders(schedules, logs);
 
   const latestBw = useLiveQuery(async () => (await db.bodyweight.orderBy("date").last())?.kg, []);
   const proteinDefault = useSetting("proteinTargetG");
@@ -79,11 +77,11 @@ export function NutritionPage() {
 
   async function toggleReminders(on: boolean) {
     if (on) {
-      const ok = await requestReminderPermission();
-      setRemindersOn(ok);
+      const ok = await requestNotificationPermission();
+      await setSetting("remSupps", ok ? 1 : 0);
       if (!ok) message.info("Allow notifications in your browser to get reminders");
       else message.success("Reminders on while the app is open");
-    } else setRemindersOn(false);
+    } else await setSetting("remSupps", 0);
   }
 
   const nextUp = schedules.find((s) => s.id && !doneIds.has(s.id) && slotStatus(s.time, false) !== "upcoming")

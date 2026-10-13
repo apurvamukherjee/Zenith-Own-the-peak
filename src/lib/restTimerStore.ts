@@ -1,5 +1,6 @@
 import { hapticMedium } from "./haptics";
 import { playRockyFanfare } from "./audio";
+import { notify } from "./notifications";
 
 // -----------------------------------------------------------------------------
 // Global rest-timer state.
@@ -56,6 +57,7 @@ function tick() {
     if (!firedZero) {
       firedZero = true;
       hapticMedium();
+      void notify("Rest over", state.label ? `Back to ${state.label}` : "Next set — go.");
       // Egg #9: Rocky trumpets on completion of a rest that started at
       // *exactly* 3:20 (200 s). Not 3:19, not 3:21.
       if (state.totalSec === 200) playRockyFanfare();

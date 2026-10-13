@@ -43,6 +43,15 @@ export function planReminders(c: ReminderConfig, includeSupps = true, state?: Li
   return out;
 }
 
+// Android Chrome throws on `new Notification()`; it only allows notifications
+// through a service worker registration (public/sw.js).
+export async function notify(title: string, body: string): Promise<void> {
+  if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+  const reg = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
+  if (reg) await reg.showNotification(title, { body, icon: "/icons/icon-192.png", tag: title });
+  else new Notification(title, { body });
+}
+
 export function isNativeNotifications(): boolean {
   const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   return Boolean(cap?.isNativePlatform?.());
@@ -133,7 +142,7 @@ export function startTaskReminderWebLoop(getReminders: () => OneOffReminder[]): 
       if (fired.has(r.id)) continue;
       const diffMs = r.at.getTime() - now;
       if (diffMs <= 0 && diffMs > -120_000) {
-        new Notification(r.title, { body: r.body });
+        void notify(r.title, r.body);
         fired.add(r.id);
       }
     }
@@ -152,9 +161,9 @@ export function startWebReminderLoop(getConfig: () => ReminderConfig): () => voi
     const now = new Date();
     const key = hm(now.getHours(), now.getMinutes());
     if (firedThisMinute.has(key)) return;
-    for (const p of planReminders(getConfig(), false)) {
+    for (const p of planReminders(getConfig())) {
       if (p.at === key) {
-        new Notification(p.title, { body: p.body });
+        void notify(p.title, p.body);
         firedThisMinute.add(key);
       }
     }

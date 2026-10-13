@@ -9,6 +9,7 @@ import { initStatusBar } from "./lib/nativeShell";
 import { inject } from "@vercel/analytics";
 inject();
 initStatusBar();
+if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js");
 
 const root = convexClient ? (
   <ConvexAuthProvider client={convexClient}>

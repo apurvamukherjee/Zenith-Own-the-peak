@@ -54,7 +54,7 @@ export function AppShell() {
   const eggs = useEasterEggs();
 
   return (
-    <div className="app-root" style={{ position: "relative", background: "var(--bg)" }}>
+    <div className="app-root" data-wallpaper={bgImage ? "" : undefined} style={{ position: "relative", background: "var(--bg)" }}>
       {/* Desktop/wide-viewport only: the app column stays a fixed phone width
           (see maxWidth:480 below) by design — on a wide monitor that leaves
           bare gutters either side. A faint centered glow keeps that space

@@ -740,3 +740,8 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="month"]:focus {
   .home-full { grid-column: 1 / -1; }
   .home-col { display: flex; flex-direction: column; gap: 10px; }
 }
+
+/* Sticky section headers: tinted glass normally, but a tinted box reads as a
+   dark rectangle over a custom wallpaper — keep only the blur there. */
+:root { --section-title-bg: color-mix(in srgb, var(--bg) 82%, transparent); }
+[data-wallpaper] { --section-title-bg: transparent; }

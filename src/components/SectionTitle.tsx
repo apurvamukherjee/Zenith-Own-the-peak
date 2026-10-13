@@ -11,7 +11,7 @@ export function SectionTitle({ eyebrow, title, right }: {
     <div style={{
       display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 14,
       position: "sticky", top: 0, zIndex: 5,
-      background: "color-mix(in srgb, var(--bg) 82%, transparent)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+      background: "var(--section-title-bg)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       paddingTop: 8, paddingBottom: 4,
     }}>
       <div>
