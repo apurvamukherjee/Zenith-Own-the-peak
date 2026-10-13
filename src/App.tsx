@@ -24,7 +24,11 @@ export default function App() {
   // straight into the app — a visible "stuck screen" hop. Requiring both
   // flags keeps splash mounted (on its final, static frame — no re-loop)
   // until seeding actually catches up, so the gap can never show.
-  const [splashTimerDone, setSplashTimerDone] = useState(false);
+  // Cinematic splash plays once per app open (sessionStorage dies with the
+  // tab / app process), never on refresh or pull-to-refresh.
+  const [splashTimerDone, setSplashTimerDone] = useState(() => {
+    try { return sessionStorage.getItem("zenith:splash-session") === "1"; } catch { return false; }
+  });
   const [seeded, setSeeded] = useState(false);
   const ready = splashTimerDone && seeded;
   const mode = useSetting("themeMode") as Mode;
@@ -111,7 +115,10 @@ export default function App() {
     <ConfigProvider theme={getTheme(resolved, accentHex)}>
       <AntApp>
         <AnimatePresence>
-          {!ready && <SplashScreen key="splash" onDone={() => setSplashTimerDone(true)} />}
+          {!ready && <SplashScreen key="splash" onDone={() => {
+            try { sessionStorage.setItem("zenith:splash-session", "1"); } catch { /* storage blocked: splash replays */ }
+            setSplashTimerDone(true);
+          }} />}
         </AnimatePresence>
         {showOnboarding && <OnboardingFlow onDone={() => setShowOnboarding(false)} />}
         {/* Gate routing behind seed completion so hooks don't query empty tables */}
