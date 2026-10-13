@@ -555,7 +555,7 @@ export function DashboardPage() {
             />
           )}
         </div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 6 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 8px", marginTop: 6, maxWidth: "100%" }}>
           <Pill done={score.waterPct >= 100} label="Water" icon={<TbDroplet size={12} />} />
           <Pill done={score.sessionDone} label="Train" icon={<TbBarbell size={12} />} />
           <Pill done={score.sleepLogged} label="Sleep" icon={<TbMoon size={12} />} />
@@ -723,7 +723,7 @@ function Pill({ done, label, icon }: { done: boolean; label: string; icon: React
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600,
-      padding: "3px 8px", borderRadius: 999,
+      padding: "3px 8px", borderRadius: 999, whiteSpace: "nowrap", flexShrink: 0,
       color: done ? "var(--success)" : "var(--accent)",
       border: done ? "1px solid transparent" : "1px solid var(--ember-inner)",
       background: done ? "color-mix(in srgb, var(--success) 14%, transparent)" : "transparent",
