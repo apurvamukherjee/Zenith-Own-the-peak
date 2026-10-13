@@ -70,10 +70,10 @@ export function AppShell() {
         }} />
       )}
       <div className="app-column" style={{ position: "relative", zIndex: 2, maxWidth: 480, margin: "0 auto",
-        minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
+        height: "100dvh", display: "flex", flexDirection: "column" }}>
         <AppBar />
         <NavStrip />
-        <main ref={mainRef} style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", paddingBottom: "calc(var(--nav-offset) + 8px)" }}>
+        <main ref={mainRef} style={{ flex: 1, minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch", paddingBottom: "calc(var(--nav-offset) + 8px)" }}>
           <AnimatedRoutes />
         </main>
         <QuickLogFab />
