@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { Progress, Button, App } from "antd";
 import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbShare2, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee, TbTrophy, TbSnowflake, TbStarFilled, TbX, TbCheck } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
+import { TrainingHeroBg, SetsBar } from "./TrainingHeroArt";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SisyphusOverlay } from "../../components/SisyphusOverlay";
 import { HomeQuoteCard } from "../../components/HomeQuoteCard";
 import { Ring } from "../../components/Ring";
-import { GlowBar } from "../../components/GlowBar";
 import { Skeleton } from "../../components/Skeleton";
 import { ColdIcon } from "../../components/ColdIcon";
 import { db } from "../../db/db";
@@ -104,7 +104,6 @@ export function DashboardPage() {
   const todaySets = useSessionSets(todaySession?.id);
   const trainTotalSets = todayExercises.reduce((s, e) => s + e.sets, 0);
   const trainDoneSets = todaySets.length;
-  const trainPct = trainTotalSets > 0 ? Math.round((trainDoneSets / trainTotalSets) * 100) : 0;
   const trainAllDone = trainTotalSets > 0 && trainDoneSets >= trainTotalSets;
 
   const [streak, setStreak] = useState(0);
@@ -596,13 +595,7 @@ export function DashboardPage() {
           backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 20px 46px -18px rgba(0,0,0,0.6), 0 4px 16px -6px var(--ember-glow)",
         }}>
-          <svg viewBox="0 0 120 120" width="80" height="80" style={{ position: "absolute", right: -4, bottom: -10, opacity: 0.1 }}>
-            <rect x="10" y="42" width="20" height="36" rx="4" fill="#fff"/>
-            <rect x="90" y="42" width="20" height="36" rx="4" fill="#fff"/>
-            <rect x="22" y="48" width="12" height="24" rx="3" fill="#fff"/>
-            <rect x="86" y="48" width="12" height="24" rx="3" fill="#fff"/>
-            <rect x="34" y="54" width="52" height="12" rx="3" fill="#fff"/>
-          </svg>
+          <TrainingHeroBg />
           <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, fontWeight: 600 }}>
@@ -628,7 +621,7 @@ export function DashboardPage() {
               </div>
             ) : (
               <div style={{ position: "relative", zIndex: 1, marginTop: 8 }}>
-                <GlowBar percent={trainPct} onHero height={6} label="Training progress" />
+                <SetsBar done={trainDoneSets} total={trainTotalSets} />
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 3 }}>
                   {trainDoneSets}/{trainTotalSets} sets
                 </div>
