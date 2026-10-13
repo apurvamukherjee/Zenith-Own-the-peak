@@ -15,8 +15,13 @@ export function TrainingHeroBg() {
           <stop offset="0%" stopColor="#fff" stopOpacity="0" />
           <stop offset="100%" stopColor="#fff" stopOpacity="1" />
         </linearGradient>
+        <radialGradient id="hero-ember" cx="100%" cy="100%" r="70%">
+          <stop offset="0%" stopColor="#ff2740" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#ff2740" stopOpacity="0" />
+        </radialGradient>
         <mask id="hero-mask"><rect width="320" height="120" fill="url(#hero-fade)" /></mask>
       </defs>
+      <rect width="320" height="120" fill="url(#hero-ember)" />
       <g mask="url(#hero-mask)">
         <rect width="320" height="120" fill="url(#hero-hatch)" opacity="0.06" />
         {/* weight plate, slowly turning */}
