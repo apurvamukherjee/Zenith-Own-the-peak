@@ -29,13 +29,15 @@ const Fallback = <div style={{ display: "flex", justifyContent: "center", paddin
 
 function NotFound() {
   return (
-    <div style={{ textAlign: "center", padding: "64px 24px" }}>
-      <img src="/logo-mark.png" alt="" width={40} height={40} style={{ objectFit: "contain", marginBottom: 8, opacity: 0.85 }} />
-      <div className="display" style={{ fontSize: 52, fontWeight: 800, color: "var(--accent)", lineHeight: 1 }}>404</div>
-      <div style={{ fontSize: 15, color: "var(--ink-soft)", margin: "10px 0 20px" }}>
-        There's no peak here. That path doesn't exist.
+    <div className="z-page" style={{ paddingTop: 48 }}>
+      <div className="z-hero" style={{ textAlign: "center", padding: "36px 20px" }}>
+        <div className="z-aura z-aura--a" aria-hidden />
+        <div className="z-aura z-aura--b" aria-hidden />
+        <img src="/logo-mark.png" alt="" width={44} height={44} style={{ objectFit: "contain", marginBottom: 10, filter: "drop-shadow(0 0 14px var(--ember-glow))" }} />
+        <div className="display" style={{ fontSize: 64, fontWeight: 800, color: "var(--accent)", lineHeight: 1, letterSpacing: "-0.04em" }}>404</div>
+        <div style={{ fontSize: 15, color: "var(--ink-soft)", margin: "12px 0 22px" }}>There's no peak here. That path doesn't exist.</div>
+        <Link to="/" className="z-btn z-btn--solid">Back to Home</Link>
       </div>
-      <Link to="/" style={{ color: "var(--accent)", fontWeight: 700, textDecoration: "none" }}>← Back to Home</Link>
     </div>
   );
 }
