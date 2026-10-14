@@ -1,5 +1,4 @@
-import { useState, type CSSProperties } from "react";
-import { StatTile } from "../../components/StatTile";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { DatePicker, App, Popconfirm } from "antd";
 import { motion } from "framer-motion";
 import { TbPlus, TbTrash, TbTrendingUp, TbTrendingDown, TbCurrencyRupee, TbRoad, TbGasStation } from "react-icons/tb";
@@ -168,6 +167,21 @@ function Gauge({ value, avg, max, reduced }: { value: number; avg: number; max: 
         <text x={cx} y={cy + 44} textAnchor="middle" className="fu-gauge__value">{value || "—"}</text>
         <text x={cx} y={cy + 60} textAnchor="middle" className="fu-gauge__unit">km/L</text>
       </svg>
+    </div>
+  );
+}
+
+function StatTile({ label, value, prefix, tone, icon }: { label: string; value: number; prefix: string; tone?: "warn"; icon: ReactNode }) {
+  const c = tone ? `var(--${tone})` : "var(--ink-soft)";
+  return (
+    <div className="z-tile z-stat" style={{ "--c": c } as CSSProperties}>
+      <div className="z-tile__head">
+        <span className="z-ico z-ico--sm">{icon}</span>
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+      </div>
+      <div className="z-tile__big" style={{ paddingTop: 8 }}>
+        <b style={{ color: tone && value !== 0 ? c : "var(--ink)" }}>{prefix}{value}</b>
+      </div>
     </div>
   );
 }
