@@ -1,813 +1,239 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { Progress, Button, App } from "antd";
-import { TbFlame, TbChevronRight, TbDroplet, TbMoon, TbBarbell, TbBook2, TbPlus, TbSettings, TbShare2, TbMeat, TbGasStation, TbCalendar, TbSun, TbSunrise, TbSunset, TbMoonStars, TbCoffee, TbTrophy, TbSnowflake, TbStarFilled, TbX, TbCheck } from "react-icons/tb";
-import { useLiveQuery } from "dexie-react-hooks";
-import { TrainingHeroBg, SetsBar } from "./TrainingHeroArt";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { AnimatedNumber } from "../../components/AnimatedNumber";
-import { SisyphusOverlay } from "../../components/SisyphusOverlay";
+import { Avatar } from "antd";
+import { motion, useScroll, useTransform, type MotionProps } from "framer-motion";
+import {
+  TbFlame, TbSettings, TbShare2, TbTrophy, TbSun, TbSunrise, TbSunset, TbMoon, TbMoonStars, TbCoffee,
+  TbCalendar, TbChartLine, TbGasStation, TbWallet, TbAward, TbSparkles, TbQuote,
+} from "react-icons/tb";
+import type { IconType } from "react-icons";
 import { HomeQuoteCard } from "../../components/HomeQuoteCard";
-import { Ring } from "../../components/Ring";
+import { AvatarFrame } from "../../components/AvatarFrame";
 import { Skeleton } from "../../components/Skeleton";
-import { ColdIcon } from "../../components/ColdIcon";
-import { db } from "../../db/db";
-import { useTokens } from "../../hooks/useTokens";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useSetting, setSetting } from "../../hooks/useSettings";
-import { useTodayWater, useWorkoutToday, addWater } from "../water/useWater";
-import { useTodaySession, useTodayDayId, useDayExercises, useSessionSets } from "../gym/useGym";
-import { useRecentSleep } from "../sleep/useSleep";
-import { computeUnifiedStreak, isFreezeAvailable, useStreakFreeze as useFreezeAction } from "../../lib/streak.utils";
-import { computeTodayScore } from "../../lib/todayScore";
-import { useMonthScores } from "../calendar/useCalendar";
+import { useTodayWater, computeStatus } from "../water/useWater";
+import { useHabitsToday } from "../habits/useHabits";
 import { fmtDuration, todayKey } from "../../lib/date.utils";
-import { hapticLight, hapticSuccess } from "../../lib/haptics";
-import { useXP } from "../../hooks/useXP";
 import { isDevilsHour, isZenithHour, isPalindromeDate, isHardcoreActive, isSabbathActive } from "../../lib/easterEggs";
-import { playBellDing } from "../../lib/audio";
+import { SummitCard, type Pillar } from "./SummitCard";
+import { NextMoveDeck } from "./NextMoveDeck";
+import { TrainingCard } from "./TrainingCard";
+import { WaterTile, MacrosTile, SleepTile, StudyTile, HabitsTile } from "./BentoTiles";
+import { TodayAgenda } from "./TodayAgenda";
+import { Rings } from "../../components/ui/Rings";
+import { buildMoves } from "./nextMoves";
+import {
+  useClock, useTodayScore, useStreak, useFreezeAvailable, useLast7, useTrainingToday, useTodayMacros,
+  useLastSleep, useStudyToday, useTodayAgenda, useSetsTodayCount,
+} from "./useHomeData";
+import "./home.css";
 
-// Time-aware greeting: text, icon, tagline, and a gradient accent that
-// evolves through the day — dawn amber, day peak crimson, dusk ember, night black.
-// Every stop stays inside the red-black-ember family. No purple.
-// `overrides` lets easter eggs replace the base greeting without touching
-// the base map: 3:33 AM → devil's hour, palindrome dates → symmetry note.
-function greeting(overrides?: { devilsHour?: boolean; zenithHour?: boolean; palindrome?: boolean; hardcore?: boolean; sabbath?: boolean }) {
-  const h = new Date().getHours();
+interface Greeting { text: string; icon: IconType; tagline: string }
 
-  // Egg #5 — Devil's hour override. Only fires between 3:33 and 3:34.
-  if (overrides?.devilsHour) return {
-    text: "Devil's hour", icon: TbMoonStars, tagline: "What are you doing awake?",
-    grad: "linear-gradient(135deg, #6e0f1c, #ff2740)",
-  };
-
-  // Egg #10 — Zenith hour. Exactly 12:00 noon — the sun's peak.
-  if (overrides?.zenithHour) return {
-    text: "Zenith hour", icon: TbSun, tagline: "The sun is at its peak. So are you.",
-    grad: "linear-gradient(135deg, #ff2740, #d81f34)",
-  };
-
-  const base = (() => {
-    if (h >= 5 && h < 8) return {
-      text: "Rise & shine", icon: TbSunrise, tagline: "Fresh day, fresh peak",
-      grad: "linear-gradient(135deg, #f6b93b, #ff6b3d)",
-    };
-    if (h >= 8 && h < 12) return {
-      text: "Good morning", icon: TbCoffee, tagline: "Fuel up, own the day",
-      grad: "linear-gradient(135deg, #ff6b3d, #ff2740)",
-    };
-    if (h >= 12 && h < 15) return {
-      text: "Good afternoon", icon: TbSun, tagline: "Push through the middle",
-      grad: "linear-gradient(135deg, #ff2740, #d81f34)",
-    };
-    if (h >= 15 && h < 18) return {
-      text: "Steady on", icon: TbSun, tagline: "Second wind time",
-      grad: "linear-gradient(135deg, #d81f34, #a8172b)",
-    };
-    if (h >= 18 && h < 21) return {
-      text: "Good evening", icon: TbSunset, tagline: "Finish strong",
-      grad: "linear-gradient(135deg, #a8172b, #6e0f1c)",
-    };
-    if (h >= 21 && h < 24) return {
-      text: "Wind down", icon: TbMoon, tagline: "Recovery is where growth happens",
-      grad: "linear-gradient(135deg, #6e0f1c, #1a0509)",
-    };
-    return {
-      text: "Late night", icon: TbMoonStars, tagline: "Sleep is your edge",
-      grad: "linear-gradient(135deg, #1a0509, #08060a)",
-    };
-  })();
-
-  // Egg #12 — Hardcore Mode SHOUTS training-flavoured base text (24 h window).
-  if (overrides?.hardcore) return { ...base, text: base.text.toUpperCase() + " — TRAIN", tagline: "GRIND ENGAGED" };
-  // Egg #12 — Sabbath Mode softens things (Sundays only).
-  if (overrides?.sabbath) return { ...base, tagline: "Rest is a discipline too" };
-  // Egg #13 — palindrome date. Appends symmetry line, keeps the base greeting.
-  if (overrides?.palindrome) return { ...base, tagline: `${base.tagline} · Palindrome day, fittingly symmetric` };
+// `overrides` lets easter eggs replace the base greeting: 3:33 AM → devil's
+// hour, noon → zenith hour, palindrome dates → symmetry note, plus the
+// Hardcore/Sabbath modes.
+function greeting(h: number, o: { devilsHour: boolean; zenithHour: boolean; palindrome: boolean; hardcore: boolean; sabbath: boolean }): Greeting {
+  if (o.devilsHour) return { text: "Devil's hour", icon: TbMoonStars, tagline: "What are you doing awake?" };
+  if (o.zenithHour) return { text: "Zenith hour", icon: TbSun, tagline: "The sun is at its peak. So are you." };
+  const base: Greeting =
+    h >= 5 && h < 8 ? { text: "Rise & shine", icon: TbSunrise, tagline: "Fresh day, fresh peak" }
+    : h >= 8 && h < 12 ? { text: "Good morning", icon: TbCoffee, tagline: "Fuel up, own the day" }
+    : h >= 12 && h < 15 ? { text: "Good afternoon", icon: TbSun, tagline: "Push through the middle" }
+    : h >= 15 && h < 18 ? { text: "Steady on", icon: TbSun, tagline: "Second wind time" }
+    : h >= 18 && h < 21 ? { text: "Good evening", icon: TbSunset, tagline: "Finish strong" }
+    : h >= 21 ? { text: "Wind down", icon: TbMoon, tagline: "Recovery is where growth happens" }
+    : { text: "Late night", icon: TbMoonStars, tagline: "Sleep is your edge" };
+  if (o.hardcore) return { ...base, text: base.text.toUpperCase() + " — TRAIN", tagline: "GRIND ENGAGED" };
+  if (o.sabbath) return { ...base, tagline: "Rest is a discipline too" };
+  if (o.palindrome) return { ...base, tagline: `${base.tagline} · Palindrome day, fittingly symmetric` };
   return base;
 }
 
+const SHORTCUTS: { to: string; label: string; icon: IconType; c: string }[] = [
+  { to: "/calendar", label: "Calendar", icon: TbCalendar, c: "var(--accent)" },
+  { to: "/progress", label: "Progress", icon: TbChartLine, c: "var(--teal)" },
+  { to: "/fuel", label: "Fuel", icon: TbGasStation, c: "var(--gold)" },
+  { to: "/expenses", label: "Spend", icon: TbWallet, c: "var(--success)" },
+  { to: "/hall", label: "Hall", icon: TbAward, c: "var(--gold)" },
+  { to: "/vault", label: "Vault", icon: TbSparkles, c: "var(--info)" },
+  { to: "/quotes", label: "Quotes", icon: TbQuote, c: "var(--accent)" },
+];
+
 export function DashboardPage() {
-  const { message } = App.useApp();
-  const t = useTokens();
-  const reducedMotion = useReducedMotion();
-  const name = useSetting("name");
-  const waterGoal = useSetting("waterGoalMl");
-  const proteinTarget = useSetting("proteinTargetG");
-  const { total: waterMl } = useTodayWater();
-  const trained = useWorkoutToday();
-  const sleep = useRecentSleep(2);
-  const lastSleep = [...sleep].reverse().find(Boolean);
-  const todayDayId = useTodayDayId();
-  const todaySession = useTodaySession(todayDayId);
-  const todayExercises = useDayExercises(todayDayId ?? undefined);
-  const todaySets = useSessionSets(todaySession?.id);
-  const trainTotalSets = todayExercises.reduce((s, e) => s + e.sets, 0);
-  const trainDoneSets = todaySets.length;
-  const trainAllDone = trainTotalSets > 0 && trainDoneSets >= trainTotalSets;
+  const reduced = useReducedMotion();
+  const now = useClock();
+  const hour = now.getHours();
 
-  const [streak, setStreak] = useState(0);
-  const [score, setScore] = useState({ score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 });
-  const [freezeAvailable, setFreezeAvailable] = useState(false);
-
-  // Egg overlay + interaction state.
-  const [sisyphusOpen, setSisyphusOpen] = useState(false);
-  const [flameHot, setFlameHot] = useState(false);
-  const [bellFlash, setBellFlash] = useState(0);
-  const ringTapsRef = useRef<{ count: number; last: number }>({ count: 0, last: 0 });
-  const ringPressRef = useRef<number | null>(null);
-  const ringPressTickRef = useRef<number | null>(null);
-  const [ringPressPct, setRingPressPct] = useState(0);
-
+  const name = String(useSetting("name"));
+  const profilePic = String(useSetting("profilePic"));
+  const equippedFrame = String(useSetting("equippedFrame"));
+  const waterGoal = Number(useSetting("waterGoalMl"));
+  const proteinTarget = Number(useSetting("proteinTargetG"));
+  const carbTarget = Number(useSetting("carbTargetG"));
+  const fatTarget = Number(useSetting("fatTargetG"));
+  const kcalTarget = Number(useSetting("calorieTargetKcal"));
+  const sleepTarget = Number(useSetting("sleepTargetMin"));
+  const wakeHour = Number(useSetting("wakeHour"));
+  const windowH = Number(useSetting("wakingWindowH"));
+  const bedtime = String(useSetting("remBedtimeAt"));
   const hardcoreUntil = Number(useSetting("hardcoreUntil"));
   const sabbathUntil = Number(useSetting("sabbathUntil"));
   const eggReflectiveYear = String(useSetting("eggReflective") ?? "");
-
-  // Auto-claim Reflective (Egg #13) on a palindrome date, once per calendar year.
-  useEffect(() => {
-    const now = new Date();
-    if (!isPalindromeDate(now)) return;
-    const yr = String(now.getFullYear());
-    if (eggReflectiveYear === yr) return;
-    void setSetting("eggReflective", yr);
-  }, [eggReflectiveYear]);
-
-  useEffect(() => { computeUnifiedStreak().then(setStreak); }, [waterMl, trained]);
-  useEffect(() => { computeTodayScore(waterGoal, proteinTarget).then(setScore); }, [waterMl, waterGoal, proteinTarget]);
-  useEffect(() => { isFreezeAvailable(todayKey()).then(setFreezeAvailable); }, [waterMl, trained]);
-
-  // Rocky Mode (Egg #14): 40+ sets today → gold star on the training hero card.
-  const setsToday = useLiveQuery(
-    () => db.workoutSets.where("date").equals(todayKey()).count(),
-    [],
-  ) ?? 0;
-  const rockyToday = setsToday >= 40;
-
   const firstSeenAt = Number(useSetting("firstSeenAt"));
   const reviewNudgeDone = Number(useSetting("reviewNudgeDone"));
-  // Show "Review your targets" nudge on day 7+ after first launch — once only.
-  // The 7-day window means the user has lived with the app long enough to
-  // know if their water/protein targets are actually right for them.
-  const sevenDaysOld = firstSeenAt > 0 && (Date.now() - firstSeenAt) >= 7 * 86_400_000;
-  const showReviewNudge = sevenDaysOld && !reviewNudgeDone;
 
-  const hour = new Date().getHours();
-  // Fires at 9pm+ only if the user has literally zero writes today AND has a streak
-  // to protect. Old condition used `score.score === 0`, but score can be 0 for a
-  // legitimate rest day where sleep hasn't been logged yet — reading as "app broken"
-  // instead of "genuine warning".
-  const hasAnyWriteToday = score.waterPct > 0 || score.sessionDone || score.sleepLogged || score.proteinPct > 0;
-  const streakInDanger = hour >= 21 && !hasAnyWriteToday && streak > 0;
+  const scoreQuery = useTodayScore(waterGoal, proteinTarget);
+  const score = scoreQuery ?? { score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 };
+  const streak = useStreak();
+  const freezeAvailable = useFreezeAvailable();
+  const week = useLast7(waterGoal, proteinTarget);
+  const { total: waterMl } = useTodayWater();
+  const training = useTrainingToday();
+  const macros = useTodayMacros();
+  const lastSleep = useLastSleep();
+  const study = useStudyToday();
+  const habits = useHabitsToday();
+  const agenda = useTodayAgenda();
+  const setsToday = useSetsTodayCount();
 
-  // Discipline-ring "rage meter" — the ring recolors and starts pulsing the
-  // later in the day it is with the score still low, so it reads as an
-  // alarm instead of a passive stat. `scoreCritical` adds a shake on top,
-  // reusing the same "score >= 100 → calm, else → accent" convention the
-  // session progress bar already uses elsewhere (SessionLogger).
-  const scoreUrgent = hour >= 18 && score.score < 40;
-  const scoreCritical = hour >= 21 && score.score < 15;
+  // Egg #13 — auto-claim Reflective on a palindrome date, once per calendar year.
+  useEffect(() => {
+    if (!isPalindromeDate(now)) return;
+    const yr = String(now.getFullYear());
+    if (eggReflectiveYear !== yr) void setSetting("eggReflective", yr);
+  }, [now, eggReflectiveYear]);
 
-  // End-of-day brutal recap — water/protein/session (not sleep, which often
-  // isn't loggable until the day is basically over) all still untouched
-  // this late. Independent of `streakInDanger`: fires even with no streak to
-  // protect, since "you did nothing today" deserves a callout either way.
-  const didNothingToday = hour >= 21 && score.waterPct === 0 && !score.sessionDone && score.proteinPct === 0;
-  const NOTHING_TODAY_QUOTES = [
-    "Zero water. Zero protein. Zero sets. What exactly did you do today?",
-    "It's night. The scoreboard says nothing happened. That's on you.",
-    "Tomorrow you'll say you'll do better. You said that yesterday too.",
-    "Nothing logged, nothing done. That's not a rest day, that's a skip.",
-  ];
-  // Stable per-day, not re-rolled on every re-render — keyed on the date so
-  // it stays put through this file's frequent live-query re-renders but
-  // still changes tomorrow.
-  const nothingTodayQuote = NOTHING_TODAY_QUOTES[
-    todayKey().split("-").reduce((s, n) => s + Number(n), 0) % NOTHING_TODAY_QUOTES.length
-  ];
-
-  async function protectStreak() {
-    await addWater(500);
-    hapticLight();
-    message.success("Streak protected — 500ml logged");
-  }
-  async function protectWithFreeze() {
-    const ok = await useFreezeAction(todayKey());
-    if (ok) { message.success("Streak freeze used for today"); setFreezeAvailable(false); }
-    else message.info("Freeze already used this week");
-  }
-
-  const todayDay = useLiveQuery(async () => {
-    const wd = new Date().getDay();
-    const entry = await db.weekSchedule.where({ weekday: wd }).first();
-    if (!entry?.dayId) return null;
-    return db.workoutDays.get(entry.dayId);
-  }, []);
-
-  const upNext = useLiveQuery(async () => {
-    const items = await db.studyItems.where("status").notEqual("done").sortBy("order");
-    return items[0]?.title ?? null;
-  }, []);
-
-  async function quickWater(ml: number) {
-    await addWater(ml);
-    hapticLight();
-    message.success(`+${ml}ml`);
-  }
-
-  const now = new Date();
-  const g = greeting({
-    devilsHour: isDevilsHour(now),
-    zenithHour: isZenithHour(now),
-    palindrome: isPalindromeDate(now),
-    hardcore: isHardcoreActive(hardcoreUntil),
-    sabbath: isSabbathActive(sabbathUntil),
+  const g = greeting(hour, {
+    devilsHour: isDevilsHour(now), zenithHour: isZenithHour(now), palindrome: isPalindromeDate(now),
+    hardcore: isHardcoreActive(hardcoreUntil), sabbath: isSabbathActive(sabbathUntil),
   });
   const GIcon = g.icon;
 
-  // Egg #2 — 3-tap the ring at 100%. Debounced 500 ms window between taps.
-  function onRingTap() {
-    if (score.score < 100) return;
-    const t = Date.now();
-    if (t - ringTapsRef.current.last > 500) ringTapsRef.current.count = 0;
-    ringTapsRef.current.count++;
-    ringTapsRef.current.last = t;
-    if (ringTapsRef.current.count >= 3) {
-      ringTapsRef.current.count = 0;
-      playBellDing();
-      void hapticSuccess();
-      setBellFlash(Date.now());
-      window.setTimeout(() => setBellFlash(0), 500);
-    }
-  }
-  // Egg #11 — 8-second continuous press. Mid-press feedback via ringPressPct
-  // (0→1 over 8s) so users know something is happening; before, nothing
-  // moved and people gave up at 3s thinking it was broken. Cleared on lift.
-  function onRingPressStart() {
-    if (ringPressRef.current !== null) window.clearTimeout(ringPressRef.current);
-    if (ringPressTickRef.current !== null) window.clearInterval(ringPressTickRef.current);
-    const startedAt = Date.now();
-    setRingPressPct(0);
-    ringPressTickRef.current = window.setInterval(() => {
-      const pct = Math.min(1, (Date.now() - startedAt) / 8000);
-      setRingPressPct(pct);
-    }, 90);
-    ringPressRef.current = window.setTimeout(() => {
-      setSisyphusOpen(true);
-      ringPressRef.current = null;
-      if (ringPressTickRef.current !== null) {
-        window.clearInterval(ringPressTickRef.current);
-        ringPressTickRef.current = null;
-      }
-      setRingPressPct(0);
-    }, 8000);
-  }
-  function onRingPressEnd() {
-    if (ringPressRef.current !== null) {
-      window.clearTimeout(ringPressRef.current);
-      ringPressRef.current = null;
-    }
-    if (ringPressTickRef.current !== null) {
-      window.clearInterval(ringPressTickRef.current);
-      ringPressTickRef.current = null;
-    }
-    setRingPressPct(0);
-  }
-  // Egg #3 — long-press the streak flame (3 s) → flame ignites for a moment.
-  const flameHoldRef = useRef<number | null>(null);
-  function onFlameDown() {
-    if (flameHoldRef.current !== null) window.clearTimeout(flameHoldRef.current);
-    flameHoldRef.current = window.setTimeout(() => {
-      setFlameHot(true);
-      window.setTimeout(() => setFlameHot(false), 3000);
-      flameHoldRef.current = null;
-    }, 800);
-  }
-  function onFlameUp() {
-    if (flameHoldRef.current !== null) {
-      window.clearTimeout(flameHoldRef.current);
-      flameHoldRef.current = null;
-    }
-  }
+  const hasAnyWriteToday = score.waterPct > 0 || score.sessionDone || score.sleepLogged || score.proteinPct > 0;
+  // "Rage meter": late in the day with a low score, the ring turns alarm.
+  const urgent = hour >= 18 && score.score < 40;
+  const critical = hour >= 21 && score.score < 15;
+  const pace = computeStatus(waterMl, waterGoal, wakeHour, windowH);
+  const sleptToday = lastSleep?.date === todayKey(now);
 
-  // Scroll-linked parallax for the greeting zone. `<main>` (AppShell) is the
-  // actual scroll container, not the window, so useScroll needs its ref —
-  // `closest`-free, `document.querySelector` is safe since AppShell renders
-  // exactly one `<main>`. Set in a layout effect (before useScroll's own
-  // subscribe effect, since hooks run in declaration order) so the container
-  // is known on first scroll, not just after a re-render.
-  const mainElRef = useRef<HTMLElement | null>(null);
-  useLayoutEffect(() => { mainElRef.current = document.querySelector("main"); }, []);
-  const { scrollY } = useScroll({ container: mainElRef });
-  const greetingY = useTransform(scrollY, [0, 220], [0, reducedMotion ? 0 : 55], { clamp: true });
+  const isRest = training !== undefined && !training.day;
+  const pillars: Pillar[] = [
+    { key: "water", label: "Water", pct: score.waterPct, to: "/water", value: `${(waterMl / 1000).toFixed(1)} / ${(waterGoal / 1000).toFixed(1)}L` },
+    { key: "protein", label: "Protein", pct: score.proteinPct, to: "/nutrition", value: `${Math.round(macros.protein)} / ${proteinTarget}g` },
+    {
+      key: "train", label: "Training", pct: score.sessionDone || isRest ? 100 : 0, to: "/workout",
+      value: isRest ? "Rest day" : !training || training.totalSets === 0 ? (score.sessionDone ? "Logged" : "—")
+        : training.doneSets >= training.totalSets ? "Complete" : `${training.doneSets} / ${training.totalSets} sets`,
+    },
+    { key: "sleep", label: "Sleep", pct: score.sleepLogged ? 100 : 0, to: "/sleep", value: sleptToday && lastSleep ? fmtDuration(lastSleep.durationMin) : "Not logged" },
+  ];
 
-  // Kinetic typography: a one-shot digit-flicker on the discipline % the
-  // moment the real (async) score first resolves urgent, so the alarm reads
-  // through the typography itself, not just the ring color/pulse. Gated on
-  // the `score` object reference (only changes when computeTodayScore
-  // actually resolves) rather than `scoreUrgent`'s value, since the default
-  // pre-load state would otherwise spuriously read as "urgent" too.
-  const [urgentFlicker, setUrgentFlicker] = useState(false);
-  const flickerFiredRef = useRef(false);
-  useEffect(() => {
-    if (flickerFiredRef.current || reducedMotion) return;
-    if (hour >= 18 && score.score < 40) {
-      flickerFiredRef.current = true;
-      setUrgentFlicker(true);
-      const id = window.setTimeout(() => setUrgentFlicker(false), 700);
-      return () => window.clearTimeout(id);
-    }
-  }, [score, hour, reducedMotion]);
-
-  // Staggered entrance cascade — top-to-bottom, opacity/y only (cheap, no
-  // layout thrash). `index` maps 1:1 to the section's visual order below.
-  function cascade(index: number) {
-    if (reducedMotion) return { initial: { opacity: 1, y: 0 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } };
-    return {
-      initial: { opacity: 0, y: 12 },
-      animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.35, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] as const },
-    };
-  }
-
-  return (
-    <div className="home-grid" style={{
-      display: "flex", flexDirection: "column", gap: 10,
-      padding: "12px 16px 12px", minHeight: "calc(100dvh - 100px)",
-    }}>
-      {/* Header row: greeting + streak + settings. `y` carries the scroll
-          parallax (drifts slower than the cards below); opacity carries the
-          entrance cascade — kept separate since a MotionValue and a static
-          animate target can't both drive the same transform key. */}
-      <motion.div className="home-full"
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", y: greetingY }}
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <motion.div
-            key={g.text}
-            initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-            style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
-            {/* Bare icon — no badge, no gradient box. Just the glyph in ember red. */}
-            <GIcon size={14} style={{ color: "var(--accent)", opacity: 0.85, flexShrink: 0 }} />
-            {/* Gothic italic — Cinzel, solid ink, no gradient clip. Restrained > flashy. */}
-            <span style={{
-              fontFamily: '"Cinzel", "Plus Jakarta Sans", serif',
-              fontStyle: "italic",
-              fontSize: 12, fontWeight: 600,
-              letterSpacing: "0.08em",
-              color: "var(--ink-soft)",
-            }}>{g.text}</span>
-          </motion.div>
-          <h2 className="display" style={{ margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1.05 }}>
-            {name}
-          </h2>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2, fontStyle: "italic" }}>
-            {g.tagline}
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{ textAlign: "center", cursor: "default", touchAction: "manipulation" }}
-            onMouseDown={onFlameDown} onMouseUp={onFlameUp} onMouseLeave={onFlameUp}
-            onTouchStart={onFlameDown} onTouchEnd={onFlameUp} onTouchCancel={onFlameUp}
-          >
-            <div className="display text-ember" style={{ fontSize: 20, fontWeight: 800, lineHeight: 1, position: "relative" }}>
-              <TbFlame style={{ verticalAlign: "-2px" }} /><AnimatedNumber value={streak} />
-              {flameHot && (
-                <motion.span
-                  aria-hidden
-                  initial={{ opacity: 0, scale: 0.6 }}
-                  animate={{ opacity: [0, 1, 1, 0], scale: [0.6, 1.4, 1.6, 1.8] }}
-                  transition={{ duration: 3, times: [0, 0.15, 0.85, 1] }}
-                  style={{
-                    position: "absolute", left: -8, right: -8, top: -14, bottom: -6,
-                    background: "radial-gradient(circle at 50% 60%, #d81f34 0%, var(--accent) 50%, rgba(255,39,64,0) 75%)",
-                    filter: "blur(6px)", pointerEvents: "none", borderRadius: "50%",
-                    mixBlendMode: "screen",
-                  }}
-                />
-              )}
-            </div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-              streak{freezeAvailable && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 1, marginLeft: 4, fontSize: 12, opacity: 0.7 }}>
-                  <TbSnowflake size={9} />1
-                </span>
-              )}
-            </div>
-          </div>
-          <Link to="/glance"><Button type="text" size="small" icon={<TbShare2 size={18} />} aria-label="Share card" /></Link>
-          <Link to="/leaderboard"><Button type="text" size="small" icon={<TbTrophy size={18} />} aria-label="Leaderboard" /></Link>
-          <Link to="/settings"><Button type="text" size="small" icon={<TbSettings size={18} />} aria-label="Settings" /></Link>
-        </div>
-      </motion.div>
-
-      {/* Streak-in-danger banner — escalates to the brutal end-of-day recap
-          line when water/protein/session are ALL still untouched, instead of
-          the milder default copy. Same slot, same buttons either way. */}
-      {streakInDanger && (
-        <motion.div className="home-full" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: "linear-gradient(135deg, var(--accent), #6e0f1c)", borderRadius: 12,
-            padding: "10px 12px", color: "#fff" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-            <TbFlame /> {didNothingToday ? nothingTodayQuote : "Streak at risk — protect it now"}
-          </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <Button size="small" onClick={protectStreak} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", flex: 1 }}>
-              +500ml water
-            </Button>
-            {freezeAvailable && (
-              <Button size="small" onClick={protectWithFreeze} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", flex: 1 }}>
-                Use freeze
-              </Button>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {/* End-of-day brutal recap — fires even with no streak to protect
-          (streakInDanger above requires streak > 0), since doing literally
-          nothing all day deserves a callout either way. */}
-      {!streakInDanger && didNothingToday && (
-        <motion.div className="home-full" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: "linear-gradient(135deg, var(--accent), #6e0f1c)", borderRadius: 12,
-            padding: "10px 12px", color: "#fff" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-            <TbFlame /> {nothingTodayQuote}
-          </div>
-          <Link to="/quick">
-            <Button size="small" style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff" }}>
-              Log something now
-            </Button>
-          </Link>
-        </motion.div>
-      )}
-
-      {/* 7-day review nudge — fires once on day 7+ after first launch */}
-      {showReviewNudge && (
-        <motion.div className="home-full" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: "var(--surface)", borderRadius: 12,
-            padding: "10px 14px", border: "1px solid var(--ember-inner)",
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700 }}>A week in — targets still right?</div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Your water, protein, and sleep goals are easy to adjust.</div>
-          </div>
-          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            <Link to="/settings">
-              <Button size="small" type="primary">Review</Button>
-            </Link>
-            <Button size="small" type="text" icon={<TbX size={14} />} aria-label="Dismiss" onClick={() => setSetting("reviewNudgeDone", 1)} />
-          </div>
-        </motion.div>
-      )}
-
-      {/* Center: discipline ring — primary tier. Elevated glass "dish" (heavier
-          shadow + faint frosted panel via color-mix, theme-safe unlike a
-          hardcoded rgba white) so it and the training hero read as the two
-          things on this screen that matter, vs the flatter secondary cards
-          below. */}
-      <div className="home-col">
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4, delay: reducedMotion ? 0 : 0.06, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          textAlign: "center", flex: "0 0 auto", padding: "16px 10px 14px", userSelect: "none",
-          borderRadius: 22,
-          background: "linear-gradient(180deg, color-mix(in srgb, var(--ink) 8%, transparent), color-mix(in srgb, var(--ink) 2%, transparent))",
-          border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
-          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-          boxShadow: "inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent), 0 18px 40px -20px rgba(0,0,0,0.55), 0 3px 12px -4px var(--ember-glow)",
-        }}>
-        <div
-          className="ember-ring"
-          style={{ display: "inline-block", position: "relative", cursor: "pointer", userSelect: "none", touchAction: "manipulation" }}
-          onClick={onRingTap}
-          onMouseDown={onRingPressStart} onMouseUp={onRingPressEnd} onMouseLeave={onRingPressEnd}
-          onTouchStart={onRingPressStart} onTouchEnd={onRingPressEnd} onTouchCancel={onRingPressEnd}
-        >
-          {/* #4 — Sisyphus press progress ring. Grows from 0→1 during the 8s hold. */}
-          {ringPressPct > 0 && (
-            <svg viewBox="0 0 120 120"
-              style={{
-                position: "absolute", inset: -8, width: 136, height: 136,
-                pointerEvents: "none", zIndex: 1,
-              }}>
-              <circle cx="60" cy="60" r="58"
-                fill="none" stroke="var(--accent)" strokeWidth="2"
-                strokeDasharray={2 * Math.PI * 58}
-                strokeDashoffset={2 * Math.PI * 58 * (1 - ringPressPct)}
-                transform="rotate(-90 60 60)"
-                style={{ transition: "stroke-dashoffset 90ms linear", opacity: 0.7 }}
-              />
-            </svg>
-          )}
-          <motion.div
-            animate={
-              reducedMotion ? {}
-              : scoreCritical ? { x: [0, -3, 3, -2, 2, 0] }
-              : scoreUrgent ? { scale: [1, 1.035, 1] }
-              : {}
-            }
-            transition={
-              scoreCritical ? { duration: 0.6, repeat: Infinity, repeatDelay: 1.2, ease: "easeInOut" }
-              : { duration: 1.8, repeat: Infinity, ease: "easeInOut" }
-            }
-          >
-            <Progress type="dashboard" percent={score.score} size={120}
-              strokeColor={score.score >= 100
-                ? { "0%": t.teal, "100%": t.gold }
-                : scoreUrgent ? t.danger : { "0%": t.accent, "100%": t.gold }} strokeWidth={9}
-              className={`ring-glow${score.score >= 100 ? " ring-done" : ""}`}
-              format={() => (
-                <div>
-                  {/* Kinetic typography — bolder/wider weight while urgent so
-                      the number itself carries the alarm, not just the ring
-                      color/pulse; a one-shot digit-flicker (urgentFlicker,
-                      fired once on load by the effect above) layers a brief
-                      neon-flicker on top instead of a continuous distraction. */}
-                  <motion.div
-                    className="display"
-                    animate={urgentFlicker ? { opacity: [1, 0.15, 1, 0.25, 1, 0.5, 1] } : { opacity: 1 }}
-                    transition={urgentFlicker ? { duration: 0.6, times: [0, 0.15, 0.3, 0.45, 0.6, 0.8, 1] } : { duration: 0 }}
-                    style={{
-                      fontSize: 28, lineHeight: 1,
-                      fontWeight: scoreUrgent ? 900 : 800,
-                      letterSpacing: scoreUrgent ? "0.02em" : "normal",
-                    }}
-                  ><AnimatedNumber value={score.score} />%</motion.div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 1 }}>discipline</div>
-                </div>
-              )} />
-          </motion.div>
-          {bellFlash > 0 && (
-            <motion.div
-              key={bellFlash} aria-hidden
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: [0, 0.9, 0], scale: [0.9, 1.15, 1.3] }}
-              transition={{ duration: 0.5 }}
-              style={{
-                position: "absolute", inset: -14, borderRadius: "50%",
-                background: "radial-gradient(circle,#ffd76b 0%,rgba(255,215,107,0) 70%)",
-                pointerEvents: "none", filter: "blur(2px)",
-              }}
-            />
-          )}
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 8px", marginTop: 6, maxWidth: "100%" }}>
-          <Pill done={score.waterPct >= 100} label="Water" icon={<TbDroplet size={12} />} />
-          <Pill done={score.sessionDone} label="Train" icon={<TbBarbell size={12} />} />
-          <Pill done={score.sleepLogged} label="Sleep" icon={<TbMoon size={12} />} />
-          <Pill done={score.proteinPct >= 100} label="Protein" icon={<TbMeat size={12} />} />
-        </div>
-        {score.score === 0 && !hasAnyWriteToday && (
-          <div style={{
-            fontSize: 12, color: "var(--ink-soft)", fontStyle: "italic",
-            marginTop: 8, opacity: 0.7, letterSpacing: 0.3,
-          }}>
-            Ready when you are
-          </div>
-        )}
-        {/* Level badge — Phase 5 XP system */}
-        <LevelBadge />
-      </motion.div>
-
-      {/* Mini calendar streak strip — last 7 days */}
-      <motion.div {...cascade(2)}>
-        <MiniWeekStrip />
-      </motion.div>
-
-      {/* Training hero card — primary tier, second of the two "matters most"
-          surfaces. Glassmorphism recipe lifted from GymFocusMode's CTA
-          buttons (translucent tint + blurred backdrop + hairline border +
-          inset highlight) but with a lighter blur (10px vs Focus Mode's
-          18px) — full-screen Focus Mode can afford heavier blur since it's
-          the only thing rendering, a scrolling card feed can't without
-          risking jank on low-end phones. `hero-grad`'s `!important` opaque
-          fill can't be overridden by an inline style, so the translucent
-          gradient below replaces it outright instead of layering on top. */}
-      <motion.div {...cascade(3)}>
-      <Link to="/workout" style={{ color: "inherit", display: "block", flex: "0 0 auto" }}>
-        <div style={{
-          borderRadius: 16, padding: "12px 16px", position: "relative", overflow: "hidden", isolation: "isolate",
-          background: "var(--hero)",
-          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.14), inset 0 1px 0 rgba(255,255,255,0.22), 0 20px 46px -18px rgba(0,0,0,0.6), 0 4px 16px -6px var(--ember-glow)",
-        }}>
-          <TrainingHeroBg />
-          <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, fontWeight: 600 }}>
-                {todayDay ? "Today's training" : "Rest day"}
-                {todaySession?.durationMin ? ` · ${todaySession.durationMin}min` : ""}
-              </div>
-              <div className="display" style={{ color: "#fff", fontSize: 20, fontWeight: 800 }}>
-                {todayDay?.name ?? "Recovery"}
-                {rockyToday && (
-                  <span title="Rocky Mode — 40+ sets today" style={{ display: "inline-flex", marginLeft: 6, verticalAlign: "-3px" }} aria-label="Rocky Mode">
-                    <TbStarFilled size={16} color="#f6b93b" />
-                  </span>
-                )}
-              </div>
-            </div>
-            <TbChevronRight size={20} style={{ color: "rgba(255,255,255,0.7)" }} />
-          </div>
-          {todayDay && trainTotalSets > 0 && (
-            trainAllDone ? (
-              <div style={{ position: "relative", zIndex: 1, marginTop: 8, display: "flex", alignItems: "center", gap: 6, color: "#fff" }}>
-                <ColdIcon glyph="peak" size={14} />
-                <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.3 }}>All done — peak conquered</span>
-              </div>
-            ) : (
-              <div style={{ position: "relative", zIndex: 1, marginTop: 8 }}>
-                <SetsBar done={trainDoneSets} total={trainTotalSets} />
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 3 }}>
-                  {trainDoneSets}/{trainTotalSets} sets
-                </div>
-              </div>
-            )
-          )}
-        </div>
-      </Link>
-      </motion.div>
-
-      {/* Today feed: what's next on the calendar, merged from tasks/meds/meals. */}
-      </div>
-      <div className="home-col">
-      <motion.div {...cascade(4)}>
-        <TodayCard />
-      </motion.div>
-
-      {/* Module tiles */}
-      <motion.div {...cascade(5)} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <div className="z-card" style={{ display: "flex", alignItems: "center", gap: 10, padding: 12 }}>
-          <Link to="/water" style={{ color: "inherit", display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
-            <Ring percent={score.waterPct} size={44} strokeWidth={10} />
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: "var(--fs-sm)" }}>Water</div>
-              <div className="z-stat-label">{(waterMl / 1000).toFixed(1)}L</div>
-            </div>
-          </Link>
-          <button className="z-iconbtn" aria-label="Add 500ml water" onClick={() => quickWater(500)}
-            style={{ background: "var(--surface-3)" }}><TbPlus size={18} /></button>
-        </div>
-        <HomeTile to="/sleep" icon={<TbMoon size={15} />} label="Sleep"
-          value={lastSleep ? fmtDuration(lastSleep.durationMin) : "–"} />
-        <HomeTile to="/nutrition" icon={<TbMeat size={15} />} label="Protein"
-          value={score.proteinPct >= 100 ? "On target" : `${score.proteinPct}%`} ok={score.proteinPct >= 100} />
-        <HomeTile to="/study" icon={<TbBook2 size={15} />} label="Study" value={upNext ?? "Add a path"} small />
-      </motion.div>
-
-      <motion.div {...cascade(6)} style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-        <Link to="/fuel" className="z-chip" style={{ minHeight: 40 }}><TbGasStation size={15} /> Fuel</Link>
-        <Link to="/calendar" className="z-chip" style={{ minHeight: 40 }}><TbCalendar size={15} /> Calendar</Link>
-      </motion.div>
-
-      {/* Motivation quote — tap card or shuffle button to draw a new one. */}
-      <motion.div {...cascade(7)}>
-        <HomeQuoteCard />
-      </motion.div>
-      </div>
-
-      <SisyphusOverlay open={sisyphusOpen} onClose={() => setSisyphusOpen(false)} />
-    </div>
-  );
-}
-
-// Last 7 days as small dots, colored by discipline score — a glanceable
-// streak strip that links to the full calendar for detail/edit.
-function MiniWeekStrip() {
-  const t = useTokens();
-  const waterGoal = useSetting("waterGoalMl");
-  const proteinTarget = useSetting("proteinTargetG");
-  const now = new Date();
-  const cells = useMonthScores(now.getFullYear(), now.getMonth(), waterGoal, proteinTarget);
-  const todayNum = now.getDate();
-  const last7 = cells.filter((c) => {
-    const n = Number(c.date.slice(-2));
-    return n <= todayNum && n > todayNum - 7;
+  const sevenDaysOld = firstSeenAt > 0 && Date.now() - firstSeenAt >= 7 * 86_400_000;
+  const moves = buildMoves({
+    hour, daySeed: todayKey(now).split("-").reduce((s, n) => s + Number(n), 0),
+    score: score.score, streak, hasAnyWriteToday,
+    trainedToday: score.sessionDone,
+    waterMl, waterGoal, waterExpected: pace.expected,
+    sleepLogged: score.sleepLogged, proteinG: macros.protein, proteinTarget,
+    studyNext: study.next, studyMinToday: study.minutes,
+    reviewNudge: sevenDaysOld && !reviewNudgeDone,
   });
 
+  // `<main>` (AppShell) is the scroll container, not the window. Resolved in
+  // a layout effect so useScroll's own subscribe effect (declared after)
+  // already sees it on first scroll.
+  const mainRef = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => { mainRef.current = document.querySelector("main"); }, []);
+  const { scrollY } = useScroll({ container: mainRef });
+  const headerY = useTransform(scrollY, [0, 200], [0, reduced ? 0 : 40], { clamp: true });
+  const headerFade = useTransform(scrollY, [0, 140], [1, 0.2], { clamp: true });
+  const compactOpacity = useTransform(scrollY, [190, 250], [0, 1], { clamp: true });
+  const compactY = useTransform(scrollY, [190, 250], [-14, 0], { clamp: true });
+  const compactEvents = useTransform(scrollY, (y) => (y > 220 ? "auto" : "none"));
+
+  const rise = (i: number): MotionProps => reduced ? {} : {
+    initial: { opacity: 0, y: 18 },
+    animate: { opacity: 1, y: 0 },
+    transition: { type: "spring", stiffness: 210, damping: 26, delay: 0.04 + i * 0.06 },
+  };
+
   return (
-    <Link to="/calendar" style={{ color: "inherit" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface)", borderRadius: 12, padding: "8px 12px" }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>Last 7 days</span>
-        <div style={{ display: "flex", gap: 5 }}>
-          {last7.map((c) => (
-            <div key={c.date} title={c.date} style={{
-              width: 16, height: 16, borderRadius: 5,
-              background: c.hasAny ? (c.score >= 75 ? t.teal : c.score >= 40 ? t.gold : t.danger) : "var(--border)",
-              border: c.isToday ? `2px solid ${t.accent}` : "none",
-            }} />
+    <div className="home-grid hb-page">
+      <div className="hb-compact-anchor home-full">
+        <motion.div className="hb-compact" style={{ opacity: compactOpacity, y: compactY, pointerEvents: compactEvents }}
+          onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" })}>
+          <Rings size={30} stroke={3.5} reduced rings={[{ key: "s", pct: score.score, color: "var(--accent)" }]} />
+          <div className="hb-compact__text">
+            <b>{score.score}%</b> <span>discipline</span>
+          </div>
+          <span className="hb-compact__streak"><TbFlame size={15} /> {streak}</span>
+        </motion.div>
+      </div>
+
+      <motion.header className="hb-header home-full" style={{ y: headerY, opacity: headerFade }}>
+        <Link to="/settings" className="hb-avatar" aria-label="Profile and settings">
+          <AvatarFrame frameId={equippedFrame}>
+            <Avatar size={46} src={profilePic || undefined} className="avatar-grad">{name.charAt(0)}</Avatar>
+          </AvatarFrame>
+        </Link>
+        <div className="hb-header__text">
+          <motion.div key={g.text} className="hb-greet"
+            initial={reduced ? false : { opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
+            <GIcon size={13} /> <span>{g.text}</span>
+          </motion.div>
+          <h1 className="display">{name}</h1>
+          <div className="hb-tagline">
+            <b>{now.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}</b> · {g.tagline}
+          </div>
+        </div>
+        <nav className="hb-header__actions" aria-label="Shortcuts">
+          <Link to="/leaderboard" className="hb-iconbtn" aria-label="Leaderboard"><TbTrophy size={19} /></Link>
+          <Link to="/glance" className="hb-iconbtn" aria-label="Share card"><TbShare2 size={19} /></Link>
+          <Link to="/settings" className="hb-iconbtn hb-iconbtn--spin" aria-label="Settings"><TbSettings size={19} /></Link>
+        </nav>
+      </motion.header>
+
+      <div className="home-col">
+        <motion.div {...rise(1)}>
+          <SummitCard score={score.score} pillars={pillars} streak={streak} freezeAvailable={freezeAvailable}
+            week={week} urgent={urgent} critical={critical} reduced={reduced} />
+        </motion.div>
+        <motion.div {...rise(2)}>
+          {scoreQuery && training
+            ? <NextMoveDeck moves={moves} freezeAvailable={freezeAvailable} reduced={reduced} />
+            : <Skeleton height={150} radius={22} />}
+        </motion.div>
+        <motion.div {...rise(3)}>
+          <TrainingCard t={training} rocky={setsToday >= 40} />
+        </motion.div>
+      </div>
+
+      <div className="home-col">
+        <motion.div {...rise(4)} className="hb-bento">
+          <WaterTile ml={waterMl} goal={waterGoal} status={pace.status} reduced={reduced} />
+          <MacrosTile protein={macros.protein} carbs={macros.carbs} fat={macros.fat} kcal={macros.kcal}
+            targets={{ protein: proteinTarget, carbs: carbTarget, fat: fatTarget, kcal: kcalTarget }} />
+          <SleepTile last={lastSleep} targetMin={sleepTarget} bedtime={bedtime} hour={hour} />
+          <StudyTile next={study.next} minutes={study.minutes} />
+          <HabitsTile habits={habits ?? []} />
+        </motion.div>
+        <motion.div {...rise(5)}>
+          <TodayAgenda items={agenda} />
+        </motion.div>
+        <motion.nav {...rise(6)} className="hb-shortcuts" aria-label="More">
+          {SHORTCUTS.map((s) => (
+            <Link key={s.to} to={s.to} className="hb-shortcut" style={{ "--c": s.c } as CSSProperties}>
+              <span className="hb-shortcut__icon"><s.icon size={22} /></span>
+              {s.label}
+            </Link>
           ))}
-        </div>
-        <TbChevronRight size={14} style={{ color: "var(--ink-soft)" }} />
+        </motion.nav>
+        <motion.div {...rise(7)}>
+          <HomeQuoteCard />
+        </motion.div>
       </div>
-    </Link>
-  );
-}
-
-function Pill({ done, label, icon }: { done: boolean; label: string; icon: React.ReactNode }) {
-  // Not-done pills used to render as grey ghost text at 0.6 opacity, which read
-  // as "app broken" at 6am on a fresh day. Now they carry a subtle red outline
-  // (1px accent border, transparent bg) so the ring at 0% looks like anticipation,
-  // not an error state.
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600,
-      padding: "3px 8px", borderRadius: 999, whiteSpace: "nowrap", flexShrink: 0,
-      color: done ? "var(--success)" : "var(--accent)",
-      border: done ? "1px solid transparent" : "1px solid var(--ember-inner)",
-      background: done ? "color-mix(in srgb, var(--success) 14%, transparent)" : "transparent",
-      opacity: done ? 1 : 0.75,
-    }}>
-      {icon} {label} {done && <TbCheck size={11} />}
     </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// LEVEL BADGE — compact XP chip below the discipline ring
-// ─────────────────────────────────────────────────────────────────────────────
-function LevelBadge() {
-  const { totalXP, level, next, progress } = useXP();
-  if (totalXP === 0) return null; // hide on fresh install until first XP earned
-  const xpToNext = next ? next.xpRequired - level.xpRequired : 0;
-  const xpInLevel = next ? totalXP - level.xpRequired : 0;
-  // Secondary tier, same flatter/translucent treatment as the fuel/calendar
-  // row below the ring — color-mix over --surface/--ember-inner instead of
-  // solid fills, so it reads as sitting behind the elevated primary cards.
-  return (
-    <div style={{ marginTop: 10, display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-      <div style={{
-        display: "inline-flex", alignItems: "center", gap: 5,
-        background: "color-mix(in srgb, var(--surface) 50%, transparent)", borderRadius: 24,
-        border: "1px solid color-mix(in srgb, var(--ember-inner) 70%, transparent)",
-        padding: "3px 10px 3px 7px",
-      }}>
-        <span style={{
-          fontFamily: '"Cinzel", serif', fontWeight: 800, fontSize: 12,
-          color: "var(--accent)", letterSpacing: "0.05em",
-        }}>Lv.{level.level}</span>
-        <span style={{ fontSize: 12, color: "var(--ink-soft)", letterSpacing: "0.03em" }}>
-          {level.name}
-        </span>
-      </div>
-      {next && (
-        <div style={{ width: 90, height: 3, background: "var(--border)", borderRadius: 2, overflow: "hidden" }}>
-          <div style={{
-            height: "100%", background: "var(--accent)", borderRadius: 2,
-            width: `${Math.round(progress * 100)}%`,
-            transition: "width 600ms ease-out",
-          }} />
-        </div>
-      )}
-      {next && (
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", opacity: 0.6 }}>
-          {xpInLevel} / {xpToNext} XP → {next.name}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function HomeTile({ to, icon, label, value, ok, small }: {
-  to: string; icon: React.ReactNode; label: string; value: string; ok?: boolean; small?: boolean;
-}) {
-  return (
-    <Link to={to} className="z-card z-card--press" style={{ color: "inherit", padding: 12, minHeight: 64 }}>
-      <div className="z-stat-label" style={{ display: "flex", alignItems: "center", gap: 5 }}>{icon} {label}</div>
-      <div className={`display ${ok ? "z-ok" : ""}`} style={{
-        fontSize: small ? "var(--fs-sm)" : "var(--fs-lg)", fontWeight: 800, marginTop: 4,
-        color: ok ? undefined : small ? "var(--ink-soft)" : "var(--ink)",
-        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-      }}>{value}</div>
-    </Link>
-  );
-}
-
-function TodayCard() {
-  const items = useLiveQuery(async () => {
-    const rows = await db.tasks.where("date").equals(todayKey()).toArray();
-    return rows
-      .filter((r) => r.status !== "done" && r.status !== "cancelled")
-      .sort((a, b) => (a.allDay ? "" : a.time ?? "99:99").localeCompare(b.allDay ? "" : b.time ?? "99:99"));
-  }, []);
-  if (items === undefined) return <Skeleton height={92} radius={18} />;
-  const top = items.slice(0, 3);
-  return (
-    <Link to="/calendar" className="z-card z-card--press" style={{ color: "inherit", display: "block" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <span className="gothic-eyebrow">Today</span>
-        <span className="z-stat-label">{items.length ? `${items.length} left` : ""}</span>
-      </div>
-      {top.length === 0 ? (
-        <div style={{ fontSize: "var(--fs-sm)", color: "var(--ink-soft)" }}>Nothing scheduled — tap to plan your day</div>
-      ) : top.map((r) => (
-        <div key={r.id} style={{ display: "flex", gap: 10, padding: "6px 0", fontSize: "var(--fs-md)", alignItems: "baseline" }}>
-          <span className="z-stat-label" style={{ width: 44, flexShrink: 0 }}>{r.allDay ? "All day" : r.time ?? "—"}</span>
-          <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
-        </div>
-      ))}
-    </Link>
   );
 }

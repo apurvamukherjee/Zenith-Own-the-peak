@@ -1,3 +1,50 @@
+/* Home (DashboardPage). Every animation here is transform/opacity-only so it
+   stays on the compositor — this page is open on low-end Android WebViews
+   for hours at a time. Ambient glows are radial gradients, never filter:blur. */
+
+.hb-page { display: flex; flex-direction: column; gap: 12px; padding: 10px 16px 18px; }
+
+/* ---------- Header ------------------------------------------------------ */
+.hb-header { display: flex; align-items: center; gap: 12px; }
+.hb-avatar { flex-shrink: 0; display: inline-flex; border-radius: 50%; }
+.hb-avatar .ant-avatar { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; }
+.hb-header__text { flex: 1; min-width: 0; }
+.hb-greet {
+  display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden;
+  font-family: "Cinzel", "Plus Jakarta Sans", serif; font-style: italic; font-weight: 600;
+  font-size: 11.5px; letter-spacing: 0.08em; color: var(--ink-soft);
+}
+.hb-greet svg { color: var(--accent); flex-shrink: 0; }
+.hb-header h1 { margin: 1px 0 0; font-size: 25px; font-weight: 800; line-height: 1.08; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hb-tagline { font-size: 12px; color: var(--ink-soft); font-style: italic; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hb-tagline b { font-style: normal; font-weight: 700; color: var(--ink); opacity: 0.85; }
+.hb-header__actions {
+  display: flex; gap: 2px; padding: 3px; border-radius: 16px; flex-shrink: 0;
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+}
+.hb-iconbtn {
+  width: 38px; height: 40px; display: grid; place-items: center; border-radius: 12px;
+  color: var(--ink); transition: transform 0.15s cubic-bezier(.22, 1, .36, 1), background 0.15s;
+}
+.hb-iconbtn:active { background: var(--surface-3); transform: scale(0.9); }
+.hb-iconbtn--spin:active svg { transform: rotate(60deg); transition: transform 0.3s; }
+
+/* Compact bar: zero-height sticky anchor so it costs no layout until shown. */
+.hb-compact-anchor { position: sticky; top: 0; z-index: 8; height: 0; margin-bottom: -12px; }
+.hb-compact {
+  position: absolute; left: -6px; right: -6px; top: 6px; cursor: pointer;
+  display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 7px; border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.7);
+}
+.hb-compact__text { flex: 1; font-size: 13px; }
+.hb-compact__text b { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; font-variant-numeric: tabular-nums; }
+.hb-compact__text span { color: var(--ink-soft); font-size: 12px; }
+.hb-compact__streak { display: inline-flex; align-items: center; gap: 3px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+
 /* ---------- Summit (hero) — surface/aura/embers come from .z-hero ------ */
 .hb-summit { padding: 14px 16px 13px; }
 .hb-status {
@@ -260,6 +307,19 @@
 }
 @keyframes hb-pulse { 50% { box-shadow: 0 0 0 8px transparent; } }
 .hb-agenda__more { display: block; padding: 8px 0 2px; text-align: center; font-size: 12px; font-weight: 700; color: var(--accent); }
+
+/* ---------- Shortcuts --------------------------------------------------- */
+.hb-shortcuts { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; }
+.hb-shortcuts::-webkit-scrollbar { display: none; }
+.hb-shortcut { flex: 0 0 auto; width: 62px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+.hb-shortcut__icon {
+  width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center; color: var(--c);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 20%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--c) 24%, var(--border));
+  box-shadow: 0 12px 22px -16px var(--c);
+  transition: transform 0.16s cubic-bezier(.22, 1, .36, 1);
+}
+.hb-shortcut:active .hb-shortcut__icon { transform: scale(0.88); }
 
 /* ---------- Wide screens & motion prefs --------------------------------- */
 @media (min-width: 1200px) {
