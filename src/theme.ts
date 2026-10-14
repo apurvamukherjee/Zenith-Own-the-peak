@@ -73,6 +73,6 @@ export const GOLD = "var(--gold)";
 
 // Concrete hexes for contexts where CSS vars don't resolve (recharts SVG attrs).
 export const TOKENS = {
-  light: { accent: "#c8112a", teal: "#d05018", gold: "#b8860b", danger: "#ff5c7a", grid: "rgba(140,90,95,0.18)" },
-  dark: { accent: "#ff2740", teal: "#ff6b3d", gold: "#f6b93b", danger: "#ff5c7a", grid: "rgba(180,160,170,0.14)" },
+  light: { accent: "#c8112a", teal: "#d05018", gold: "#b8860b", danger: "#ff5c7a", info: "#3b6fd4", success: "#0f9d8a", grid: "rgba(140,90,95,0.18)", ink: "#7a6a70" },
+  dark: { accent: "#ff2740", teal: "#ff6b3d", gold: "#f6b93b", danger: "#ff5c7a", info: "#6ea2ff", success: "#37d67a", grid: "rgba(180,160,170,0.14)", ink: "#8f8590" },
 };
