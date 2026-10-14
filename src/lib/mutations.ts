@@ -28,10 +28,10 @@ export function suppressMutations(on: boolean) { suppressed = on; }
  * with no table name (legacy call sites) always passes the filter, since an
  * unknown source can't be safely assumed irrelevant.
  */
-export function onMutation(cb: () => void, tables?: readonly string[]): () => void {
+export function onMutation(cb: (table?: string) => void, tables?: readonly string[]): () => void {
   const listener: Listener = (table) => {
     if (tables && table !== undefined && !tables.includes(table)) return;
-    cb();
+    cb(table);
   };
   listeners.add(listener);
   return () => listeners.delete(listener);
