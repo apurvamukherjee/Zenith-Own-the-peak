@@ -230,3 +230,14 @@ html[data-motion="reduce"] .z-embers { display: none; }
   opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s cubic-bezier(.22, 1, .36, 1);
 }
 .z-appbar.is-scrolled .z-appbar__title { opacity: 1; transform: none; }
+
+.z-navstrip { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding: 2px 16px 10px; }
+.z-navstrip::-webkit-scrollbar { display: none; }
+.z-navstrip__chip {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 13px 0 10px;
+  border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--ink-soft);
+  background: var(--surface); border: 1px solid var(--border); transition: transform 0.14s;
+}
+.z-navstrip__chip svg { color: var(--c); }
+.z-navstrip__chip:hover { color: var(--ink); }
+.z-navstrip__chip:active { transform: scale(0.94); }
