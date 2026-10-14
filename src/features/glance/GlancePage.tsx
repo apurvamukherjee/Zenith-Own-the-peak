@@ -1,71 +1,84 @@
-import { useEffect, useState } from "react";
-import { Progress, Button } from "antd";
+import { App } from "antd";
 import { motion } from "framer-motion";
-import { TbFlame, TbShare, TbArrowLeft } from "react-icons/tb";
-import { useNavigate } from "react-router-dom";
+import { TbFlame, TbShare, TbDroplet, TbMeat, TbBarbell, TbMoon } from "react-icons/tb";
+import { Rings } from "../../components/ui/Rings";
+import { Embers } from "../../components/ui/Hero";
+import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { useSetting } from "../../hooks/useSettings";
-import { useTokens } from "../../hooks/useTokens";
-import { useTodayWater, useWorkoutToday } from "../water/useWater";
-import { computeUnifiedStreak } from "../../lib/streak.utils";
-import { computeTodayScore } from "../../lib/todayScore";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { useTodayScore, useStreak, useLast7, useTrainingToday } from "../dashboard/useHomeData";
+import "./glance.css";
 
-// A screenshot-friendly "today at a glance" summary. Meant to be a nice photo
-// to share, or the layout that will drive a phone widget once Capacitor is
-// wrapped. Zero chrome — just the ring, streak, and brand.
+const PILLARS = [
+  { key: "water", label: "Water", icon: TbDroplet, color: "#6ea2ff" },
+  { key: "protein", label: "Protein", icon: TbMeat, color: "#ff6b3d" },
+  { key: "train", label: "Train", icon: TbBarbell, color: "#ff2740" },
+  { key: "sleep", label: "Sleep", icon: TbMoon, color: "#f6b93b" },
+] as const;
+
+// Screenshot-friendly "today at a glance" card — fixed brand colours (not
+// theme tokens) so a shared image looks the same whatever theme it came from.
 export function GlancePage() {
-  const t = useTokens();
-  const navigate = useNavigate();
-  const name = useSetting("name");
-  const waterGoal = useSetting("waterGoalMl");
-  const proteinTarget = useSetting("proteinTargetG");
-  const { total: waterMl } = useTodayWater();
-  const trained = useWorkoutToday();
-  const [streak, setStreak] = useState(0);
-  const [score, setScore] = useState({ score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 });
-
-  useEffect(() => { computeUnifiedStreak().then(setStreak); }, [waterMl, trained]);
-  useEffect(() => { computeTodayScore(waterGoal, proteinTarget).then(setScore); }, [waterMl, waterGoal, proteinTarget]);
-
+  const { message } = App.useApp();
+  const reduced = useReducedMotion();
+  const name = String(useSetting("name"));
+  const waterGoal = Number(useSetting("waterGoalMl"));
+  const proteinTarget = Number(useSetting("proteinTargetG"));
+  const score = useTodayScore(waterGoal, proteinTarget) ?? { score: 0, waterPct: 0, sessionDone: false, sleepLogged: false, proteinPct: 0 };
+  const streak = useStreak();
+  const week = useLast7(waterGoal, proteinTarget);
+  const training = useTrainingToday();
+  const rest = training !== undefined && !training.day;
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" });
+  const pct = { water: score.waterPct, protein: score.proteinPct, train: score.sessionDone || rest ? 100 : 0, sleep: score.sleepLogged ? 100 : 0 };
 
-  function share() {
+  async function share() {
     const text = `Zenith — ${today}\nDiscipline ${score.score}% · ${streak}-day streak · ${name}`;
-    if (navigator.share) navigator.share({ title: "Zenith", text }).catch(() => {});
-    else navigator.clipboard?.writeText(text);
+    try {
+      if (navigator.share) await navigator.share({ title: "Zenith", text });
+      else { await navigator.clipboard.writeText(text); message.success("Copied to clipboard"); }
+    } catch (err) {
+      if (!(err instanceof DOMException && err.name === "AbortError")) message.error("Couldn't share");
+    }
   }
 
   return (
-    <div style={{
-      minHeight: "100dvh", background: "linear-gradient(160deg,#08060a 0%,#1a0509 30%,#6e0f1c 70%,#d81f34 100%)",
-      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      color: "#fff", padding: "40px 20px", position: "relative",
-    }}>
-      <Button type="text" icon={<TbArrowLeft />} onClick={() => navigate(-1)}
-        style={{ position: "absolute", top: 20, left: 20, color: "#fff" }} aria-label="Back" />
-      <Button type="text" icon={<TbShare />} onClick={share}
-        style={{ position: "absolute", top: 20, right: 20, color: "#fff" }} aria-label="Share" />
+    <div className="gl-page">
+      <motion.article className="gl-card" initial={reduced ? false : { opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 24 }}>
+        <div className="gl-glow" aria-hidden />
+        <Embers />
+        <div className="gl-date">{today}</div>
+        <div className="gl-name display">{name}</div>
 
-      <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.7, letterSpacing: 2, textTransform: "uppercase" }}>{today}</div>
-      <div className="display" style={{ fontSize: 32, fontWeight: 800, marginTop: 2, marginBottom: 20 }}>{name}</div>
+        <div className="gl-rings">
+          <Rings size={210} stroke={13} gap={4} reduced={reduced}
+            rings={PILLARS.map((p) => ({ key: p.key, pct: pct[p.key], color: p.color }))}>
+            <div className="gl-score display"><AnimatedNumber value={score.score} /><small>%</small></div>
+            <div className="gl-score__label">discipline</div>
+          </Rings>
+        </div>
 
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-        <Progress type="dashboard" percent={score.score} size={200} strokeColor={t.accent} strokeWidth={10}
-          format={() => (
-            <div>
-              <div className="display" style={{ fontSize: 48, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{score.score}%</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>discipline</div>
-            </div>
-          )} />
-      </motion.div>
+        <div className="gl-pillars">
+          {PILLARS.map((p) => (
+            <span key={p.key} className={pct[p.key] >= 100 ? "is-done" : ""} style={{ color: p.color }}>
+              <p.icon size={14} /><em>{p.label}</em>
+            </span>
+          ))}
+        </div>
 
-      <div style={{ marginTop: 24, display: "flex", alignItems: "center", gap: 6, fontSize: 20, fontWeight: 800 }}>
-        <TbFlame /> {streak}-day streak
-      </div>
+        <div className="gl-streak"><TbFlame size={22} /> <AnimatedNumber value={streak} />-day streak</div>
+        <div className="gl-week" aria-label="Last 7 days">
+          {week.map((d) => <i key={d.date} className={!d.hasAny ? "" : d.score >= 75 ? "is-high" : d.score >= 40 ? "is-mid" : "is-low"} />)}
+        </div>
 
-      <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 6, opacity: 0.6 }}>
-        <img src="/logo-mark.png" alt="" width={14} height={14} style={{ objectFit: "contain" }} />
-        <span style={{ fontSize: 12, letterSpacing: 2 }}>ZENITH · OWN THE PEAK</span>
-      </div>
+        <div className="gl-brand">
+          <img src="/logo-mark.png" alt="" width={14} height={14} />
+          ZENITH · OWN THE PEAK
+        </div>
+      </motion.article>
+
+      <button type="button" className="z-btn z-btn--solid gl-share" onClick={share}><TbShare size={17} /> Share</button>
     </div>
   );
 }
