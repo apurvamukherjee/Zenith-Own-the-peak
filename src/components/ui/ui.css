@@ -146,6 +146,18 @@ a.z-row:active, button.z-row:active, .z-row[role="button"]:active { background: 
   font-size: 11px; font-weight: 700; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent);
 }
 
+/* ---------- Page entrance ----------------------------------------------- */
+/* Direct children rise in sequence. `backwards` fill so nothing keeps a
+   transform afterwards — sticky headers and fixed descendants stay intact. */
+.z-stagger > * { animation: z-rise 0.5s cubic-bezier(.22, 1, .36, 1) backwards; }
+.z-stagger > *:nth-child(2) { animation-delay: 0.05s; }
+.z-stagger > *:nth-child(3) { animation-delay: 0.1s; }
+.z-stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.z-stagger > *:nth-child(5) { animation-delay: 0.2s; }
+.z-stagger > *:nth-child(6) { animation-delay: 0.25s; }
+.z-stagger > *:nth-child(n+7) { animation-delay: 0.3s; }
+@keyframes z-rise { from { opacity: 0; transform: translateY(14px); } }
+
 /* ---------- Rings ------------------------------------------------------- */
 .z-rings { position: relative; flex-shrink: 0; }
 .z-rings__center {
