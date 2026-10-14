@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { hapticMedium } from "../lib/haptics";
+import { hapticMedium } from "../../lib/haptics";
 
 // Hook that lets a list adopt long-press → checkbox-mode → batch-delete UX.
 // Caller receives:
