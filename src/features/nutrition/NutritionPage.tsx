@@ -1,11 +1,8 @@
-import { useState } from "react";
-import { Ring } from "../../components/Ring";
+import { useState, type CSSProperties } from "react";
+import { Button, Modal, Input, Segmented, App, Switch, Popconfirm, Checkbox } from "antd";
+import { motion } from "framer-motion";
 import {
-  Card, Button, Modal, Input, Segmented,
-  Tag, App, Empty, Row, Col, Switch, Popconfirm, Checkbox,
-} from "antd";
-import {
-  TbPlus, TbTrash, TbCircleCheck, TbBell, TbClock, TbBookmark,
+  TbPlus, TbTrash, TbCheck, TbBell, TbClock, TbBookmark,
   TbCopy, TbDroplet, TbStack2, TbX,
 } from "react-icons/tb";
 import dayjs from "dayjs";
@@ -23,13 +20,14 @@ import {
 } from "./useNutrition";
 import { requestNotificationPermission } from "../../lib/notifications";
 import { useSetting, setSetting } from "../../hooks/useSettings";
-import { VIOLET, GOLD } from "../../theme";
 import {
   useMealTemplates, logFromTemplate, saveMealAsTemplate,
   deleteMealTemplate, copyYesterdayMeals,
 } from "./useMealTemplates";
 import { FoodPickerModal } from "./FoodPickerModal";
-import { MacroBar, TimeOfDayBar } from "./MacroBar";
+import { FuelHero } from "./FuelHero";
+import { ListGroup, ListRow } from "../../components/ui/List";
+import "./nutrition.css";
 import { MealComboBuilderModal } from "./MealComboBuilderModal";
 import { WeeklyMacroChart } from "./WeeklyMacroChart";
 import { addWater } from "../water/useWater";
@@ -39,11 +37,11 @@ import { useUndo } from "../../hooks/useUndo";
 import { CoachMark } from "../../components/CoachMark";
 import { useBulkSelect } from "../../hooks/useBulkSelect";
 
-const STATUS_TAG = {
-  done: { color: "green", label: "Done" },
-  due: { color: "gold", label: "Due now" },
-  overdue: { color: "red", label: "Overdue" },
-  upcoming: { color: "default", label: "Upcoming" },
+const STATUS_TONE = {
+  done: { c: "var(--success)", label: "Done" },
+  due: { c: "var(--gold)", label: "Due now" },
+  overdue: { c: "var(--danger)", label: "Overdue" },
+  upcoming: { c: "var(--ink-soft)", label: "Upcoming" },
 };
 
 export function NutritionPage() {
@@ -55,6 +53,8 @@ export function NutritionPage() {
   const [foodOpen, setFoodOpen] = useState(false);
   const [comboOpen, setComboOpen] = useState(false);
   const withUndo = useUndo();
+  const [tplMeal, setTplMeal] = useState<MealDto | null>(null);
+  const [tplName, setTplName] = useState("");
   const bulk = useBulkSelect<number>();
   const remindersOn = Number(useSetting("remSupps")) === 1;
   const coachDone = Number(useSetting("coachNutrition"));
@@ -71,8 +71,6 @@ export function NutritionPage() {
   const fatTarget = useSetting("fatTargetG");
   const proteinTarget = latestBw ? Math.round(latestBw * 1.8) : proteinDefault;
 
-  const protein = meals.reduce((s, m) => s + m.protein, 0);
-  const calories = meals.reduce((s, m) => s + m.calories, 0);
   const doneIds = new Set(logs.map((l) => l.scheduleId));
 
   async function toggleReminders(on: boolean) {
@@ -110,225 +108,138 @@ export function NutritionPage() {
         />
       )}
       <SectionTitle eyebrow="Fuel your body" title="Nutrition"
-        right={<Button icon={<TbPlus />} onClick={() => setManageOpen(true)}>Schedule</Button>} />
+        right={<button type="button" className="z-btn z-btn--solid" onClick={() => setFoodOpen(true)}><TbPlus size={16} /> Food</button>} />
 
-      {/* Macro bar (add-on #3) — top of page so imbalances are obvious */}
-      <Card size="small" style={{ marginBottom: 12 }} styles={{ body: { padding: "12px 14px" } }}>
-        <MacroBar meals={meals} proteinTarget={proteinTarget} fatTarget={fatTarget}
-          carbTarget={carbTarget} kcalTarget={calorieTarget} />
-        {meals.length > 0 && (
-          <div style={{ marginTop: 10, borderTop: "1px solid var(--border)", paddingTop: 8 }}>
-            <TimeOfDayBar meals={meals} />
-          </div>
-        )}
-      </Card>
+      <FuelHero meals={meals} proteinTarget={proteinTarget} fatTarget={fatTarget} carbTarget={carbTarget} kcalTarget={calorieTarget} />
 
-      {/* 7-day macro trend — biggest data gap fixed: 12 writes, zero charts until now */}
-      <WeeklyMacroChart />
-
-      {/* Protein ring + calories — kept because the discipline ring on Home still uses protein */}
-      <Card size="small" style={{ marginBottom: 12 }}>
-        <Row gutter={16} align="middle">
-          <Col span={10} style={{ textAlign: "center" }}>
-            <Ring size={104} percent={(protein / proteinTarget) * 100}>
-                <div style={{ lineHeight: 1.05, whiteSpace: "nowrap" }}>
-                  <div className="display" style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(protein)}<span style={{ fontSize: 12 }}>g</span></div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>of {proteinTarget}g</div>
-                </div>
-              </Ring>
-            <div style={{ fontSize: 12, fontWeight: 600, marginTop: 6 }}>Protein</div>
-          </Col>
-          <Col span={14}>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Calories</div>
-            <div className="display" style={{ fontSize: 22, fontWeight: 800, color: GOLD }}>{Math.round(calories)}<span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}> / {calorieTarget}</span></div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
-              {calories < calorieTarget ? `${Math.max(0, calorieTarget - Math.round(calories))} kcal to your surplus goal — keep eating.` : "Surplus hit. Growth fuel locked in."}
-            </div>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* Reminder toggle + next up */}
-      <Card size="small" style={{ marginBottom: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <TbBell style={{ color: VIOLET, fontSize: 18 }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700 }}>Reminders</div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-              {nextUp ? `Next: ${nextUp.label} at ${nextUp.time}` : "Nothing scheduled"}
-            </div>
-          </div>
-          <Switch checked={remindersOn} onChange={toggleReminders} />
-        </div>
-      </Card>
-
-      {/* Today's schedule */}
-      <SectionTitle title="Today's schedule" />
-      {schedules.length === 0 ? (
-        <Empty description="Add meds, supplements or meal times to build your daily plan." style={{ marginBottom: 12 }} />
-      ) : (
-        <div style={{ marginBottom: 12 }}>
-          {schedules.map((s) => {
-            const done = !!s.id && doneIds.has(s.id);
-            const status = slotStatus(s.time, done);
-            const meta = KIND_META[s.kind];
-            return (
-              <Card key={s.id} size="small" style={{ marginBottom: 8, opacity: done ? 0.7 : 1 }} styles={{ body: { padding: "12px 14px" } }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ fontSize: 22, color: meta.color, display: "flex" }}><meta.icon size={22} /></div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, textDecoration: done ? "line-through" : "none" }}>{s.label}</div>
-                    <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                      <TbClock /> {s.time}{s.dose ? ` · ${s.dose}` : ""}
-                    </div>
-                  </div>
-                  <Tag color={STATUS_TAG[status].color} style={{ borderRadius: 8, margin: 0 }}>{STATUS_TAG[status].label}</Tag>
-                  <Button type={done ? "default" : "primary"} shape="circle"
-                    icon={<TbCircleCheck />} aria-label="Mark done"
-                    onClick={() => s.id && markDone(s.id, !done)} />
-                  <Popconfirm title="Delete this schedule?" okText="Delete" okButtonProps={{ danger: true }}
-                    onConfirm={() => s.id && deleteSchedule(s.id)}>
-                    <Button type="text" size="small" danger icon={<TbTrash />} aria-label="Delete" />
-                  </Popconfirm>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Templates / combos row */}
       <TemplatesRow onCreateCombo={() => setComboOpen(true)} />
 
-      {/* Meals today */}
-      <SectionTitle title="Meals today" right={
-        <div style={{ display: "flex", gap: 6 }}>
-          {meals.length === 0 && (
-            <Button size="small" icon={<TbCopy />} onClick={handleCopyYesterday}>Same as yesterday</Button>
-          )}
-          <Button type="primary" icon={<TbPlus />} onClick={() => setFoodOpen(true)}>Add food</Button>
-        </div>
-      } />
-
-      {/* Quick water chips (add-on #7) — logging a meal often coincides with a drink */}
-      <Card size="small" style={{ marginBottom: 12 }} styles={{ body: { padding: "10px 12px" } }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginRight: 4 }}>
-            <TbDroplet style={{ verticalAlign: "-2px", color: "var(--teal)" }} /> Drink with your meal
+      <ListGroup
+        title={`Meals · ${meals.length}`}
+        right={bulk.isSelecting ? (
+          <span className="nu-bulk">
+            <span className="z-pill" style={{ "--c": "var(--accent)" } as CSSProperties}>{bulk.selected.size} selected</span>
+            {bulk.selected.size < meals.length && (
+              <button type="button" className="nu-link" onClick={() => bulk.selectAll(meals.map((m) => m.id!).filter(Boolean))}>All {meals.length}</button>
+            )}
+            <Popconfirm
+              title="Delete selected?" okText="Delete" okButtonProps={{ danger: true }}
+              onConfirm={async () => {
+                const ids = [...bulk.selected];
+                const snapshot: MealDto[] = meals.filter((m) => m.id != null && ids.includes(m.id));
+                bulk.clear();
+                await withUndo({
+                  do: async () => { for (const id of ids) await deleteMeal(id); },
+                  undo: async () => { for (const m of snapshot) { const { id: _drop, ...rest } = m; await addMeal(rest); } },
+                  label: `${ids.length} meal${ids.length === 1 ? "" : "s"} deleted`,
+                });
+              }}>
+              <button type="button" className="nu-link nu-link--danger"><TbTrash size={14} /> Delete</button>
+            </Popconfirm>
+            <button type="button" className="nu-link" onClick={bulk.clear} aria-label="Cancel selection"><TbX size={15} /></button>
           </span>
-          {[200, 500, 1000].map((v) => (
-            <Button key={v} size="small" onClick={() => quickWater(v)}>+{v}ml</Button>
-          ))}
-        </div>
-      </Card>
-
-      <Card size="small" styles={{ body: { padding: 0 } }}>
-        <div className="sticky-cat-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-          <span>Meals · {meals.length}</span>
-          {bulk.isSelecting && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, textTransform: "none", letterSpacing: 0, fontWeight: 600 }}>
-              <Tag color="red" style={{ margin: 0 }}>{bulk.selected.size} selected</Tag>
-              {/* Select-all — tap to grab every meal in one go instead of
-                  long-pressing each item individually */}
-              {bulk.selected.size < meals.length && (
-                <Button size="small" type="text"
-                  onClick={() => bulk.selectAll(meals.map((m) => m.id!).filter(Boolean))}
-                  style={{ fontSize: 12, padding: "0 6px", color: "var(--accent)", fontWeight: 700 }}>
-                  All {meals.length}
-                </Button>
-              )}
-              <Popconfirm
-                title="Delete selected?" okText="Delete" okButtonProps={{ danger: true }}
-                onConfirm={async () => {
-                  const ids = [...bulk.selected];
-                  const snapshot: MealDto[] = meals.filter((m) => m.id != null && ids.includes(m.id));
-                  bulk.clear();
-                  await withUndo({
-                    do:   async () => { for (const id of ids) await deleteMeal(id); },
-                    undo: async () => { for (const m of snapshot) { const { id: _drop, ...rest } = m; await addMeal(rest); } },
-                    label: `${ids.length} meal${ids.length === 1 ? "" : "s"} deleted`,
-                  });
-                }}
-              >
-                <Button size="small" danger type="primary" icon={<TbTrash />}>Delete</Button>
-              </Popconfirm>
-              <Button size="small" type="text" icon={<TbX />} onClick={bulk.clear} aria-label="Cancel selection" />
-            </span>
-          )}
-        </div>
-        <div style={{ padding: "8px 12px 12px" }}>
+        ) : meals.length === 0 ? (
+          <button type="button" className="nu-link" onClick={handleCopyYesterday}><TbCopy size={14} /> Same as yesterday</button>
+        ) : <span className="nu-hint">Hold to select</span>}
+        footer={
+          <span className="nu-water">
+            <TbDroplet size={13} /> Drink with it
+            {[200, 500, 1000].map((v) => (
+              <button key={v} type="button" className="nu-chip" onClick={() => quickWater(v)}>+{v >= 1000 ? "1L" : `${v}ml`}</button>
+            ))}
+          </span>
+        }>
         {meals.length === 0 ? (
-          <EmptyState
-            icon={<ColdIcon glyph="blade-fork" size={80} />}
-            title="No meals logged yet today"
-            hint="Tap Add food to log from the catalog, or Same as yesterday to repeat."
-            actionLabel="Add food"
-            onAction={() => setFoodOpen(true)}
-          />
+          <EmptyState icon={<ColdIcon glyph="blade-fork" size={44} />} title="No meals logged yet today"
+            hint="Log from the catalog for auto macros, or repeat yesterday in one tap." actionLabel="Add food" onAction={() => setFoodOpen(true)} />
         ) : (
-          meals.sort((a, b) => a.time.localeCompare(b.time)).map((m) => {
+          [...meals].sort((a, b) => a.time.localeCompare(b.time)).map((m) => {
             const id = m.id!;
             const isSelected = bulk.selected.has(id);
             return (
-              <div
-                key={id}
-                onPointerDown={() => bulk.onItemPress(id)}
-                onPointerUp={bulk.onItemUp}
-                onPointerLeave={bulk.onItemUp}
+              <div key={id} className={`z-row nu-meal${isSelected ? " is-selected" : ""}`}
+                onPointerDown={() => bulk.onItemPress(id)} onPointerUp={bulk.onItemUp} onPointerLeave={bulk.onItemUp}
                 onClick={() => { if (bulk.isSelecting) bulk.toggle(id); }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 10, padding: "8px 0",
-                  borderBottom: "1px solid var(--border)",
-                  background: isSelected ? "rgba(255,39,64,0.10)" : "transparent",
-                  borderRadius: 8, cursor: bulk.isSelecting ? "pointer" : "default",
-                  userSelect: "none", touchAction: "manipulation",
-                }}
-              >
-                {bulk.isSelecting && (
-                  <Checkbox checked={isSelected} onChange={() => bulk.toggle(id)} aria-label={`Select ${m.name}`} />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {m.name} <Tag style={{ borderRadius: 6 }}>{m.mealType}</Tag>
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                    {m.time} · {Math.round(m.protein)}g P
-                    {m.fatG != null ? ` · ${Math.round(m.fatG)}g F` : ""}
-                    {m.carbsG != null ? ` · ${Math.round(m.carbsG)}g C` : ""}
-                    {" · "}{Math.round(m.calories)} kcal
-                  </div>
-                </div>
+                style={{ cursor: bulk.isSelecting ? "pointer" : "default" }}>
+                {bulk.isSelecting
+                  ? <Checkbox checked={isSelected} onChange={() => bulk.toggle(id)} aria-label={`Select ${m.name}`} />
+                  : <span className="nu-meal__time">{m.time}</span>}
+                <span className="z-row__text">
+                  <span className="z-row__label nu-meal__name">{m.name}</span>
+                  <span className="nu-meal__macros">
+                    <span className="nu-m" style={{ "--c": "var(--teal)" } as CSSProperties}>{Math.round(m.protein)}g P</span>
+                    {m.carbsG != null && <span className="nu-m" style={{ "--c": "var(--gold)" } as CSSProperties}>{Math.round(m.carbsG)}g C</span>}
+                    {m.fatG != null && <span className="nu-m" style={{ "--c": "var(--info)" } as CSSProperties}>{Math.round(m.fatG)}g F</span>}
+                    <span className="nu-meal__kcal">{Math.round(m.calories)} kcal · {m.mealType}</span>
+                  </span>
+                </span>
                 {!bulk.isSelecting && (
-                  <>
-                    <Button type="text" size="small" icon={<TbBookmark />} onClick={async () => {
-                      const name = prompt("Save this meal as a template. Name:", m.name);
-                      if (name?.trim()) { await saveMealAsTemplate(m, name); message.success("Template saved"); }
-                    }} aria-label="Save as template" />
-                    <Button
-                      type="text" size="small" danger icon={<TbTrash />}
-                      aria-label="Delete meal"
+                  <span className="nu-meal__actions">
+                    <button type="button" className="nu-icon" aria-label="Save as template" onClick={() => { setTplName(m.name); setTplMeal(m); }}><TbBookmark size={16} /></button>
+                    <button type="button" className="nu-icon nu-icon--danger" aria-label="Delete meal"
                       onClick={async () => {
                         const { id: _drop, ...rest } = m;
-                        await withUndo({
-                          do:   () => deleteMeal(id),
-                          undo: () => addMeal(rest).then(() => undefined),
-                          label: `${m.name} deleted`,
-                        });
-                      }}
-                    />
-                  </>
+                        await withUndo({ do: () => deleteMeal(id), undo: () => addMeal(rest).then(() => undefined), label: `${m.name} deleted` });
+                      }}><TbTrash size={16} /></button>
+                  </span>
                 )}
               </div>
             );
           })
         )}
-        </div>
-      </Card>
+      </ListGroup>
+
+      <ListGroup title="Daily schedule"
+        right={<button type="button" className="nu-link" onClick={() => setManageOpen(true)}><TbPlus size={14} /> Add</button>}>
+        <ListRow icon={<TbBell size={16} />} color="var(--accent)" label="Reminders"
+          hint={nextUp ? `Next: ${nextUp.label} at ${nextUp.time}` : "Nothing scheduled"}
+          right={<Switch checked={remindersOn} onChange={toggleReminders} aria-label="Schedule reminders" />} />
+        {schedules.length === 0 ? (
+          <div className="nu-empty-line">Add meds, supplements or meal times to build your daily plan.</div>
+        ) : schedules.map((s) => {
+          const done = !!s.id && doneIds.has(s.id);
+          const status = slotStatus(s.time, done);
+          const meta = KIND_META[s.kind];
+          return (
+            <div key={s.id} className={`z-row nu-slot${done ? " is-done" : ""}`}>
+              <span className="z-ico" style={{ "--c": meta.color } as CSSProperties}><meta.icon size={16} /></span>
+              <span className="z-row__text">
+                <span className="z-row__label" style={{ display: "block" }}>{s.label}</span>
+                <span className="z-row__hint" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <TbClock size={12} /> {s.time}{s.dose ? ` · ${s.dose}` : ""}
+                </span>
+              </span>
+              <span className="z-pill" style={{ "--c": STATUS_TONE[status].c } as CSSProperties}>{STATUS_TONE[status].label}</span>
+              <motion.button type="button" whileTap={{ scale: 0.85 }} className={`nu-check${done ? " is-on" : ""}`}
+                aria-label={done ? `Mark ${s.label} not done` : `Mark ${s.label} done`} aria-pressed={done}
+                onClick={() => s.id && markDone(s.id, !done)}>
+                <TbCheck size={15} />
+              </motion.button>
+              <Popconfirm title="Delete this schedule?" okText="Delete" okButtonProps={{ danger: true }} onConfirm={() => s.id && deleteSchedule(s.id)}>
+                <button type="button" className="nu-icon nu-icon--danger" aria-label={`Delete ${s.label}`}><TbTrash size={15} /></button>
+              </Popconfirm>
+            </div>
+          );
+        })}
+      </ListGroup>
+
+      <ListGroup title="7-day macros">
+        <WeeklyMacroChart />
+      </ListGroup>
 
       <ManageScheduleModal open={manageOpen} onClose={() => setManageOpen(false)} />
-      <FoodPickerModal open={foodOpen} onClose={() => setFoodOpen(false)}
-        defaultMealType={inferMealType()} />
+      <FoodPickerModal open={foodOpen} onClose={() => setFoodOpen(false)} defaultMealType={inferMealType()} />
       <MealComboBuilderModal open={comboOpen} onClose={() => setComboOpen(false)} />
+      <Modal open={!!tplMeal} title="Save as template" okText="Save" onCancel={() => setTplMeal(null)} destroyOnClose
+        okButtonProps={{ disabled: !tplName.trim() }}
+        onOk={async () => {
+          if (!tplMeal || !tplName.trim()) return;
+          await saveMealAsTemplate(tplMeal, tplName.trim());
+          setTplMeal(null);
+          message.success("Template saved");
+        }}>
+        <Input autoFocus value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="Template name" maxLength={40} />
+      </Modal>
     </PageTransition>
   );
 }
@@ -374,36 +285,30 @@ function TemplatesRow({ onCreateCombo }: { onCreateCombo: () => void }) {
   const templates = useMealTemplates();
   const { message } = App.useApp();
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>Quick log</span>
-        <Button size="small" type="text" icon={<TbStack2 />} onClick={onCreateCombo}
-          style={{ fontSize: 12 }}>New combo</Button>
+    <>
+      <div className="z-list-title">
+        <span>Quick log</span>
+        <button type="button" className="nu-link" onClick={onCreateCombo}><TbStack2 size={14} /> New combo</button>
       </div>
       {templates.length === 0 ? (
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", padding: "6px 2px" }}>
-          Save a meal or build a combo to fast-log your usuals.
-        </div>
+        <div className="nu-empty-line nu-empty-line--bare">Save a meal (bookmark icon) or build a combo to fast-log your usuals.</div>
       ) : (
-        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
+        <div className="nu-tpls">
           {templates.map((tpl) => (
-            <div key={tpl.id} style={{ position: "relative" }}>
-              <button onClick={async () => { await logFromTemplate(tpl); hapticLight(); message.success(`Logged ${tpl.name}`); }}
-                style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10,
-                  padding: "6px 24px 6px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
-                  cursor: "pointer", color: "var(--ink)" }}>
-                {tpl.isCombo && <TbStack2 size={12} />}{tpl.name} · {Math.round(tpl.protein)}p / {Math.round(tpl.calories)}kcal
-              </button>
+            <div key={tpl.id} className="nu-tpl">
+              <motion.button type="button" whileTap={{ scale: 0.95 }} className="nu-tpl__main"
+                onClick={async () => { await logFromTemplate(tpl); hapticLight(); message.success(`Logged ${tpl.name}`); }}>
+                <span className="nu-tpl__name">{tpl.isCombo && <TbStack2 size={12} />}{tpl.name}</span>
+                <span className="nu-tpl__meta">{Math.round(tpl.protein)}g P · {Math.round(tpl.calories)} kcal</span>
+              </motion.button>
               <Popconfirm title="Delete this template?" okText="Delete" okButtonProps={{ danger: true }}
                 onConfirm={() => tpl.id && deleteMealTemplate(tpl.id)}>
-                <button title="Delete"
-                  style={{ position: "absolute", top: 2, right: 4, background: "none", border: "none",
-                    color: "var(--ink-soft)", cursor: "pointer", padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
+                <button type="button" className="nu-tpl__x" aria-label={`Delete ${tpl.name}`}><TbX size={12} /></button>
               </Popconfirm>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

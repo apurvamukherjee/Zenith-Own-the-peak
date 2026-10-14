@@ -1,0 +1,73 @@
+/* Nutrition. Rows/lists/hero come from the kit; this is page-specific glue. */
+.nu-hero__body { display: flex; align-items: center; gap: 14px; }
+.nu-hero__kcal { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.nu-hero__unit { margin-top: 3px; font-size: 9px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+.nu-legend-rows { flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.nu-legend-rows li { display: flex; align-items: center; gap: 9px; }
+.nu-legend-rows__text { min-width: 0; display: flex; flex-direction: column; }
+.nu-legend-rows small { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); line-height: 1.2; }
+.nu-legend-rows b { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 14px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nu-legend-rows em { font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+
+.nu-tod { margin-top: 14px; }
+.nu-tod__bar { display: flex; height: 8px; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.nu-tod__bar i { display: block; height: 100%; }
+.nu-tod__bar i + i { box-shadow: inset 2px 0 0 var(--surface); }
+.nu-tod__legend { display: flex; flex-wrap: wrap; gap: 3px 12px; margin-top: 7px; font-size: 11px; font-weight: 600; color: var(--ink-soft); }
+.nu-tod__legend span, .nu-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.nu-tod__legend i, .nu-legend i { width: 7px; height: 7px; border-radius: 2px; }
+
+.nu-link {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; margin: -4px -6px; border: 0; border-radius: 8px;
+  background: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--accent);
+}
+.nu-link--danger { color: var(--danger); }
+.nu-hint { font-size: 11px; font-weight: 600; letter-spacing: 0; text-transform: none; opacity: 0.6; }
+.nu-bulk { display: inline-flex; align-items: center; gap: 12px; letter-spacing: 0; text-transform: none; }
+
+.nu-tpls { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; }
+.nu-tpls::-webkit-scrollbar { display: none; }
+.nu-tpl { position: relative; flex-shrink: 0; }
+.nu-tpl__main {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 28px 9px 12px; border-radius: 16px; cursor: pointer;
+  font: inherit; color: inherit; text-align: left; background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 12%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--teal) 22%, var(--border));
+}
+.nu-tpl__name { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+.nu-tpl__meta { font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
+.nu-tpl__x { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; display: grid; place-items: center; border: 0; border-radius: 7px; background: none; color: var(--ink-soft); cursor: pointer; }
+
+.nu-meal.is-selected { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.nu-meal { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.nu-meal__time { width: 40px; flex-shrink: 0; font-size: 11.5px; font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.nu-meal__name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nu-meal__macros { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; }
+.nu-m { padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 800; color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); }
+.nu-meal__kcal { font-size: 11px; color: var(--ink-soft); }
+.nu-meal__actions { display: flex; gap: 2px; flex-shrink: 0; }
+.nu-icon { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 11px; background: none; color: var(--ink-soft); cursor: pointer; }
+.nu-icon:active { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.nu-icon--danger { color: color-mix(in srgb, var(--danger) 80%, var(--ink-soft)); }
+
+.nu-water { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.nu-water > svg { color: var(--info); }
+.nu-chip { min-height: 30px; padding: 0 11px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--info) 30%, var(--border)); background: color-mix(in srgb, var(--info) 10%, transparent); color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+
+.nu-slot.is-done { opacity: 0.6; }
+.nu-slot.is-done .z-row__label { text-decoration: line-through; }
+.nu-check {
+  width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center; border-radius: 11px; cursor: pointer;
+  color: var(--success); background: transparent; border: 2px solid color-mix(in srgb, var(--success) 45%, transparent);
+}
+.nu-check.is-on { color: var(--bg); background: var(--success); border-color: var(--success); }
+.nu-empty-line { padding: 14px; font-size: 12.5px; color: var(--ink-soft); }
+.nu-empty-line--bare { padding: 2px 4px 4px; }
+
+.nu-chart { padding: 10px 6px 8px; }
+.nu-chart-empty { padding: 22px 16px; text-align: center; font-size: 12.5px; color: var(--ink-soft); }
+.nu-legend { display: flex; justify-content: center; gap: 16px; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); }
+
+@media (max-width: 370px) {
+  .nu-hero__body { gap: 10px; }
+  .nu-slot .z-pill { display: none; }
+}
