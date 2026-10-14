@@ -203,8 +203,7 @@ function FoodRow({ food, onSelect }: { food: FoodDto; onSelect: () => void }) {
   return (
     <div
       onClick={onSelect}
-      onTouchStart={startPress} onTouchEnd={endPress} onTouchCancel={endPress}
-      onMouseDown={startPress} onMouseUp={endPress} onMouseLeave={endPress}
+      onPointerDown={startPress} onPointerUp={endPress} onPointerLeave={endPress} onPointerCancel={endPress}
       style={{
         display: "flex", alignItems: "center", gap: 10, padding: "10px 8px",
         borderBottom: "1px solid var(--border)", cursor: "pointer",
