@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { App } from "antd";
 import { motion } from "framer-motion";
 import { SmartInputNumber } from "../../components/SmartInputNumber";
-import { TbPlus, TbArrowBackUp, TbRefresh, TbDroplet, TbBarbell } from "react-icons/tb";
+import { TbPlus, TbArrowBackUp, TbDroplet, TbBarbell } from "react-icons/tb";
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
@@ -17,7 +17,6 @@ import { useSetting } from "../../hooks/useSettings";
 import { useTokens } from "../../hooks/useTokens";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useOptimisticNumber } from "../../hooks/useOptimistic";
-import { usePullToRefresh } from "../../hooks/usePullToRefresh";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 import { playBellDing } from "../../lib/audio";
 import "./water.css";
@@ -49,12 +48,6 @@ export function WaterPage() {
   const { status, deltaMl } = computeStatus(optimistic, goal, wakeHour, windowH);
   const pct = Math.min(100, Math.round((optimistic / goal) * 100));
 
-  const pageRef = useRef<HTMLDivElement | null>(null);
-  const { pullPx, refreshing, primed } = usePullToRefresh(pageRef, async () => {
-    await new Promise((r) => setTimeout(r, 400));
-    void hapticLight();
-  });
-
   // Once-a-day payoff: same bell as the rest-timer finish, unlike the quick
   // adds which stay haptic-only since they fire many times an hour.
   const [showedGoalToast, setShowedGoalToast] = useState(false);
@@ -85,13 +78,7 @@ export function WaterPage() {
 
   return (
     <PageTransition>
-      <div ref={pageRef} style={{ position: "relative" }}>
-        {(pullPx > 0 || refreshing) && (
-          <div className="wp-pull" style={{ height: Math.max(28, pullPx) }}>
-            <TbRefresh style={{ transform: `rotate(${primed || refreshing ? 180 : Math.round((pullPx / 70) * 180)}deg)` }} />
-            <span>{refreshing ? "Refreshing…" : primed ? "Release to refresh" : "Pull down"}</span>
-          </div>
-        )}
+      <div style={{ position: "relative" }}>
         <SectionTitle eyebrow="Hydration" title="Water" />
 
         <Hero color="var(--info)" color2="var(--info)" embers={false} className="wp-hero"
