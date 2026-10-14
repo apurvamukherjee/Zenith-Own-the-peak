@@ -155,6 +155,28 @@ a.z-row:active, button.z-row:active, .z-row[role="button"]:active { background: 
 .z-ring-done { animation: z-breathe 2.6s ease-in-out infinite; }
 @keyframes z-breathe { 50% { opacity: 0.6; } }
 
+/* ---------- Liquid ------------------------------------------------------ */
+.z-liquid {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: -1;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--liq) 40%, transparent), color-mix(in srgb, var(--liq) 18%, transparent));
+  transition: height 1.2s cubic-bezier(.22, 1, .36, 1);
+}
+.z-wave { position: absolute; left: 0; bottom: calc(100% - 1px); width: 200%; height: 14px; animation: z-wave 6s linear infinite; }
+.z-wave path { fill: color-mix(in srgb, var(--liq) 40%, transparent); }
+.z-wave--back { height: 18px; opacity: 0.5; animation-duration: 9.5s; animation-direction: reverse; }
+.z-wave.is-still { animation: none; }
+@keyframes z-wave { to { transform: translateX(-50%); } }
+.z-bubbles { position: absolute; inset: 0; overflow: hidden; }
+.z-bubbles i {
+  position: absolute; bottom: 4px; width: 6px; height: 6px; border-radius: 50%; opacity: 0;
+  border: 1px solid color-mix(in srgb, #fff 60%, transparent); animation: z-bubble 4.5s ease-in infinite;
+}
+.z-bubbles i:nth-child(1) { left: 18%; }
+.z-bubbles i:nth-child(2) { left: 42%; width: 4px; height: 4px; animation-delay: 1.4s; }
+.z-bubbles i:nth-child(3) { left: 66%; animation-delay: 2.6s; }
+.z-bubbles i:nth-child(4) { left: 84%; width: 4px; height: 4px; animation-delay: 3.5s; }
+@keyframes z-bubble { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-120px); opacity: 0; } }
+
 /* ---------- Motion preferences ------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   .z-aura, .z-embers span, .z-ring-done, .z-stagger > *, .z-wave, .z-bubbles i { animation: none !important; }
