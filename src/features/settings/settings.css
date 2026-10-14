@@ -1,0 +1,46 @@
+/* ---------- Target dials ------------------------------------------------ */
+.zs-dials { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.zs-dial {
+  padding: 12px 14px 4px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border);
+  box-shadow: 0 12px 26px -24px rgba(0, 0, 0, 0.7);
+}
+.zs-dial__head { display: flex; align-items: center; gap: 8px; }
+.zs-dial__label { font-size: 13.5px; font-weight: 700; }
+.zs-dial__hint { margin-left: auto; font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zs-dial__main { display: flex; align-items: center; gap: 10px; margin: 10px 0 2px; }
+.zs-dial__value {
+  position: relative; flex: 1; height: 38px; overflow: hidden; display: grid; place-items: center;
+  font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
+}
+.zs-dial__value > span { grid-area: 1 / 1; }
+.zs-step {
+  width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border-radius: 14px; cursor: pointer;
+  color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c, var(--accent)) 26%, transparent);
+  touch-action: manipulation; -webkit-user-select: none; user-select: none;
+  transition: transform 0.12s cubic-bezier(.22, 1, .36, 1), opacity 0.15s;
+}
+.zs-step:active:not(:disabled) { transform: scale(0.88); }
+.zs-step:disabled { opacity: 0.35; cursor: not-allowed; }
+.zs-step--sm { width: 34px; height: 34px; border-radius: 11px; }
+.zs-slider.ant-slider { margin: 6px 6px 10px; }
+.zs-slider .ant-slider-track { background: var(--c, var(--accent)) !important; }
+.zs-slider .ant-slider-handle::after { box-shadow: 0 0 0 2px var(--c, var(--accent)) !important; }
+.zs-slider .ant-slider-rail { background: color-mix(in srgb, var(--ink) 10%, transparent) !important; }
+
+.zs-macro { grid-column: 1 / -1; padding: 14px; border-radius: 20px; background: color-mix(in srgb, var(--surface) 60%, transparent); border: 1px dashed var(--border); }
+.zs-macro__bar { position: relative; display: flex; height: 12px; border-radius: 8px; overflow: hidden; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.zs-macro__bar i { display: block; height: 100%; }
+.zs-macro__bar i + i { box-shadow: inset 2px 0 0 var(--surface); }
+.zs-macro__target { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 2px; opacity: 0.8; }
+.zs-macro__legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 9px; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+.zs-macro__legend span { display: inline-flex; align-items: center; gap: 5px; }
+.zs-macro__legend i { width: 8px; height: 8px; border-radius: 3px; }
+.zs-macro__verdict { margin-top: 8px; font-size: 12.5px; color: var(--warn); line-height: 1.4; }
+.zs-macro__verdict.is-ok { color: var(--success); }
+
+@media (max-width: 360px) {
+  .zs-dial__hint { display: none; }
+  .zs-dial__value { font-size: 24px; }
+}
