@@ -1,24 +1,39 @@
-import { useEffect, useRef, useState } from "react";
-import { Card, Button, Progress, Alert, App } from "antd";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { App } from "antd";
+import { motion } from "framer-motion";
 import { SmartInputNumber } from "../../components/SmartInputNumber";
-import { TbPlus, TbArrowBackUp, TbRefresh } from "react-icons/tb";
-import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from "recharts";
+import { TbPlus, TbArrowBackUp, TbRefresh, TbDroplet, TbBarbell } from "react-icons/tb";
+import { BarChart, Bar, XAxis, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
 import { ColdIcon } from "../../components/ColdIcon";
-import { useTodayWater, useWeeklyWater, useWorkoutToday, addWater, undoLastWater, computeStatus } from "./useWater";
+import { AnimatedNumber } from "../../components/AnimatedNumber";
+import { Hero } from "../../components/ui/Hero";
+import { Liquid } from "../../components/ui/Liquid";
+import { ListGroup, ListRow } from "../../components/ui/List";
+import { useTodayWater, useWeeklyWater, useWorkoutToday, addWater, undoLastWater, computeStatus, type WaterStatus } from "./useWater";
 import { useSetting } from "../../hooks/useSettings";
 import { useTokens } from "../../hooks/useTokens";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { useOptimisticNumber } from "../../hooks/useOptimistic";
 import { usePullToRefresh } from "../../hooks/usePullToRefresh";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 import { playBellDing } from "../../lib/audio";
+import "./water.css";
 
 const QUICK = [250, 500, 1000];
 
+const STATUS: Record<WaterStatus, { label: string; c: string }> = {
+  done: { label: "Goal reached", c: "var(--success)" },
+  "on-track": { label: "On pace", c: "var(--info)" },
+  behind: { label: "Behind pace", c: "var(--warn)" },
+  "way-behind": { label: "Way behind", c: "var(--danger)" },
+};
+
 export function WaterPage() {
   const t = useTokens();
+  const reduced = useReducedMotion();
   const { message } = App.useApp();
   const { total, entries } = useTodayWater();
   const weekly = useWeeklyWater();
@@ -34,33 +49,29 @@ export function WaterPage() {
   const { status, deltaMl } = computeStatus(optimistic, goal, wakeHour, windowH);
   const pct = Math.min(100, Math.round((optimistic / goal) * 100));
 
-  // Pull-to-refresh — feels native even though useLiveQuery already keeps
-  // data current. Small dopamine hit + confirms the local-first design.
   const pageRef = useRef<HTMLDivElement | null>(null);
   const { pullPx, refreshing, primed } = usePullToRefresh(pageRef, async () => {
-    // useLiveQuery is already reactive; just tick a state to force a
-    // visual refresh cycle. 400 ms delay reads as a "checked" beat.
     await new Promise((r) => setTimeout(r, 400));
     void hapticLight();
   });
+
+  // Once-a-day payoff: same bell as the rest-timer finish, unlike the quick
+  // adds which stay haptic-only since they fire many times an hour.
   const [showedGoalToast, setShowedGoalToast] = useState(false);
   useEffect(() => {
     if (optimistic >= goal && !showedGoalToast) {
       setShowedGoalToast(true);
-      // A once-a-day payoff moment — worth the same "impact" sound cue as
-      // rest-timer completion in Focus Mode, unlike the quick-add taps above
-      // which stay haptic-only since they can fire many times an hour.
       void hapticSuccess();
       playBellDing();
       message.success("Daily goal reached!");
     }
   }, [optimistic, goal, showedGoalToast, message]);
 
-  const banner = {
-    "done": { type: "success" as const, msg: "Goal smashed — nice work staying hydrated." },
-    "on-track": { type: "info" as const, msg: "On track. Keep sipping through the day." },
-    "behind": { type: "warning" as const, msg: `A bit behind — about ${Math.abs(deltaMl)} ml under where you should be by now.` },
-    "way-behind": { type: "error" as const, msg: `Way behind — you're ${Math.abs(deltaMl)} ml short. Drink up.` },
+  const pace = {
+    done: "Goal smashed — nice work staying hydrated.",
+    "on-track": "On track. Keep sipping through the day.",
+    behind: `About ${Math.abs(deltaMl)} ml under where you should be by now.`,
+    "way-behind": `${Math.abs(deltaMl)} ml short of pace. Drink up.`,
   }[status];
 
   async function log(ml: number) {
@@ -68,77 +79,96 @@ export function WaterPage() {
     await commit(ml, () => addWater(ml), "water entry");
   }
 
+  const hit = weekly.filter((d) => d.ml >= goal).length;
+  const avg = weekly.length ? weekly.reduce((s, d) => s + d.ml, 0) / weekly.length : 0;
+  const recent = [...entries].sort((a, b) => b.timestamp - a.timestamp).slice(0, 8);
+
   return (
     <PageTransition>
       <div ref={pageRef} style={{ position: "relative" }}>
-        {/* Pull-to-refresh visual */}
         {(pullPx > 0 || refreshing) && (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            height: Math.max(28, pullPx), color: "var(--ink-soft)", fontSize: 12,
-            gap: 6, transition: "height 0.15s ease-out",
-          }}>
-            <TbRefresh style={{ transform: `rotate(${primed || refreshing ? 180 : Math.round((pullPx / 70) * 180)}deg)`, transition: "transform 0.1s linear" }} />
+          <div className="wp-pull" style={{ height: Math.max(28, pullPx) }}>
+            <TbRefresh style={{ transform: `rotate(${primed || refreshing ? 180 : Math.round((pullPx / 70) * 180)}deg)` }} />
             <span>{refreshing ? "Refreshing…" : primed ? "Release to refresh" : "Pull down"}</span>
           </div>
         )}
         <SectionTitle eyebrow="Hydration" title="Water" />
 
-        <Card style={{ marginBottom: 16, textAlign: "center" }} styles={{ body: { padding: 24 } }}>
-          <Progress
-            type="dashboard" percent={pct} size={180} strokeColor={status === "done" ? t.teal : t.accent}
-            strokeWidth={10}
-            format={() => (
-              <div>
-                <div className="display" style={{ fontSize: 30, fontWeight: 800 }}>{(optimistic / 1000).toFixed(2)}L</div>
-                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>of {(goal / 1000).toFixed(1)}L{trained ? " (gym +)" : ""}</div>
-              </div>
-            )}
-          />
-        </Card>
+        <Hero color="var(--info)" color2="var(--info)" embers={false} className="wp-hero"
+          eyebrow="Today"
+          right={<span className="z-pill" style={{ "--c": STATUS[status].c } as CSSProperties}>{STATUS[status].label}</span>}>
+          <Liquid pct={pct} color={status === "done" ? "var(--success)" : "var(--info)"} reduced={reduced} min={4} />
+          <div className="wp-marks" aria-hidden>
+            {[0.75, 0.5, 0.25].map((f) => <span key={f} style={{ bottom: `${f * 100}%` }}>{((goal * f) / 1000).toFixed(1)}L</span>)}
+          </div>
+          <div className="wp-hero__body">
+            <div className="z-hero__big"><AnimatedNumber value={optimistic / 1000} decimals={2} /><small>L</small></div>
+            <div className="wp-hero__of">
+              of {(goal / 1000).toFixed(1)} L
+              {trained && bump > 0 && <span className="wp-bump"><TbBarbell size={12} /> +{(bump / 1000).toFixed(2).replace(/0$/, "")}L training day</span>}
+            </div>
+            <div className="wp-hero__pace">{pace}</div>
+          </div>
+          <div className="wp-quick">
+            {QUICK.map((ml) => (
+              <motion.button key={ml} type="button" whileTap={{ scale: 0.9 }} className="wp-quick__btn" onClick={() => log(ml)} aria-label={`Add ${ml} ml`}>
+                <TbPlus size={14} />{ml >= 1000 ? `${ml / 1000}L` : ml}
+              </motion.button>
+            ))}
+            <motion.button type="button" whileTap={{ scale: 0.9 }} className="wp-quick__btn wp-quick__undo" aria-label="Undo last water entry"
+              disabled={entries.length === 0}
+              onClick={async () => { await undoLastWater(); void hapticLight(); message.success("Last entry removed"); }}>
+              <TbArrowBackUp size={17} />
+            </motion.button>
+          </div>
+        </Hero>
 
-        <Alert type={banner.type} message={banner.msg} showIcon style={{ marginBottom: 16, borderRadius: 12 }} />
-
-        <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-          {QUICK.map((ml) => (
-            <Button key={ml} size="large" block icon={<TbPlus />} onClick={() => log(ml)} style={{ fontWeight: 700 }} aria-label={`Add ${ml} ml`}>
-              {ml}
-            </Button>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-          <SmartInputNumber placeholder="custom ml" value={custom} onChange={(v) => setCustom(v == null ? undefined : Number(v))} min={1} style={{ flex: 1 }} controls={false} aria-label="Custom water amount" />
-          <Button type="primary" onClick={() => { if (custom) { void log(custom); setCustom(undefined); } }}>Add</Button>
-          <Button
-            icon={<TbArrowBackUp />}
-            aria-label="Undo last water entry"
-            onClick={async () => { await undoLastWater(); void hapticLight(); message.success("Last entry removed"); }}
-          />
+        <div className="wp-custom">
+          <SmartInputNumber placeholder="Custom amount" value={custom} onChange={(v) => setCustom(v == null ? undefined : Number(v))}
+            min={1} max={5000} controls={false} suffix="ml" aria-label="Custom water amount" style={{ flex: 1 }} />
+          <button type="button" className="z-btn z-btn--solid" style={{ "--c": "var(--info)" } as CSSProperties} disabled={!custom}
+            onClick={() => { if (custom) { void log(custom); setCustom(undefined); } }}>
+            Add
+          </button>
         </div>
 
         {entries.length === 0 ? (
-          <EmptyState
-            icon={<ColdIcon glyph="droplet" size={80} />}
-            title="Nothing logged yet today"
-            hint="Tap one of the quick buttons above to log your first sip."
-            actionLabel="Add 500 ml"
-            onAction={() => void log(500)}
-          />
+          <EmptyState icon={<ColdIcon glyph="droplet" size={44} />} title="Nothing logged yet today"
+            hint="Tap a quick add above to log your first sip." actionLabel="Add 500 ml" onAction={() => void log(500)} />
         ) : (
-          <Card title="Last 7 days" size="small">
-            <div style={{ width: "100%", height: 150 }}>
-              <ResponsiveContainer>
-                <BarChart data={weekly} margin={{ top: 8, right: 4, left: 4, bottom: 0 }}>
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                  <Bar dataKey="ml" radius={[6, 6, 0, 0]}>
-                    {weekly.map((d, i) => (
-                      <Cell key={i} fill={d.ml >= goal ? t.teal : "rgba(150,150,170,0.35)"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+          <>
+            <div className="z-bento wp-stats">
+              <div className="z-tile" style={{ "--c": "var(--info)" } as CSSProperties}>
+                <div className="z-tile__head"><span className="z-ico z-ico--sm"><TbDroplet size={14} /></span>7-day average</div>
+                <div className="z-tile__big"><b>{(avg / 1000).toFixed(1)}</b><small>L / day</small></div>
+              </div>
+              <div className="z-tile" style={{ "--c": "var(--success)" } as CSSProperties}>
+                <div className="z-tile__head"><span className="z-ico z-ico--sm"><TbDroplet size={14} /></span>Goal hit</div>
+                <div className="z-tile__big"><b>{hit}</b><small>of 7 days</small></div>
+              </div>
             </div>
-          </Card>
+
+            <ListGroup title="Last 7 days">
+              <div className="wp-chart">
+                <ResponsiveContainer>
+                  <BarChart data={weekly} margin={{ top: 10, right: 6, left: 6, bottom: 0 }}>
+                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#8f8590" }} axisLine={false} tickLine={false} />
+                    <ReferenceLine y={goal} stroke={t.accent} strokeDasharray="4 4" strokeOpacity={0.5} />
+                    <Bar dataKey="ml" radius={[7, 7, 3, 3]} isAnimationActive={!reduced}>
+                      {weekly.map((d, i) => <Cell key={i} fill={d.ml >= goal ? t.teal : "rgba(110,162,255,0.45)"} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </ListGroup>
+
+            <ListGroup title="Today's log" right={<span>{entries.length} entries</span>}>
+              {recent.map((e) => (
+                <ListRow key={e.id} icon={<TbDroplet size={15} />} color="var(--info)" label={`${e.amountMl} ml`}
+                  value={new Date(e.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} />
+              ))}
+            </ListGroup>
+          </>
         )}
       </div>
     </PageTransition>
