@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import { hapticMedium } from "./haptics";
 import { playRockyFanfare } from "./audio";
 import { notify, isNativeNotifications, scheduleRestNotification, cancelRestNotification } from "./notifications";
@@ -131,4 +132,8 @@ export function getRestState(): RestTimerState { return state; }
 export function subscribeRest(l: Listener): () => void {
   listeners.add(l);
   return () => { listeners.delete(l); };
+}
+
+export function useRestTimer(): RestTimerState {
+  return useSyncExternalStore(subscribeRest, getRestState, getRestState);
 }

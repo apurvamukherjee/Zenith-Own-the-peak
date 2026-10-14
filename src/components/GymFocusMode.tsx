@@ -2,11 +2,10 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { motion, AnimatePresence } from "framer-motion";
 import { TbX, TbMinus, TbPlus, TbTrophy, TbArrowsRightLeft, TbArrowBackUp, TbLock, TbSkull, TbBoltFilled, TbFlameFilled, TbCheck } from "react-icons/tb";
 import { useBackClose } from "../hooks/useBackClose";
-import { useRestTimer } from "../hooks/useRestTimer";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { useLockScroll } from "../hooks/useLockScroll";
 import { useUsageValue, recordUsage } from "../hooks/useUsageHistory";
-import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
+import { pauseRest, resumeRest, skipRest, useRestTimer } from "../lib/restTimerStore";
 import { celebrate } from "../lib/celebrate";
 import { hapticLight, hapticMedium } from "../lib/haptics";
 import { unlockAudio, playTick } from "../lib/audio";

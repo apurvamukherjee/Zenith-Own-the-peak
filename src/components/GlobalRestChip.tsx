@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TbX, TbPlayerPauseFilled, TbPlayerPlayFilled } from "react-icons/tb";
-import { useRestTimer } from "../hooks/useRestTimer";
-import { pauseRest, resumeRest, skipRest } from "../lib/restTimerStore";
+import { pauseRest, resumeRest, skipRest, useRestTimer } from "../lib/restTimerStore";
 import { fmtMinSec } from "../lib/date.utils";
 import { RestRing } from "./RestRing";
 import { pressable } from "../lib/a11y";
