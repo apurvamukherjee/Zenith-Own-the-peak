@@ -215,7 +215,7 @@ html[data-motion="reduce"] .z-embers { display: none; }
 
 .z-appbar {
   display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px;
-  height: calc(52px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 10px 0;
+  height: 52px; padding: 0 10px;
   background: var(--nav-bg); transition: box-shadow 0.25s;
 }
 .z-appbar.is-scrolled { box-shadow: 0 1px 0 var(--border), 0 10px 24px -20px rgba(0, 0, 0, 0.8); }

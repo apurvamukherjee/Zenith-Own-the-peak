@@ -54,7 +54,11 @@
   --r-sm: 10px; --r-md: 14px; --r-lg: 18px;
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
   --tap: 44px;
-  --nav-offset: calc(84px + env(safe-area-inset-bottom, 0px));
+  /* Capacitor 8 injects --safe-area-inset-* on Android (edge-to-edge since
+     Android 15); env() covers iOS and browsers. */
+  --sat: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --sab: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --nav-offset: calc(84px + var(--sab));
   --col-half: 240px;
 }
 
@@ -340,6 +344,8 @@ h1, h2, h3, h4, .display {
   min-height: 100vh;
   min-height: 100dvh;
 }
+/* Every screen sits below the status bar, tab pages included. */
+.app-column { padding-top: var(--sat); }
 
 .hero-grad { background: var(--hero) !important; }
 .avatar-grad { background: var(--hero) !important; }
@@ -453,8 +459,8 @@ h1, h2, h3, h4, .display {
    ~62px + its own safe-area-bottom padding. Computed directly so it doesn't
    depend on ancestor flex/percentage cascades resolving correctly. */
 .tight-page {
-  height: calc(100vh - 48px - 62px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  height: calc(100dvh - 48px - 62px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  height: calc(100vh - 48px - 62px - var(--sat) - var(--sab));
+  height: calc(100dvh - 48px - 62px - var(--sat) - var(--sab));
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -591,7 +597,7 @@ html[data-contrast="high"] .text-ember {
 /* ---------- Floating glass dock ----------------------------------------- */
 .dock {
   position: fixed; left: 0; right: 0; margin: 0 auto; z-index: 10;
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(10px + var(--sab));
   width: min(calc(100% - 24px), 456px);
   transition: transform .25s cubic-bezier(.22,1,.36,1), opacity .2s ease;
 }
