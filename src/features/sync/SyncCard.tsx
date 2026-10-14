@@ -67,6 +67,7 @@ function SyncCardInner() {
         const r = await s.restore();
         if (r === "ok") message.success("Restored from cloud");
         else if (r === "empty") message.info("No cloud backup found yet");
+        else if (r === "busy") message.info("A backup is running — try again in a moment");
         else message.error("Restore failed");
       },
     });

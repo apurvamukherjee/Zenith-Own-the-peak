@@ -23,6 +23,7 @@ import { useXPEngine } from "../hooks/useXPEngine";
 import { unlockAudio } from "../lib/audio";
 import { convexConfigured } from "../lib/convexClient";
 import { GoogleCalendarSyncEngine } from "../features/googleCalendar/useGoogleCalendarSync";
+import { CloudSyncEngine } from "../features/sync/useSync";
 
 const DebugPanel = lazy(() => import("./DebugPanel").then((m) => ({ default: m.DebugPanel })));
 
@@ -86,6 +87,7 @@ export function AppShell() {
           Convex-dependent piece is, since main.tsx only mounts
           ConvexAuthProvider when configured. */}
       {convexConfigured && <GoogleCalendarSyncEngine />}
+      {convexConfigured && <CloudSyncEngine />}
       <PRCelebration />
       <PeakFlash triggerKey={eggs.peakFlash} />
       <BirthdayConfetti />

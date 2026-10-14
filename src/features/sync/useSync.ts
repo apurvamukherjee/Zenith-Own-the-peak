@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
 import { api } from "../../../convex/_generated/api";
@@ -13,6 +13,22 @@ import { ACHIEVEMENTS } from "../../lib/achievements";
 export { convexConfigured } from "../../lib/convexClient";
 
 type Status = "idle" | "syncing" | "error";
+
+// One status for the whole app: the background engine and whichever screen
+// shows the Sync card must agree on "syncing", and a second backup must never
+// start while one is in flight.
+let syncStatus: Status = "idle";
+const statusListeners = new Set<() => void>();
+function setSyncStatus(next: Status) {
+  syncStatus = next;
+  statusListeners.forEach((l) => l());
+}
+function subscribeStatus(l: () => void) {
+  statusListeners.add(l);
+  return () => { statusListeners.delete(l); };
+}
+const getStatus = () => syncStatus;
+const nextTick = () => new Promise<void>((r) => setTimeout(r, 0));
 
 // Snapshot sync: the whole local DB is stored as one file per user in Convex
 // file storage (see convex/backups.ts — a plain document field would risk
@@ -29,21 +45,13 @@ export function useSync() {
   const generateUploadUrl = useMutation(api.backups.generateUploadUrl);
   const saveBackup = useMutation(api.backups.saveBackup);
 
-  const [status, setStatus] = useState<Status>("idle");
-  const [lastBackupAt, setLastBackupAt] = useState<string | null>(null);
-  // Ticks on every successful backup so the UI can pulse "cloud saw the change".
-  const [lastBackupTick, setLastBackupTick] = useState(0);
+  const status = useSyncExternalStore(subscribeStatus, getStatus);
+  const lastBackupAt = backupRow ? new Date(backupRow.updatedAt).toISOString() : null;
   const autoBackup = useSetting("autoBackup");
-  const pushTimer = useRef<number | null>(null);
-  const hasSyncedThisSession = useRef(false);
-
-  useEffect(() => {
-    if (backupRow) setLastBackupAt(new Date(backupRow.updatedAt).toISOString());
-  }, [backupRow]);
 
   const backupNow = useCallback(async () => {
-    if (!isAuthenticated) return;
-    setStatus("syncing");
+    if (!isAuthenticated || getStatus() === "syncing") return;
+    setSyncStatus("syncing");
     try {
       // 1. Upload the full local export as a file (3-step Convex upload flow).
       const json = await exportAll();
@@ -56,8 +64,6 @@ export function useSync() {
       const { storageId } = await uploadRes.json();
       await saveBackup({ storageId });
 
-      setLastBackupAt(new Date().toISOString());
-      setLastBackupTick((t) => t + 1);
       // Lifetime counter (read-modify-write; drives the "Vault" achievement).
       const cur = await db.settings.get("backupCount");
       await setSetting("backupCount", Number(cur?.value ?? 0) + 1);
@@ -107,61 +113,38 @@ export function useSync() {
         badgeCount: allBadges.length,
       }).catch(() => {});
 
-      setStatus("idle");
+      // Our own settings writes above bump the mutation bus on a macrotask;
+      // let those land while we still read as "syncing" so the auto-backup
+      // listener can tell them from real edits.
+      await nextTick();
+      setSyncStatus("idle");
     } catch {
-      setStatus("error");
+      setSyncStatus("error");
     }
   }, [isAuthenticated, generateUploadUrl, saveBackup, ensureProfile, pushWeeklySnapshot]);
 
-  const restore = useCallback(async (): Promise<"ok" | "empty" | "error"> => {
+  const restore = useCallback(async (): Promise<"ok" | "empty" | "busy" | "error"> => {
     if (!isAuthenticated) return "error";
-    setStatus("syncing");
+    if (getStatus() === "syncing") return "busy";
+    if (!backupRow) return "empty";
+    setSyncStatus("syncing");
     try {
-      if (!backupRow) {
-        setStatus("idle");
-        return "empty";
-      }
       const res = await fetch(backupRow.url);
-      const json = await res.text();
-      await importAll(json);
-      setLastBackupAt(new Date(backupRow.updatedAt).toISOString());
-      setStatus("idle");
+      if (!res.ok) throw new Error(`Backup download failed: ${res.status}`);
+      await importAll(await res.text());
+      setSyncStatus("idle");
       return "ok";
     } catch {
-      setStatus("error");
+      setSyncStatus("error");
       return "error";
     }
   }, [isAuthenticated, backupRow]);
-
-  // First sync on sign-in: push immediately so profile/leaderboard/backup
-  // exist right away instead of waiting for the next local edit + debounce.
-  useEffect(() => {
-    if (!isAuthenticated || hasSyncedThisSession.current) return;
-    hasSyncedThisSession.current = true;
-    void backupNow();
-  }, [isAuthenticated, backupNow]);
-
-  // Auto-backup: debounce a push a few seconds after the last change.
-  useEffect(() => {
-    if (!isAuthenticated || Number(autoBackup) !== 1) return;
-    const off = onMutation(() => {
-      if (pushTimer.current) window.clearTimeout(pushTimer.current);
-      pushTimer.current = window.setTimeout(() => {
-        void backupNow();
-      }, 4000);
-    });
-    return () => {
-      off();
-      if (pushTimer.current) window.clearTimeout(pushTimer.current);
-    };
-  }, [isAuthenticated, autoBackup, backupNow]);
 
   return {
     isLoading,
     session: isAuthenticated && viewer ? { user: { id: viewer.id, email: viewer.email ?? "" } } : null,
     status,
     lastBackupAt,
-    lastBackupTick,
     autoBackup: Number(autoBackup) === 1,
     setAutoBackup: (v: boolean) => setSetting("autoBackup", v ? 1 : 0),
     backupNow,
@@ -178,4 +161,42 @@ function getMonday(d: Date): string {
   const diff = date.getDate() - day + (day === 0 ? -6 : 1);
   date.setDate(diff);
   return date.toISOString().slice(0, 10);
+}
+
+// Headless, mounted once in AppShell (behind convexConfigured): owns the
+// sign-in push and auto-backup so they run app-wide, not only while a screen
+// that happens to call useSync() is open.
+export function CloudSyncEngine() {
+  const { isAuthenticated } = useConvexAuth();
+  const { backupNow, autoBackup } = useSync();
+  const timer = useRef<number | null>(null);
+  const pushedForSession = useRef(false);
+
+  // Push right after sign-in so profile, leaderboard and backup exist
+  // without waiting for the next local edit.
+  useEffect(() => {
+    if (!isAuthenticated) { pushedForSession.current = false; return; }
+    if (pushedForSession.current) return;
+    pushedForSession.current = true;
+    void backupNow();
+  }, [isAuthenticated, backupNow]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !autoBackup) return;
+    const off = onMutation((table) => {
+      // backupNow's own writes (backupCount, shareCode) land in settings
+      // mid-backup; acting on them would re-upload forever.
+      // ponytail: a user settings edit made during those few seconds is also
+      // skipped until the next change; tag writes by source if that matters.
+      if (table === "settings" && getStatus() === "syncing") return;
+      if (timer.current) window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => { void backupNow(); }, 4000);
+    });
+    return () => {
+      off();
+      if (timer.current) window.clearTimeout(timer.current);
+    };
+  }, [isAuthenticated, autoBackup, backupNow]);
+
+  return null;
 }
