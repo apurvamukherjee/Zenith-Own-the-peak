@@ -252,6 +252,10 @@ html[data-motion="reduce"] .z-embers { display: none; }
 .z-empty__title { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 15px; font-weight: 800; color: var(--ink); }
 .z-empty__hint { max-width: 290px; font-size: 12.5px; line-height: 1.45; }
 
+.z-pill.is-good { --c: var(--success); }
+.z-pill.is-bad { --c: var(--danger); }
+.z-stat { min-height: 104px; }
+
 /* ---------- antd surfaces, reskinned ------------------------------------ */
 /* Doubled class beats antd's :where()-scoped single class without
    !important, so per-instance inline styles (hero gradients) still win. */
