@@ -1,0 +1,26 @@
+.hb2-hero__row { display: flex; align-items: center; gap: 16px; }
+.hb2-hero__count { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.hb2-hero__count small { font-size: 13px; color: var(--ink-soft); }
+.hb2-list { display: flex; flex-direction: column; gap: 10px; }
+.hb2-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px 10px 12px 12px; border-radius: 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 7%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--c) 18%, var(--border));
+  box-shadow: 0 12px 26px -22px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.3s, background 0.3s;
+}
+.hb2-card.is-done { border-color: color-mix(in srgb, var(--c) 45%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 16%, var(--surface)), var(--surface)); }
+.hb2-card__text { flex: 1; min-width: 0; }
+.hb2-card__chain { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 13.5px; color: var(--ink-soft); }
+.hb2-card__chain b { color: var(--ink); font-weight: 800; }
+.hb2-card__chain svg { color: var(--c); }
+.hb2-card__streak { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.hb2-card__streak svg { color: var(--gold); }
+.hb2-check {
+  position: relative; width: 46px; height: 46px; flex-shrink: 0; display: grid; place-items: center; border-radius: 15px; cursor: pointer;
+  color: #fff; background: transparent; border: 2px dashed color-mix(in srgb, var(--c) 55%, transparent);
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+.hb2-card.is-done .hb2-check { background: var(--c); border: 2px solid var(--c); box-shadow: 0 10px 22px -10px var(--c); }
+.hb2-burst { position: absolute; inset: 0; border-radius: inherit; border: 2px solid var(--c); pointer-events: none; }
+.hb2-del { width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--ink-soft); cursor: pointer; }

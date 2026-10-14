@@ -1,8 +1,11 @@
 import { useEffect } from "react";
-import { Progress } from "antd";
 import { motion } from "framer-motion";
-import { TbTrophy } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
+import { SectionTitle } from "../../components/SectionTitle";
+import { Hero } from "../../components/ui/Hero";
+import { Rings } from "../../components/ui/Rings";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+import "./hall.css";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { ColdIcon } from "../../components/ColdIcon";
 import { prettyDate } from "../../lib/date.utils";
@@ -95,8 +98,8 @@ function BadgeCard({ v, index }: { v: AchievementView; index: number }) {
           </div>
         ) : (
           <div>
-            <Progress percent={Math.round(ratio * 100)} showInfo={false} size="small" strokeColor={tier.ring} trailColor="var(--border)" />
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>{value}</div>
+            <div className="hf-bar"><i style={{ width: `${Math.round(ratio * 100)}%`, background: tier.ring }} /></div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 4 }}>{value}</div>
           </div>
         )}
       </div>
@@ -107,6 +110,7 @@ function BadgeCard({ v, index }: { v: AchievementView; index: number }) {
 export function HallOfFrame() {
   const { views, unlockedCount, total, ready } = useAchievements();
   const { totalXP, weekXP, level, next, progress: lvProgress } = useXP();
+  const reduced = useReducedMotion();
 
   useEffect(() => { void markAllSeen(); }, []);
 
@@ -114,51 +118,29 @@ export function HallOfFrame() {
 
   return (
     <PageTransition>
-      <div style={{ position: "relative", overflow: "hidden", borderRadius: 20, padding: "22px 18px", marginBottom: 18, background: "var(--hero)", color: "#fff" }}>
-        <div aria-hidden style={{ position: "absolute", top: -40, right: -30, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.10)", filter: "blur(6px)" }} />
-        <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 58, height: 58, borderRadius: 16, background: "rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <TbTrophy size={30} />
-          </div>
+      <SectionTitle eyebrow="Achievements" title="Hall of Frame" />
+      <Hero tone="ember" className="hf-hero" eyebrow="Conquered" right={<span className="hf-pill">{MYSTERY_COUNT} hidden</span>}>
+        <div className="hf-hero__row">
+          <Rings size={104} stroke={10} reduced={reduced} rings={[{ key: "a", pct, color: ["#ffffff", "#ffd76b"] }]}>
+            <span className="hf-hero__pct display">{pct}%</span>
+          </Rings>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.85 }}>Hall of Frame</div>
-            <div className="display" style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.05 }}>
-              <AnimatedNumber value={unlockedCount} /> <span style={{ opacity: 0.7, fontSize: 20 }}>/ {total}</span>
-            </div>
-            <div style={{ fontSize: 12.5, opacity: 0.9, marginTop: 2 }}>conquered · {pct}% · {MYSTERY_COUNT} hidden</div>
+            <div className="z-hero__big"><AnimatedNumber value={unlockedCount} /><small>/ {total}</small></div>
+            <div className="z-hero__sub">badges earned across {GROUP_ORDER.length} groups</div>
           </div>
         </div>
-        <div style={{ marginTop: 14 }}>
-          <Progress percent={pct} showInfo={false} strokeColor="#fff" trailColor="rgba(255,255,255,0.22)" />
-        </div>
-
-        {/* XP + Level section */}
-        <div style={{ marginTop: 16, padding: "12px 14px", background: "rgba(0,0,0,0.25)", borderRadius: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <div>
-              <span style={{ fontFamily: '"Cinzel", serif', fontWeight: 800, fontSize: 16, letterSpacing: "0.06em" }}>
-                Lv.{level.level} — {level.name}
-              </span>
-              {next && (
-                <span style={{ fontSize: 12, opacity: 0.65, marginLeft: 8 }}>→ {next.name}</span>
-              )}
-            </div>
-            <div style={{ textAlign: "right", fontSize: 12, opacity: 0.8 }}>
-              <div style={{ fontWeight: 700 }}>{totalXP.toLocaleString()} XP</div>
-              <div style={{ opacity: 0.65 }}>+{weekXP} this week</div>
-            </div>
+        <div className="hf-level">
+          <div className="hf-level__top">
+            <span className="hf-level__name">Lv.{level.level} — {level.name}{next && <em> → {next.name}</em>}</span>
+            <span className="hf-level__xp"><b>{totalXP.toLocaleString()} XP</b> +{weekXP} this week</span>
           </div>
           {next && (
-            <div style={{ height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 2, overflow: "hidden" }}>
-              <div style={{
-                height: "100%", background: "#fff", borderRadius: 2,
-                width: `${Math.round(lvProgress * 100)}%`,
-                transition: "width 800ms cubic-bezier(0.22,1,0.36,1)",
-              }} />
+            <div className="hf-level__bar">
+              <motion.i initial={reduced ? false : { width: 0 }} animate={{ width: `${Math.round(lvProgress * 100)}%` }} transition={{ type: "spring", stiffness: 60, damping: 16, delay: 0.3 }} />
             </div>
           )}
         </div>
-      </div>
+      </Hero>
 
       {!ready && (
         <div style={{ textAlign: "center", color: "var(--ink-soft)", fontSize: 13, padding: 20 }}>Tallying the damage…</div>
@@ -169,12 +151,9 @@ export function HallOfFrame() {
         if (!inGroup.length) return null;
         const won = inGroup.filter((v) => v.unlocked).length;
         return (
-          <div key={group} style={{ marginBottom: 22 }}>
-            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
-              <h3 className="display" style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>{GROUP_LABEL[group]}</h3>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>{won}/{inGroup.length}</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div key={group}>
+            <div className="z-list-title"><span>{GROUP_LABEL[group]}</span><span>{won}/{inGroup.length}</span></div>
+            <div className="hf-grid">
               {inGroup.map((v, i) => <BadgeCard key={v.def.id} v={v} index={i} />)}
             </div>
           </div>

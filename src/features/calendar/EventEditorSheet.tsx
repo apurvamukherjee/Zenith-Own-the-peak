@@ -345,7 +345,7 @@ export function EventEditorSheet({ open, onClose, task, defaultDate, defaultTime
             <button key={p.value} onClick={() => setPriority(p.value)} style={{
               flex: 1, padding: "10px 0", borderRadius: 12, fontSize: 12, fontWeight: 700,
               border: `1px solid ${priority === p.value ? p.color : "var(--border)"}`,
-              background: priority === p.value ? `${p.color}18` : "var(--surface)",
+              background: priority === p.value ? `color-mix(in srgb, ${p.color} 14%, transparent)` : "var(--surface)",
               color: priority === p.value ? p.color : "var(--ink)", cursor: "pointer",
             }}>
               {p.label}

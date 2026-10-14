@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import "./index.css";
+import "./components/ui/ui.css";
 import App from "./App";
 import { convexClient } from "./lib/convexClient";
 import { initStatusBar } from "./lib/nativeShell";

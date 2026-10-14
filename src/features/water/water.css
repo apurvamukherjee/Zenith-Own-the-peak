@@ -1,0 +1,32 @@
+.wp-pull { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--ink-soft); transition: height 0.15s ease-out; }
+.wp-pull svg { transition: transform 0.1s linear; }
+
+.wp-hero { min-height: 330px; display: flex; flex-direction: column; }
+.wp-hero__body { position: relative; margin-top: 18px; }
+.wp-hero__body .z-hero__big { font-size: 58px; }
+.wp-hero__of { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--ink-soft); }
+.wp-bump { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; color: var(--accent); background: var(--ember-inner); }
+.wp-hero__pace { margin-top: 10px; max-width: 70%; font-size: 13px; line-height: 1.45; color: var(--ink); opacity: 0.85; }
+
+.wp-marks { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+.wp-marks span {
+  position: absolute; right: 0; width: 30%; height: 0; padding-right: 14px; text-align: right; line-height: 16px;
+  border-top: 1px dashed color-mix(in srgb, var(--ink) 18%, transparent);
+  font-size: 10px; font-weight: 700; color: var(--ink-soft); opacity: 0.75;
+}
+
+.wp-quick { position: relative; display: flex; gap: 8px; margin-top: auto; padding-top: 22px; }
+.wp-quick__btn {
+  flex: 1; min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+  border-radius: 16px; cursor: pointer; font: inherit; font-size: 15px; font-weight: 800; color: var(--ink);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.wp-quick__undo { flex: 0 0 50px; color: var(--ink-soft); }
+.wp-quick__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.wp-custom { display: flex; gap: 8px; margin-top: 12px; }
+.wp-custom .z-btn { min-height: 48px; padding: 0 22px; }
+.wp-stats { margin-top: 14px; }
+.wp-chart { height: 170px; padding: 8px 8px 4px; }

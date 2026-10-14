@@ -4,7 +4,7 @@ import { Card, Button, Tag, App } from "antd";
 import { TbCalendarEvent, TbBrandGoogle, TbRefresh } from "react-icons/tb";
 import dayjs from "dayjs";
 import { convexConfigured } from "../../lib/convexClient";
-import { useSync } from "../sync/useSync";
+import { useConvexAuth } from "convex/react";
 import { useGoogleCalendarSync } from "./useGoogleCalendarSync";
 
 // Two-way Google Calendar sync. Requires Cloud sync (Convex + signed in)
@@ -16,8 +16,9 @@ export function GoogleCalendarCard() {
 }
 
 function GoogleCalendarCardInner() {
-  const s = useSync();
-  if (!s.session) {
+  // Not useSync(): every instance of it fires its own sign-in backup push.
+  const { isAuthenticated } = useConvexAuth();
+  if (!isAuthenticated) {
     return (
       <Card size="small" style={{ marginBottom: 12 }}
         title={<span><TbCalendarEvent style={{ verticalAlign: "-2px" }} /> Google Calendar</span>}>

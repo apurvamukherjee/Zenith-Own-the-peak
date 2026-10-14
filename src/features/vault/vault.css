@@ -1,0 +1,6 @@
+.vt-hero__row { display: flex; align-items: center; gap: 14px; }
+.vt-shelf {
+  display: flex; flex-wrap: wrap; gap: 16px; padding: 16px 14px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 12px 26px -24px rgba(0, 0, 0, 0.7);
+}
+.vt-shelf--chips { gap: 8px; }

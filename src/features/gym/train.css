@@ -1,0 +1,15 @@
+.tr-hero { margin-bottom: 2px; }
+.tr-hero__content { position: relative; z-index: 1; }
+.tr-hero__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.tr-hero__quote { width: 36px; height: 36px; margin: -6px -6px -6px 0; display: grid; place-items: center; border-radius: 12px; color: inherit; background: rgba(255, 255, 255, 0.12); }
+.z-hero:not(.z-hero--ember) .tr-hero__quote { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.tr-hero__row { display: flex; align-items: center; gap: 14px; }
+.tr-hero__row .z-hero__title { font-size: 28px; }
+.tr-hero__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.tr-chip { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.2); }
+.tr-hero__pct { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.tr-hero__bar { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.tr-hero__all { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 12px; border: 0; border-radius: 999px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 800; color: #1a0509; background: #fff; }
+
+.pl-hero__row { display: flex; align-items: center; gap: 12px; }
+.pl-hero__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }

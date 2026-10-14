@@ -5,6 +5,8 @@ import { SmartInputNumber } from "../../components/SmartInputNumber";
 import { motion } from "framer-motion";
 import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbBolt } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
+import { SectionTitle } from "../../components/SectionTitle";
+import "./quick.css";
 import { addWater } from "../water/useWater";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 import { useSetting } from "../../hooks/useSettings";
@@ -63,15 +65,7 @@ export function QuickLogPage() {
 
   return (
     <PageTransition>
-      <div style={{ textAlign: "center", marginBottom: 12 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <TbBolt size={22} style={{ color: "var(--accent)" }} />
-          <span className="display" style={{ fontSize: 24, fontWeight: 800 }}>Quick log</span>
-        </div>
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
-          Two taps. Nothing else.
-        </div>
-      </div>
+      <SectionTitle eyebrow="Two taps. Nothing else." title="Quick log" right={<TbBolt size={26} style={{ color: "var(--accent)" }} />} />
 
       <div style={{
         display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12,
@@ -86,22 +80,10 @@ export function QuickLogPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.04 }}
             whileTap={{ scale: 0.96 }}
-            style={{
-              aspectRatio: "1 / 1",
-              minHeight: 140,
-              padding: 18,
-              borderRadius: 22,
-              border: "1px solid var(--border)",
-              background: a.grad,
-              color: "#fff",
-              display: "flex", flexDirection: "column",
-              alignItems: "flex-start", justifyContent: "space-between",
-              cursor: "pointer",
-              boxShadow: "0 8px 26px rgba(0,0,0,0.28)",
-              textAlign: "left",
-            }}
+            className="ql-tile"
+            style={{ background: a.grad }}
           >
-            <a.icon size={34} />
+            <span className="ql-tile__icon"><a.icon size={28} /></span>
             <div style={{ marginTop: "auto" }}>
               <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.3 }}>{a.label}</div>
               <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}>{a.hint}</div>
@@ -110,9 +92,6 @@ export function QuickLogPage() {
         ))}
       </div>
 
-      <div style={{ textAlign: "center", marginTop: 14 }}>
-        <Button type="link" onClick={() => navigate("/")}>← Back to dashboard</Button>
-      </div>
 
       <Modal
         open={waterOpen}

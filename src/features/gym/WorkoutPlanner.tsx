@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Card, Button, Modal, Input, Select, Tag, App, Segmented, Alert } from "antd";
+import { Card, Button, Modal, Input, Select, Tag, App, Segmented, Alert, Popconfirm } from "antd";
 import { SmartInputNumber } from "../../components/SmartInputNumber";
 import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell, TbLink, TbLinkOff, TbTrendingUp, TbSwitch3, TbRefresh, TbMoon } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
+import { Hero } from "../../components/ui/Hero";
+import "./train.css";
 import { CoachMark } from "../../components/CoachMark";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
@@ -29,36 +31,25 @@ function PlanHeroCard({ onOpenSwitcher }: { onOpenSwitcher: () => void }) {
   const days = useWorkoutDays();
 
   return (
-    <div style={{
-      borderRadius: 18, padding: "16px 18px", marginBottom: 16,
-      background: "linear-gradient(135deg, rgba(255,39,64,0.18), rgba(0,0,0,0.35))",
-      border: "1px solid var(--accent)", position: "relative", overflow: "hidden",
-    }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+    <Hero eyebrow="Active plan" className="pl-hero" style={{ marginBottom: 16 }}
+      right={plan?.isBuiltIn === 1 ? <span className="z-pill">Built-in</span> : undefined}>
+      <div className="pl-hero__row">
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
-            Active plan
-          </div>
-          <div className="display" style={{ fontSize: 22, fontWeight: 800, margin: "2px 0 4px", display: "flex", alignItems: "center", gap: 8 }}>
-            {plan?.name ?? "—"}
-            {plan?.isBuiltIn === 1 && <Tag style={{ borderRadius: 6, fontSize: 12, margin: 0 }}>Built-in</Tag>}
-          </div>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-            {days.length} day{days.length === 1 ? "" : "s"} · {plan ? planExerciseCount(plan) : 0} exercises
-          </div>
+          <div className="z-hero__title">{plan?.name ?? "—"}</div>
+          <div className="z-hero__sub">{days.length} day{days.length === 1 ? "" : "s"} · {plan ? planExerciseCount(plan) : 0} exercises</div>
         </div>
-        <TbBarbell size={34} style={{ color: "var(--accent)", opacity: 0.5, flexShrink: 0 }} />
+        <span className="z-ico z-ico--lg"><TbBarbell size={24} /></span>
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <Button type="primary" icon={<TbSwitch3 />} onClick={onOpenSwitcher}>Switch plan</Button>
+      <div className="pl-hero__actions">
+        <button type="button" className="z-btn z-btn--solid" onClick={onOpenSwitcher}><TbSwitch3 size={16} /> Switch plan</button>
         {plan?.isBuiltIn === 1 && (
-          <Button icon={<TbRefresh />} onClick={async () => {
-            await resetBuiltInPlan(plan.id!);
-            message.success(`"${plan.name}" reset to default`);
-          }}>Reset to default</Button>
+          <Popconfirm title="Reset to the default plan?" description="Your edits to this built-in plan are replaced." okText="Reset" okButtonProps={{ danger: true }}
+            onConfirm={async () => { await resetBuiltInPlan(plan.id!); message.success(`"${plan.name}" reset to default`); }}>
+            <button type="button" className="z-btn"><TbRefresh size={16} /> Reset to default</button>
+          </Popconfirm>
         )}
       </div>
-    </div>
+    </Hero>
   );
 }
 const ALL_MUSCLES: MuscleGroup[] = ["chest", "back", "shoulders", "biceps", "triceps", "quads", "hamstrings", "glutes", "calves", "abs", "forearms", "traps"];

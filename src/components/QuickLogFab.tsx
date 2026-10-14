@@ -116,7 +116,7 @@ export function QuickLogFab() {
                     onClick={() => handlePick(a.key)}
                     style={{ background: "none", border: "none", cursor: "pointer", padding: 8,
                       display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 14, background: `${a.color}18`,
+                    <div style={{ width: 48, height: 48, borderRadius: 14, background: `color-mix(in srgb, ${a.color} 14%, transparent)`,
                       display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <a.icon size={22} style={{ color: a.color }} />
                     </div>

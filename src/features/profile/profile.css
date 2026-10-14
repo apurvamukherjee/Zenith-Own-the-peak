@@ -1,0 +1,35 @@
+.pf-id { display: flex; align-items: center; gap: 14px; }
+.pf-id__name { font-size: 22px; font-weight: 800; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-id__title { margin-top: 2px; font-size: 12.5px; color: var(--ink-soft); }
+.pf-xp { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 10.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pf-xp span { flex: 1; height: 4px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.pf-xp i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--gold)); }
+.pf-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.pf-chips > div {
+  display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 6px; padding: 9px 10px; border-radius: 14px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.pf-chips b { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pf-chips small { grid-column: 1 / -1; font-size: 10.5px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.pf-tile { min-height: 100px; }
+.pf-insight { font-size: 13px; font-weight: 500; line-height: 1.45; }
+.pf-cards { display: flex; flex-direction: column; margin-top: 16px; }
+.pf-cards > * { margin-bottom: 12px !important; }
+.pf-link { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--accent); }
+.pf-bw { padding: 14px; }
+.pf-bw__stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pf-bw__stats small { display: block; font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+.pf-bw__stats b { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pf-bw__stats em { font-style: normal; font-size: 12px; color: var(--ink-soft); }
+.pf-bw__chart { height: 130px; margin-top: 10px; }
+.pf-muted { margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); }
+
+.pf-modules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pf-module.is-wide { grid-column: 1 / -1; }
+.pf-module__bar { height: 4px; margin-top: 10px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--c) 14%, transparent); }
+.pf-module__bar i { display: block; height: 100%; border-radius: inherit; background: var(--c); }
+.pf-module__stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; margin: 10px 0 0; }
+.pf-module.is-wide .pf-module__stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pf-module__stats dt { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); }
+.pf-module__stats dd { margin: 1px 0 0; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }

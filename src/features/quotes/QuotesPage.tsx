@@ -6,6 +6,8 @@ import {
   TbArrowsShuffle, TbBarbell, TbBook2, TbSparkles,
 } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
+import { SectionTitle } from "../../components/SectionTitle";
+import { EmptyState } from "../../components/EmptyState";
 import type { QuoteCategory, QuoteDto } from "../../db/types";
 import { useQuotes, addQuote, updateQuote, deleteQuote, toggleFavorite, pickRandomIndex } from "./useQuotes";
 import { hapticLight } from "../../lib/haptics";
@@ -43,10 +45,8 @@ export function QuotesPage() {
 
   return (
     <PageTransition>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <h2 className="display" style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>Motivation</h2>
-        <Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>Add</Button>
-      </div>
+      <SectionTitle eyebrow="Fuel for the mind" title="Motivation"
+        right={<button type="button" className="z-btn z-btn--solid" onClick={() => setAddOpen(true)}><TbPlus size={16} /> Add</button>} />
 
       <Segmented
         block
@@ -62,15 +62,9 @@ export function QuotesPage() {
       />
 
       {quotes.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 20px" }}>
-          <TbQuote size={56} style={{ color: "var(--accent)", opacity: 0.5, marginBottom: 12 }} />
-          <div style={{ fontWeight: 700, marginBottom: 6 }}>No quotes yet</div>
-          <div style={{ color: "var(--ink-soft)", fontSize: 13, marginBottom: 18 }}>
-            Write down what pushes you — a line from a coach, a book, or your own words.
-            Read it back anytime you need it, mid-set or mid-doubt.
-          </div>
-          <Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>Write your first quote</Button>
-        </div>
+        <EmptyState icon={<TbQuote size={40} />} title="No quotes yet"
+          hint="Write down what pushes you — a line from a coach, a book, or your own words. Read it back mid-set or mid-doubt."
+          actionLabel="Write your first quote" onAction={() => setAddOpen(true)} />
       ) : (
         <>
           {/* Card deck */}
@@ -92,9 +86,10 @@ export function QuotesPage() {
                   exit={{ opacity: 0, x: dir > 0 ? -60 : 60 }}
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   style={{
-                    position: "absolute", inset: 0,
-                    background: "var(--surface)", borderRadius: 24,
-                    border: `1px solid var(--border)`,
+                    position: "absolute", inset: 0, borderRadius: 28,
+                    background: `radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, ${CATEGORY_META[current.category].color} 16%, transparent), transparent 60%), linear-gradient(180deg, var(--surface-2), var(--surface))`,
+                    border: `1px solid color-mix(in srgb, ${CATEGORY_META[current.category].color} 22%, var(--border))`,
+                    boxShadow: "0 28px 54px -32px rgba(0,0,0,0.8)",
                     padding: "36px 28px", display: "flex", flexDirection: "column",
                     justifyContent: "center", overflow: "hidden", cursor: "grab",
                   }}
@@ -109,7 +104,7 @@ export function QuotesPage() {
                   <div style={{
                     display: "inline-flex", alignItems: "center", gap: 5,
                     alignSelf: "flex-start", padding: "4px 10px", borderRadius: 8,
-                    background: `${CATEGORY_META[current.category].color}18`,
+                    background: `color-mix(in srgb, ${CATEGORY_META[current.category].color} 14%, transparent)`,
                     color: CATEGORY_META[current.category].color,
                     fontSize: 12, fontWeight: 700, marginBottom: 18, zIndex: 1,
                   }}>

@@ -26,6 +26,20 @@ export async function deleteHabit(id: number) {
   await db.habitLogs.where("habitId").equals(id).delete();
 }
 
+// Every active habit with today's done flag — one query for list surfaces
+// (Home tile, Habits hero) instead of a per-habit live query each.
+export function useHabitsToday() {
+  const date = todayKey();
+  return useLiveQuery(async () => {
+    const [habits, logs] = await Promise.all([
+      db.habits.where("active").equals(1).sortBy("order"),
+      db.habitLogs.where("date").equals(date).toArray(),
+    ]);
+    const done = new Set(logs.map((l) => l.habitId));
+    return habits.map((h) => ({ ...h, done: done.has(h.id!) }));
+  }, [date]);
+}
+
 // Live "done today" flag for one habit.
 export function useHabitDoneToday(habitId?: number) {
   const today = todayKey();

@@ -1,0 +1,286 @@
+/* Zenith UI kit — the surface language Home introduced, shared by every page.
+   Animations are transform/opacity only; ambient glows are radial gradients,
+   never filter:blur, so long sessions on low-end Android WebViews stay cool. */
+
+/* ---------- Icon chip --------------------------------------------------- */
+/* Tint comes from an inherited/inline --c so a parent card can theme it. */
+.z-ico {
+  width: 32px; height: 32px; border-radius: 11px; flex-shrink: 0;
+  display: inline-grid; place-items: center; color: var(--c, var(--accent));
+  background: color-mix(in srgb, var(--c, var(--accent)) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 28%, transparent);
+}
+.z-ico--sm { width: 27px; height: 27px; border-radius: 9px; }
+.z-ico--lg { width: 44px; height: 44px; border-radius: 15px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 32%, transparent), 0 8px 20px -10px var(--c, var(--accent)); }
+.z-ico--solid { color: #fff; background: var(--c, var(--accent)); box-shadow: 0 6px 14px -8px var(--c, var(--accent)); }
+
+/* ---------- Buttons ----------------------------------------------------- */
+.z-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 16px;
+  border-radius: 13px; font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 7%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 11%, transparent);
+  transition: transform 0.14s cubic-bezier(.22, 1, .36, 1), background 0.15s, opacity 0.15s;
+  -webkit-tap-highlight-color: transparent; text-decoration: none; white-space: nowrap;
+}
+.z-btn:active { transform: scale(0.95); }
+.z-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+/* --bg as label color reads on every tone in both themes: near-black on the
+   bright dark-mode tones, near-white on the deeper light-mode ones. */
+.z-btn--solid { background: var(--c, var(--accent)); color: var(--bg); border-color: transparent; box-shadow: 0 10px 20px -12px var(--c, var(--accent)); }
+.z-btn--ghost { background: transparent; border-color: transparent; }
+.z-btn--block { width: 100%; }
+.z-btn--danger { --c: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); border-color: color-mix(in srgb, var(--danger) 25%, transparent); }
+
+/* ---------- Hero card --------------------------------------------------- */
+.z-hero {
+  position: relative; overflow: hidden; isolation: isolate;
+  border-radius: 28px; padding: 16px;
+  background:
+    radial-gradient(130% 100% at 0% 0%, color-mix(in srgb, var(--hc, var(--accent)) 13%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent),
+    0 28px 54px -32px rgba(0, 0, 0, 0.8),
+    0 6px 22px -14px var(--ember-glow);
+}
+/* The red training-card variant: brand gradient, white ink in both themes. */
+.z-hero--ember {
+  color: #fff; background: var(--hero);
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 24px 48px -24px rgba(0, 0, 0, 0.75), 0 6px 20px -10px var(--ember-glow);
+}
+.z-hero--ember .z-hero__sub, .z-hero--ember .gothic-eyebrow { color: rgba(255, 255, 255, 0.75); }
+.z-hero__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.z-hero__title { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 26px; font-weight: 800; line-height: 1.1; letter-spacing: -0.015em; margin: 2px 0 0; }
+.z-hero__sub { font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; margin-top: 3px; }
+.z-hero__big { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+.z-hero__big small { font-size: 14px; font-weight: 700; letter-spacing: 0; color: var(--ink-soft); margin-left: 3px; }
+.z-hero--ember .z-hero__big small { color: rgba(255, 255, 255, 0.72); }
+
+.z-aura { position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; will-change: transform; }
+.z-aura--a {
+  width: 280px; height: 280px; left: -110px; top: -130px; opacity: 0.32;
+  background: radial-gradient(circle, var(--hc, var(--accent)) 0%, transparent 65%);
+  animation: z-drift-a 16s ease-in-out infinite alternate;
+}
+.z-aura--b {
+  width: 240px; height: 240px; right: -90px; bottom: -120px; opacity: 0.16;
+  background: radial-gradient(circle, var(--hc2, var(--gold)) 0%, transparent 65%);
+  animation: z-drift-b 21s ease-in-out infinite alternate;
+}
+.z-hero--ember .z-aura--a { opacity: 0.22; background: radial-gradient(circle, #ff6b3d 0%, transparent 65%); }
+:root:not([data-theme="dark"]) .z-hero:not(.z-hero--ember) .z-aura--a { opacity: 0.14; }
+:root:not([data-theme="dark"]) .z-hero:not(.z-hero--ember) .z-aura--b { opacity: 0.1; }
+@keyframes z-drift-a { to { transform: translate(70px, 40px) scale(1.15); } }
+@keyframes z-drift-b { to { transform: translate(-60px, -30px) scale(1.2); } }
+
+.z-embers { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.z-embers span {
+  position: absolute; bottom: -6px; border-radius: 50%; opacity: 0;
+  background: var(--hc, var(--accent)); box-shadow: 0 0 6px 1px var(--ember-glow);
+  animation: z-rise-ember linear infinite;
+}
+.z-hero--ember .z-embers span { background: #fff; box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.6); }
+:root:not([data-theme="dark"]) .z-hero:not(.z-hero--ember) .z-embers span { box-shadow: none; }
+@keyframes z-rise-ember {
+  0% { transform: translate(0, 0); opacity: 0; }
+  12% { opacity: 0.85; }
+  70% { opacity: 0.4; }
+  100% { transform: translate(16px, -300px); opacity: 0; }
+}
+
+/* ---------- Bento tile -------------------------------------------------- */
+.z-tile {
+  position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; min-width: 0;
+  padding: 12px; border-radius: 22px; background: var(--surface); border: 1px solid var(--border); color: inherit;
+  box-shadow: 0 12px 26px -22px rgba(0, 0, 0, 0.7);
+}
+.z-tile--press { cursor: pointer; transition: transform 0.16s cubic-bezier(.22, 1, .36, 1); }
+.z-tile--press:active { transform: scale(0.97); }
+.z-tile__head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.z-tile__big { margin-top: auto; padding-top: 10px; display: flex; align-items: baseline; gap: 4px; min-width: 0; }
+.z-tile__big b { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 25px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.z-tile__big small { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.z-tile__foot { display: flex; align-items: center; gap: 4px; margin-top: 7px; font-size: 11px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.z-bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.z-bento--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* ---------- Grouped list (settings-style) ------------------------------- */
+.z-list-title {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin: 20px 6px 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft);
+}
+.z-list-title:first-child { margin-top: 4px; }
+.z-list {
+  border-radius: 20px; overflow: hidden; background: var(--surface); border: 1px solid var(--border);
+  box-shadow: 0 12px 26px -24px rgba(0, 0, 0, 0.7);
+}
+.z-list-foot { margin: 7px 8px 0; font-size: 11.5px; line-height: 1.45; color: var(--ink-soft); }
+.z-row {
+  position: relative; display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 14px;
+  background: none; border: 0; text-align: left; font: inherit; color: inherit; text-decoration: none;
+  -webkit-tap-highlight-color: transparent; transition: background 0.15s;
+}
+.z-list > * { position: relative; }
+.z-list > * + *::before { content: ""; position: absolute; z-index: 1; top: 0; left: 58px; right: 0; height: 1px; background: var(--border); pointer-events: none; }
+.z-list > .z-row--noicon + *::before, .z-list > * + .z-row--noicon::before { left: 14px; }
+a.z-row, button.z-row, .z-row[role="button"] { cursor: pointer; }
+a.z-row:active, button.z-row:active, .z-row[role="button"]:active { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.z-row:hover { color: inherit; }
+.z-row__text { flex: 1; min-width: 0; }
+.z-row__label { font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+.z-row__hint { margin-top: 1px; font-size: 12px; line-height: 1.38; color: var(--ink-soft); }
+.z-row__value { max-width: 48%; font-size: 13px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+.z-row__chev { flex-shrink: 0; color: var(--ink-soft); opacity: 0.5; }
+.z-row--danger .z-row__label { color: var(--danger); }
+[data-row].is-flash { animation: z-flash 1.8s ease-out; border-radius: 14px; }
+@keyframes z-flash { 0%, 35% { background: color-mix(in srgb, var(--accent) 20%, transparent); } 100% { background: transparent; } }
+.z-row__body { padding: 0 14px 14px 58px; }
+
+/* ---------- Pills & stat chips ------------------------------------------ */
+.z-pill {
+  --c: var(--ink-soft);
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+  font-size: 11px; font-weight: 700; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent);
+}
+
+/* ---------- Page entrance ----------------------------------------------- */
+/* Direct children rise in sequence. `backwards` fill so nothing keeps a
+   transform afterwards — sticky headers and fixed descendants stay intact. */
+.z-stagger > * { animation: z-rise 0.5s cubic-bezier(.22, 1, .36, 1) backwards; }
+.z-stagger > *:nth-child(2) { animation-delay: 0.05s; }
+.z-stagger > *:nth-child(3) { animation-delay: 0.1s; }
+.z-stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.z-stagger > *:nth-child(5) { animation-delay: 0.2s; }
+.z-stagger > *:nth-child(6) { animation-delay: 0.25s; }
+.z-stagger > *:nth-child(n+7) { animation-delay: 0.3s; }
+@keyframes z-rise { from { opacity: 0; transform: translateY(14px); } }
+
+/* ---------- Rings ------------------------------------------------------- */
+.z-rings { position: relative; flex-shrink: 0; }
+.z-rings__center {
+  position: absolute; inset: 0; pointer-events: none; text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.z-ring-done { animation: z-breathe 2.6s ease-in-out infinite; }
+@keyframes z-breathe { 50% { opacity: 0.6; } }
+
+/* ---------- Liquid ------------------------------------------------------ */
+.z-liquid {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: -1;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--liq) 40%, transparent), color-mix(in srgb, var(--liq) 18%, transparent));
+  transition: height 1.2s cubic-bezier(.22, 1, .36, 1);
+}
+.z-wave { position: absolute; left: 0; bottom: calc(100% - 1px); width: 200%; height: 14px; animation: z-wave 6s linear infinite; }
+.z-wave path { fill: color-mix(in srgb, var(--liq) 40%, transparent); }
+.z-wave--back { height: 18px; opacity: 0.5; animation-duration: 9.5s; animation-direction: reverse; }
+.z-wave.is-still { animation: none; }
+@keyframes z-wave { to { transform: translateX(-50%); } }
+.z-bubbles { position: absolute; inset: 0; overflow: hidden; }
+.z-bubbles i {
+  position: absolute; bottom: 4px; width: 6px; height: 6px; border-radius: 50%; opacity: 0;
+  border: 1px solid color-mix(in srgb, #fff 60%, transparent); animation: z-bubble 4.5s ease-in infinite;
+}
+.z-bubbles i:nth-child(1) { left: 18%; }
+.z-bubbles i:nth-child(2) { left: 42%; width: 4px; height: 4px; animation-delay: 1.4s; }
+.z-bubbles i:nth-child(3) { left: 66%; animation-delay: 2.6s; }
+.z-bubbles i:nth-child(4) { left: 84%; width: 4px; height: 4px; animation-delay: 3.5s; }
+@keyframes z-bubble { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-120px); opacity: 0; } }
+
+/* ---------- Motion preferences ------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .z-aura, .z-embers span, .z-ring-done, .z-stagger > *, .z-wave, .z-bubbles i { animation: none !important; }
+}
+html[data-motion="reduce"] .z-aura, html[data-motion="reduce"] .z-embers, html[data-motion="reduce"] .z-wave,
+html[data-motion="reduce"] .z-bubbles, html[data-motion="reduce"] .z-ring-done, html[data-motion="reduce"] .z-stagger > * { animation: none !important; }
+html[data-motion="reduce"] .z-embers { display: none; }
+
+/* ---------- Page chrome ------------------------------------------------- */
+.z-page { padding: 4px 16px 24px; }
+.z-section-title {
+  position: sticky; top: 0; z-index: 5; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  margin-bottom: 14px; padding: 6px 0 10px;
+  background: linear-gradient(var(--section-title-bg) 75%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+  -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent);
+}
+/* Full-bleed inside the standard page gutter only, where the math is known. */
+.z-page > .z-section-title { margin-inline: -16px; padding-inline: 16px; }
+.z-section-title h2 { margin: 2px 0 0; font-size: 28px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.z-section-title__eyebrow { display: flex; align-items: center; gap: 7px; }
+.z-section-title__eyebrow::before { content: ""; width: 16px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+.z-section-title__right { flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+
+.z-appbar {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px;
+  height: calc(52px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 10px 0;
+  background: var(--nav-bg); transition: box-shadow 0.25s;
+}
+.z-appbar.is-scrolled { box-shadow: 0 1px 0 var(--border), 0 10px 24px -20px rgba(0, 0, 0, 0.8); }
+.z-appbar__back {
+  width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; cursor: pointer;
+  color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.z-appbar__title {
+  text-align: center; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 15px; font-weight: 800;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s cubic-bezier(.22, 1, .36, 1);
+}
+.z-appbar.is-scrolled .z-appbar__title { opacity: 1; transform: none; }
+
+.z-navstrip { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding: 2px 16px 10px; }
+.z-navstrip::-webkit-scrollbar { display: none; }
+.z-navstrip__chip {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 13px 0 10px;
+  border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--ink-soft);
+  background: var(--surface); border: 1px solid var(--border); transition: transform 0.14s;
+}
+.z-navstrip__chip svg { color: var(--c); }
+.z-navstrip__chip:hover { color: var(--ink); }
+.z-navstrip__chip:active { transform: scale(0.94); }
+
+.z-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 32px 16px; text-align: center; color: var(--ink-soft); }
+.z-empty__icon {
+  width: 84px; height: 84px; margin-bottom: 6px; border-radius: 28px; display: grid; place-items: center; color: var(--accent);
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--accent) 20%, transparent), color-mix(in srgb, var(--accent) 6%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent), 0 16px 34px -18px var(--ember-glow);
+}
+.z-empty__icon svg { max-width: 44px; max-height: 44px; }
+.z-empty__title { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 15px; font-weight: 800; color: var(--ink); }
+.z-empty__hint { max-width: 290px; font-size: 12.5px; line-height: 1.45; }
+
+.z-pill.is-good { --c: var(--success); }
+.z-pill.is-bad { --c: var(--danger); }
+.z-stat { min-height: 104px; }
+
+.z-coach {
+  position: relative; margin: 0 0 14px; padding: 12px 14px; border-radius: 20px; color: var(--ink);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); box-shadow: 0 16px 34px -22px var(--ember-glow);
+}
+.z-coach__head { display: flex; align-items: center; gap: 8px; }
+.z-coach__title { flex: 1; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 14px; font-weight: 800; }
+.z-coach__x { width: 36px; height: 36px; margin: -6px -8px -6px 0; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--ink-soft); cursor: pointer; }
+.z-coach__body { margin: 6px 0 10px; font-size: 13px; line-height: 1.45; color: var(--ink-soft); }
+.z-coach__foot { display: flex; align-items: center; justify-content: space-between; }
+.z-coach__dots { display: flex; gap: 4px; }
+.z-coach__dots i { width: 6px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 18%, transparent); transition: width 0.3s, background 0.3s; }
+.z-coach__dots i.is-on { width: 16px; background: var(--accent); }
+
+/* ---------- antd surfaces, reskinned ------------------------------------ */
+/* Doubled class beats antd's :where()-scoped single class without
+   !important, so per-instance inline styles (hero gradients) still win. */
+.ant-card.ant-card {
+  border-radius: 22px; border: 1px solid var(--border); background: var(--surface);
+  box-shadow: 0 12px 26px -22px rgba(0, 0, 0, 0.7);
+}
+.ant-card.ant-card > .ant-card-head { min-height: 48px; border-bottom: 1px solid var(--border); padding: 0 16px; }
+.ant-card.ant-card > .ant-card-head .ant-card-head-title {
+  display: flex; align-items: center; gap: 8px; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-weight: 800; font-size: 15px;
+}
+.ant-card.ant-card > .ant-card-head .ant-card-head-title svg { color: var(--accent); flex-shrink: 0; }
+.ant-card.ant-card > .ant-card-body { padding: 14px 16px; }
+.ant-card-small.ant-card > .ant-card-body { padding: 12px 14px; }

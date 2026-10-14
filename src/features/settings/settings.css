@@ -1,0 +1,162 @@
+/* Settings. Lists/rows/heroes come from the shared kit (components/ui);
+   this file is only what's unique to Settings. */
+
+/* Panes push horizontally; clip (not hidden) so sticky titles keep working. */
+.zs-stage { position: relative; overflow-x: hidden; overflow-x: clip; }
+
+.zs-search.ant-input-affix-wrapper { min-height: 46px; border-radius: 15px !important; margin-bottom: 4px; }
+.zs-search .ant-input-prefix { color: var(--ink-soft); margin-inline-end: 8px; }
+.zs-mark { background: color-mix(in srgb, var(--accent) 22%, transparent); color: inherit; padding: 0 2px; border-radius: 4px; }
+.zs-noresult { padding: 28px 8px; text-align: center; font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+.zs-noresult button { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--accent); cursor: pointer; }
+
+/* ---------- Overview ---------------------------------------------------- */
+.zs-profile { display: block; width: 100%; margin-top: 12px; padding: 0; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; border-radius: 28px; }
+.zs-profile__hero { padding: 14px 16px; }
+.zs-profile__row { display: flex; align-items: center; gap: 14px; }
+.zs-profile__row .ant-avatar { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; font-size: 24px; }
+.zs-profile__text { flex: 1; min-width: 0; }
+.zs-profile__name { font-size: 20px; font-weight: 800; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zs-profile__meta { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+.zs-profile__xp { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 10.5px; font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.zs-profile__xp span { flex: 1; height: 4px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.zs-profile__xp i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--gold)); }
+
+.zs-about { margin-top: 26px; text-align: center; font-size: 12px; color: var(--ink-soft); }
+.zs-about__brand { margin-top: 10px; font-family: "Cinzel", serif; font-weight: 800; letter-spacing: 0.12em; color: var(--ink); }
+.zs-about__by { opacity: 0.7; margin-top: 2px; font-style: italic; }
+.zs-about__count { opacity: 0.45; margin-top: 8px; font-size: 11px; }
+
+.zs-cards { display: flex; flex-direction: column; gap: 12px; }
+.zs-cards .ant-card { margin-bottom: 0 !important; }
+
+/* ---------- Target dials ------------------------------------------------ */
+.zs-dials { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.zs-dial {
+  padding: 12px 14px 4px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border);
+  box-shadow: 0 12px 26px -24px rgba(0, 0, 0, 0.7);
+}
+.zs-dial__head { display: flex; align-items: center; gap: 8px; }
+.zs-dial__label { font-size: 13.5px; font-weight: 700; }
+.zs-dial__hint { margin-left: auto; font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zs-dial__main { display: flex; align-items: center; gap: 10px; margin: 10px 0 2px; }
+.zs-dial__value {
+  position: relative; flex: 1; height: 38px; overflow: hidden; display: grid; place-items: center;
+  font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
+}
+.zs-dial__value > span { grid-area: 1 / 1; }
+.zs-step {
+  width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border-radius: 14px; cursor: pointer;
+  color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c, var(--accent)) 26%, transparent);
+  touch-action: manipulation; -webkit-user-select: none; user-select: none;
+  transition: transform 0.12s cubic-bezier(.22, 1, .36, 1), opacity 0.15s;
+}
+.zs-step:active:not(:disabled) { transform: scale(0.88); }
+.zs-step:disabled { opacity: 0.35; cursor: not-allowed; }
+.zs-step--sm { width: 34px; height: 34px; border-radius: 11px; }
+.zs-slider.ant-slider { margin: 6px 6px 10px; }
+.zs-slider .ant-slider-track { background: var(--c, var(--accent)) !important; }
+.zs-slider .ant-slider-handle::after { box-shadow: 0 0 0 2px var(--c, var(--accent)) !important; }
+.zs-slider .ant-slider-rail { background: color-mix(in srgb, var(--ink) 10%, transparent) !important; }
+
+.zs-macro { grid-column: 1 / -1; padding: 14px; border-radius: 20px; background: color-mix(in srgb, var(--surface) 60%, transparent); border: 1px dashed var(--border); }
+.zs-macro__bar { position: relative; display: flex; height: 12px; border-radius: 8px; overflow: hidden; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.zs-macro__bar i { display: block; height: 100%; }
+.zs-macro__bar i + i { box-shadow: inset 2px 0 0 var(--surface); }
+.zs-macro__target { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 2px; opacity: 0.8; }
+.zs-macro__legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 9px; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+.zs-macro__legend span { display: inline-flex; align-items: center; gap: 5px; }
+.zs-macro__legend i { width: 8px; height: 8px; border-radius: 3px; }
+.zs-macro__verdict { margin-top: 8px; font-size: 12.5px; color: var(--warn); line-height: 1.4; }
+.zs-macro__verdict.is-ok { color: var(--success); }
+
+/* ---------- Appearance -------------------------------------------------- */
+.zs-themes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.zs-theme {
+  padding: 8px; border-radius: 22px; cursor: pointer; font: inherit; color: inherit; text-align: left;
+  background: var(--surface); border: 1.5px solid var(--border);
+  transition: border-color 0.2s, box-shadow 0.25s, transform 0.14s cubic-bezier(.22, 1, .36, 1);
+}
+.zs-theme:active { transform: scale(0.97); }
+.zs-theme.is-on { border-color: var(--accent); box-shadow: 0 0 0 4px var(--ember-inner), 0 18px 30px -22px var(--ember-glow); }
+.zs-theme__label { position: relative; display: flex; align-items: center; gap: 6px; padding: 9px 4px 3px; font-size: 13px; font-weight: 800; }
+.zs-theme__check { margin-left: auto; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--accent); color: #fff; }
+.zs-preview { display: flex; flex-direction: column; gap: 6px; padding: 9px; border-radius: 15px; aspect-ratio: 4 / 3.2; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.18); }
+.zs-preview__card { display: flex; align-items: center; gap: 8px; padding: 7px; border-radius: 10px; }
+.zs-preview__card i { display: block; height: 5px; border-radius: 3px; margin: 4px 0; }
+.zs-preview__hero { flex: 1; min-height: 18px; border-radius: 10px; }
+.zs-preview__row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.zs-preview__row span { height: 16px; border-radius: 7px; }
+
+.zs-accents { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 14px 12px 12px; }
+.zs-accents::-webkit-scrollbar { display: none; }
+.zs-swatch { flex: 1 0 58px; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: inherit; }
+.zs-swatch__dot {
+  position: relative; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--sw) 70%, #fff), var(--sw) 60%);
+  box-shadow: 0 8px 18px -8px var(--sw);
+  transition: transform 0.15s cubic-bezier(.22, 1, .36, 1);
+}
+.zs-swatch:active .zs-swatch__dot { transform: scale(0.9); }
+.zs-swatch.is-locked .zs-swatch__dot { background: color-mix(in srgb, var(--sw) 30%, var(--surface-3)); box-shadow: inset 0 0 0 1px var(--border); color: var(--ink-soft); }
+.zs-swatch__ring { position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--sw); }
+.zs-swatch__label { font-size: 11px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.zs-swatch.is-on .zs-swatch__label { color: var(--ink); }
+
+.zs-wall { padding: 12px; }
+.zs-wall__frame { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 16px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
+.zs-wall__img { position: absolute; inset: -12px; background-size: cover; background-position: center; transition: filter 0.1s, opacity 0.1s; }
+.zs-wall__empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border: 1.5px dashed var(--border); border-radius: 16px; background: none; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-soft);
+}
+.zs-wall__empty svg { color: var(--accent); }
+.zs-wall__mock { position: absolute; inset: 12px 14px; display: flex; flex-direction: column; gap: 7px; pointer-events: none; }
+.zs-wall__mock i { display: block; height: 22%; border-radius: 9px; background: color-mix(in srgb, var(--surface) 80%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent); }
+.zs-wall__mock i:first-child { height: 34%; }
+.zs-wall__actions { display: flex; gap: 8px; margin-top: 12px; }
+.zs-wall__actions .z-btn { flex: 1; }
+.zs-wall__sliders { margin-top: 10px; }
+.zs-wall__sliders label { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.zs-wall__sliders label b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ---------- Profile ----------------------------------------------------- */
+.zs-idhero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 22px 16px 16px; }
+.zs-idhero__avatar { position: relative; padding: 0; border: 0; background: none; border-radius: 50%; cursor: pointer; }
+.zs-idhero__avatar .ant-avatar { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; font-size: 36px; }
+.zs-idhero__cam {
+  position: absolute; right: -2px; bottom: -2px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%;
+  color: #fff; background: var(--accent); box-shadow: 0 0 0 3px var(--surface), 0 6px 14px -6px var(--ember-glow);
+}
+.zs-idhero__name { margin-top: 12px; font-size: 22px; font-weight: 800; }
+.zs-idhero__meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 13px; color: var(--ink-soft); }
+
+.zs-inline-input {
+  width: 46%; min-width: 0; padding: 8px 0; border: 0; outline: 0; background: transparent; text-align: right;
+  font: inherit; font-size: 14.5px; font-weight: 700; color: var(--ink); caret-color: var(--accent);
+}
+.zs-inline-input:focus { color: var(--accent); }
+.zs-bday { display: flex; gap: 8px; }
+
+/* ---------- Reminders / storage status ---------------------------------- */
+.zs-perm, .zs-storage {
+  display: flex; align-items: center; gap: 12px; margin-top: 4px; padding: 14px; border-radius: 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--warn) 9%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warn) 25%, var(--border));
+}
+.zs-perm.is-on { background: linear-gradient(135deg, color-mix(in srgb, var(--success) 9%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--success) 22%, var(--border)); }
+.zs-storage { background: var(--surface); border-color: var(--border); }
+.zs-perm__title { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 14.5px; font-weight: 800; }
+.zs-perm__hint { margin-top: 2px; font-size: 12px; line-height: 1.4; color: var(--ink-soft); }
+.zs-reveal { overflow: hidden; }
+.zs-reveal__inner { display: flex; align-items: center; }
+.zs-inline-stepper { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft); }
+.zs-inline-stepper b { min-width: 34px; text-align: center; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 360px) {
+  .zs-dial__hint { display: none; }
+  .zs-dial__value { font-size: 24px; }
+}

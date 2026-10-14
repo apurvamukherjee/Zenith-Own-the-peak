@@ -1,5 +1,10 @@
-import { useEffect, useState } from "react";
-import { Card, Button, Input, DatePicker, Row, Col, Statistic, Progress, App, Popconfirm, Tag, Alert } from "antd";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { Button, Input, DatePicker, App, Popconfirm, Tag } from "antd";
+import { motion } from "framer-motion";
+import { Hero } from "../../components/ui/Hero";
+import { ListGroup, ListRow } from "../../components/ui/List";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+import "./expenses.css";
 import { TbPlus, TbTrash, TbWallet, TbBookmarkPlus, TbSettings2 } from "react-icons/tb";
 import dayjs from "dayjs";
 import { PageTransition } from "../../components/PageTransition";
@@ -28,6 +33,7 @@ export function ExpensesPage() {
   const favoriteItems = useFavoriteExpenseItems();
   const fuelSpend = useFuelSpendThisMonth();
   const { message } = App.useApp();
+  const reduced = useReducedMotion();
 
   const stats = expenseStats(monthRows, budgets);
   const grandTotal = stats.total + fuelSpend;
@@ -44,105 +50,140 @@ export function ExpensesPage() {
   }
 
   const chips = [...recentItems, ...favoriteItems].filter((it, i, arr) => arr.findIndex((x) => x.id === it.id) === i).slice(0, 8);
+  const slices = [
+    ...categories.map((c) => ({ id: c.id, name: c.name, color: c.color, v: stats.byCategory[c.id] ?? 0 })),
+    ...(fuelSpend > 0 ? [{ id: "__fuel", name: "Bike fuel", color: "#f6b93b", v: fuelSpend }] : []),
+  ].filter((x) => x.v > 0).sort((a, b) => b.v - a.v);
+  const perDay = stats.totalBudget > 0 ? Math.max(0, Math.floor(stats.remaining / daysLeft)) : null;
+  const overall = stats.totalBudget > 0 ? Math.min(100, (stats.total / stats.totalBudget) * 100) : 0;
 
   return (
     <PageTransition>
-      <SectionTitle eyebrow="WAR CHEST" title="This month" right={
-        <Button size="small" icon={<TbSettings2 />} onClick={() => setBudgetsOpen(true)}>Budgets</Button>
+      <SectionTitle eyebrow="War chest" title="Spending" right={
+        <button type="button" className="z-btn" onClick={() => setBudgetsOpen(true)}><TbSettings2 size={16} /> Budgets</button>
       } />
 
-      <Row gutter={12} style={{ marginBottom: 12 }}>
-        <Col span={12}><Card size="small"><Statistic title="Spent this month" value={grandTotal} prefix="₹" valueStyle={{ color: "var(--gold)", fontWeight: 800 }} /></Card></Col>
-        <Col span={12}><Card size="small"><Statistic title="Budget" value={stats.totalBudget} prefix="₹" valueStyle={{ fontWeight: 800 }} /></Card></Col>
-      </Row>
-      <Row gutter={12} style={{ marginBottom: 16 }}>
-        <Col span={12}>
-          <Card size="small">
+      <Hero color="var(--success)" color2="var(--gold)" eyebrow={dayjs().format("MMMM")} className="ex-hero"
+        right={<span className="z-pill">{daysLeft} day{daysLeft === 1 ? "" : "s"} left</span>}>
+        <div className="ex-hero__row">
+          <Donut slices={slices} reduced={reduced}>
+            <span className="ex-hero__total display">₹{grandTotal.toLocaleString()}</span>
+            <span className="ex-hero__label">spent</span>
+          </Donut>
+          <div className="ex-hero__facts">
             {stats.totalBudget > 0 ? (
-              <Statistic title={stats.remaining >= 0 ? "Remaining" : "Over budget"} value={Math.abs(stats.remaining)} prefix="₹"
-                valueStyle={{ color: stats.remaining >= 0 ? "var(--teal)" : "#ff5c7a", fontWeight: 800 }} />
+              <>
+                <div><small>{stats.remaining >= 0 ? "Remaining" : "Over budget"}</small>
+                  <b style={{ color: stats.remaining >= 0 ? "var(--success)" : "var(--danger)" }}>₹{Math.abs(stats.remaining).toLocaleString()}</b></div>
+                <div><small>Safe to spend / day</small><b>₹{perDay?.toLocaleString()}</b></div>
+                <div className="ex-budgetbar"><motion.i initial={reduced ? false : { width: 0 }} animate={{ width: `${overall}%` }}
+                  style={{ background: overall >= 100 ? "var(--danger)" : overall > 80 ? "var(--warn)" : "var(--success)" }}
+                  transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.3 }} /></div>
+                <small className="ex-muted">₹{stats.total.toLocaleString()} of ₹{stats.totalBudget.toLocaleString()} budget{fuelSpend > 0 ? " · fuel not budgeted" : ""}</small>
+              </>
             ) : (
-              <Statistic title="Remaining" value="—" valueStyle={{ color: "var(--ink-soft)", fontWeight: 800 }} />
+              <>
+                <div><small>Budget</small><b>Not set</b></div>
+                <button type="button" className="ex-link" onClick={() => setBudgetsOpen(true)}>Set monthly budgets →</button>
+              </>
             )}
-          </Card>
-        </Col>
-        <Col span={12}><Card size="small"><Statistic title="Days left" value={daysLeft} valueStyle={{ fontWeight: 800 }} /></Card></Col>
-      </Row>
+          </div>
+        </div>
+        {slices.length > 0 && (
+          <div className="ex-legend">
+            {slices.slice(0, 5).map((x) => <span key={x.id}><i style={{ background: x.color }} />{x.name} ₹{x.v.toLocaleString()}</span>)}
+          </div>
+        )}
+      </Hero>
 
-      {fuelSpend > 0 && (
-        <Alert type="info" showIcon style={{ marginBottom: 16, borderRadius: 10 }}
-          message={`+ ₹${fuelSpend} on bike fuel this month — tracked separately on Fuel, included above`} />
+      {chips.length > 0 && (
+        <>
+          <div className="z-list-title">Quick add</div>
+          <div className="ex-chips">
+            {chips.map((it) => {
+              const cat = categories.find((c) => c.id === it.categoryId);
+              const Icon = cat ? expenseIconFor(cat.icon) : TbWallet;
+              return (
+                <motion.button key={it.id} type="button" whileTap={{ scale: 0.94 }} className="ex-chip" style={{ "--c": cat?.color ?? "var(--accent)" } as CSSProperties} onClick={() => quickLog(it)}>
+                  <Icon size={14} /> {it.name} <b>₹{it.defaultAmount}</b>
+                </motion.button>
+              );
+            })}
+          </div>
+        </>
       )}
 
+      <button type="button" className="z-btn z-btn--solid z-btn--block ex-log" style={{ "--c": "var(--success)" } as CSSProperties} onClick={() => setEntryOpen(true)}>
+        <TbPlus size={18} /> Log an expense
+      </button>
+
       {categories.length > 0 && (
-        <Card title="Budgets by category" size="small" style={{ marginBottom: 16 }}>
+        <ListGroup title="By category" footer={fuelSpend > 0 ? `Includes ₹${fuelSpend.toLocaleString()} bike fuel from the Fuel page.` : undefined}>
           {categories.map((c) => {
             const spent = stats.byCategory[c.id] ?? 0;
             const budget = budgetByCategory.get(c.id) ?? 0;
             const Icon = expenseIconFor(c.icon);
-            const pct = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+            const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
             return (
-              <div key={c.id} style={{ marginBottom: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <Icon style={{ color: c.color }} />
-                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>{c.name}</span>
-                  <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                    ₹{spent}{budget > 0 ? ` / ₹${budget}` : ""}
-                  </span>
-                </div>
-                {budget > 0 && <Progress percent={pct} size={[-1, 6]} strokeColor={c.color} showInfo={false} />}
-              </div>
+              <ListRow key={c.id} icon={<Icon size={16} />} color={c.color} label={c.name}
+                hint={budget > 0 ? <span className="ex-rowbar"><i style={{ width: `${pct}%`, background: pct >= 100 ? "var(--danger)" : c.color }} /></span> : "No budget"}
+                value={<span><b style={{ color: "var(--ink)" }}>₹{spent.toLocaleString()}</b>{budget > 0 ? ` / ₹${budget.toLocaleString()}` : ""}</span>} />
             );
           })}
-        </Card>
+        </ListGroup>
       )}
 
-      {chips.length > 0 && (
-        <Card title="Quick add" size="small" style={{ marginBottom: 16 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {chips.map((it) => (
-              <Tag key={it.id} onClick={() => quickLog(it)} style={{ borderRadius: 8, cursor: "pointer", padding: "4px 10px", fontSize: 12 }}>
-                {it.name} · ₹{it.defaultAmount}
-              </Tag>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      <Button type="primary" block size="large" icon={<TbPlus />} onClick={() => setEntryOpen(true)}
-        style={{ marginBottom: 16, fontWeight: 700 }}>
-        Log an expense
-      </Button>
-
-      <Card title="History" size="small">
+      <ListGroup title="History">
         {allRows.length === 0 ? (
-          <EmptyState icon={<ColdIcon glyph="diamond" size={80} />} title="No spending logged"
+          <EmptyState icon={<ColdIcon glyph="diamond" size={44} />} title="No spending logged"
             hint="Log your first expense above, or tap a quick-add chip once you've saved one." />
         ) : (
           allRows.slice(0, 60).map((r) => {
             const cat = categories.find((c) => c.id === r.categoryId);
             const Icon = cat ? expenseIconFor(cat.icon) : TbWallet;
             return (
-              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-                <Icon style={{ color: cat?.color ?? "var(--ink-soft)", flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label || cat?.name || "Expense"}</div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{prettyDate(r.date)} · {cat?.name ?? "Uncategorized"}</div>
-                </div>
-                <div style={{ fontWeight: 700 }}>₹{r.amount}</div>
-                <Popconfirm title="Delete this expense?" okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
-                  onConfirm={() => r.id && deleteExpense(r.id)}>
-                  <Button type="text" danger size="small" icon={<TbTrash />} aria-label="Delete" />
-                </Popconfirm>
-              </div>
+              <ListRow key={r.id} icon={<Icon size={15} />} color={cat?.color ?? "var(--ink-soft)"} label={r.label || cat?.name || "Expense"}
+                hint={`${prettyDate(r.date)} · ${cat?.name ?? "Uncategorized"}`} value={<b style={{ color: "var(--ink)" }}>₹{r.amount.toLocaleString()}</b>}
+                right={
+                  <Popconfirm title="Delete this expense?" okText="Delete" okButtonProps={{ danger: true }} onConfirm={() => r.id && deleteExpense(r.id)}>
+                    <button type="button" className="ex-del" aria-label="Delete expense"><TbTrash size={15} /></button>
+                  </Popconfirm>
+                } />
             );
           })
         )}
-      </Card>
+      </ListGroup>
 
       <ExpenseEntryModal open={entryOpen} onClose={() => setEntryOpen(false)} categories={categories} />
       <BudgetSheet open={budgetsOpen} onClose={() => setBudgetsOpen(false)} categories={categories} budgets={budgets} />
     </PageTransition>
+  );
+}
+
+function Donut({ slices, reduced, children }: { slices: { id: string; color: string; v: number }[]; reduced: boolean; children: ReactNode }) {
+  const size = 140, stroke = 16, r = (size - stroke) / 2, c = size / 2;
+  const total = slices.reduce((s, x) => s + x.v, 0);
+  let acc = 0;
+  return (
+    <div className="ex-donut" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+        <circle cx={c} cy={c} r={r} fill="none" strokeWidth={stroke} style={{ stroke: "color-mix(in srgb, var(--ink) 8%, transparent)" }} />
+        {total > 0 && slices.map((x, i) => {
+          const share = x.v / total;
+          const start = acc;
+          acc += share;
+          // A hairline gap between slices; skipped when one slice owns the ring.
+          const gap = slices.length > 1 ? Math.min(0.012, share / 3) : 0;
+          return (
+            <motion.circle key={x.id} cx={c} cy={c} r={r} fill="none" strokeWidth={stroke}
+              style={{ stroke: x.color, rotate: start * 360 - 90, originX: "50%", originY: "50%" }}
+              initial={reduced ? false : { pathLength: 0 }} animate={{ pathLength: Math.max(0, share - gap) }}
+              transition={{ type: "spring", stiffness: 50, damping: 15, delay: 0.15 + i * 0.08 }} />
+          );
+        })}
+      </svg>
+      <div className="ex-donut__center">{children}</div>
+    </div>
   );
 }
 

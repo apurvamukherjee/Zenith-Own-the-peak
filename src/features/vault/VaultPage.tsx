@@ -2,6 +2,9 @@ import { useEffect, type ReactNode } from "react";
 import { App, Avatar } from "antd";
 import { TbSparkles, TbPalette, TbUserCircle, TbCrown, TbCheck, TbLock } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
+import { SectionTitle } from "../../components/SectionTitle";
+import { Hero } from "../../components/ui/Hero";
+import "./vault.css";
 import { AvatarFrame } from "../../components/AvatarFrame";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useXP } from "../../hooks/useXP";
@@ -38,12 +41,7 @@ function CheckDot() {
 }
 
 function SectionHeader({ icon, title }: { icon: ReactNode; title: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-      <span style={{ color: "var(--accent)" }}>{icon}</span>
-      <h3 className="display" style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>{title}</h3>
-    </div>
-  );
+  return <div className="z-list-title"><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{icon}{title}</span></div>;
 }
 
 function AccentCard({ def, unlocked, equipped, mode, onEquip }: {
@@ -52,7 +50,7 @@ function AccentCard({ def, unlocked, equipped, mode, onEquip }: {
   const hex = def[mode];
   return (
     <div
-      onClick={unlocked ? onEquip : undefined}
+      {...(unlocked ? pressable(onEquip) : {})} aria-pressed={unlocked ? equipped : undefined}
       style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 76, cursor: unlocked ? "pointer" : "default" }}
     >
       <div style={{ position: "relative" }}>
@@ -75,7 +73,7 @@ function FrameCard({ def, unlocked, equipped, onEquip }: {
 }) {
   return (
     <div
-      onClick={unlocked ? onEquip : undefined}
+      {...(unlocked ? pressable(onEquip) : {})} aria-pressed={unlocked ? equipped : undefined}
       style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 82, cursor: unlocked ? "pointer" : "default" }}
     >
       <div style={{ position: "relative" }}>
@@ -141,25 +139,21 @@ export function VaultPage() {
 
   return (
     <PageTransition>
-      <div style={{
-        position: "relative", overflow: "hidden", borderRadius: 20, padding: "22px 18px",
-        marginBottom: 22, background: "var(--hero)", color: "#fff",
-      }}>
-        <div aria-hidden style={{ position: "absolute", top: -40, right: -30, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.10)", filter: "blur(6px)" }} />
-        <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 14 }}>
+      <SectionTitle eyebrow="Cosmetics" title="Reward Vault" />
+      <Hero tone="ember" eyebrow="Equipped" className="vt-hero">
+        <div className="vt-hero__row">
           <AvatarFrame frameId={equippedFrame}>
-            <Avatar size={54} style={{ background: "rgba(255,255,255,0.16)" }} icon={<TbSparkles />} />
+            <Avatar size={58} style={{ background: "rgba(255,255,255,0.16)" }} icon={<TbSparkles />} />
           </AvatarFrame>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.85 }}>Reward Vault</div>
-            <div className="display" style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.1 }}>{equippedTitle}</div>
-            <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>Lv.{level.level} · purely cosmetic, zero effect on your stats</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="z-hero__title">{equippedTitle}</div>
+            <div className="z-hero__sub">Lv.{level.level} · purely cosmetic, zero effect on your stats</div>
           </div>
         </div>
-      </div>
+      </Hero>
 
-      <SectionHeader icon={<TbPalette size={18} />} title="Accent Themes" />
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 28 }}>
+      <SectionHeader icon={<TbPalette size={16} />} title="Accent themes" />
+      <div className="vt-shelf">
         {ACCENT_THEMES.map((def) => (
           <AccentCard
             key={def.id} def={def} mode={mode}
@@ -170,8 +164,8 @@ export function VaultPage() {
         ))}
       </div>
 
-      <SectionHeader icon={<TbUserCircle size={18} />} title="Avatar Frames" />
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 28 }}>
+      <SectionHeader icon={<TbUserCircle size={16} />} title="Avatar frames" />
+      <div className="vt-shelf">
         {FRAMES.map((def) => (
           <FrameCard
             key={def.id} def={def}
@@ -182,15 +176,13 @@ export function VaultPage() {
         ))}
       </div>
 
-      <SectionHeader icon={<TbCrown size={18} />} title="Titles" />
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+      <SectionHeader icon={<TbCrown size={16} />} title="Titles" />
+      <div className="vt-shelf vt-shelf--chips">
         {titles.map((l) => (
           <TitleChip key={l.name} name={l.name} equipped={equippedTitle === l.name} onEquip={() => equipTitle(l.name)} />
         ))}
       </div>
-      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 20 }}>
-        Every title you've reached stays equippable, even after leveling past it.
-      </div>
+      <div className="z-list-foot">Every title you've reached stays equippable, even after leveling past it.</div>
     </PageTransition>
   );
 }

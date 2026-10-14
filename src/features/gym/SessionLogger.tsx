@@ -7,6 +7,11 @@ import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote,
 import { RestTimer } from "../../components/RestTimer";
 import { GymFocusMode } from "../../components/GymFocusMode";
 import { PageTransition } from "../../components/PageTransition";
+import { Hero } from "../../components/ui/Hero";
+import { Rings } from "../../components/ui/Rings";
+import { ListRow } from "../../components/ui/List";
+import { TrainingHeroBg } from "../dashboard/TrainingHeroArt";
+import "./train.css";
 import { useTokens } from "../../hooks/useTokens";
 import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
 import { MuscleIcon } from "../../components/MuscleIcon";
@@ -637,69 +642,50 @@ export function SessionLogger() {
             onDone={() => { setCoachStep(-1); void setSetting("coachLogger", 1); }}
           />
         )}
-        <div style={{
-          borderRadius: 20, padding: "16px 18px", marginBottom: 14, position: "relative", overflow: "hidden",
-          background: isRest
-            ? "linear-gradient(135deg, var(--surface-3), var(--surface-2))"
-            : "linear-gradient(135deg, var(--ember-inner), var(--surface-2))",
-          border: `1px solid ${isRest ? "var(--border)" : "var(--accent)"}`,
-        }}>
-          <Link to="/quotes" style={{ position: "absolute", top: 10, right: 10 }}>
-            <Button type="text" shape="circle" icon={<TbQuote size={18} />} aria-label="Motivation quotes" />
-          </Link>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)" }}>
-            {plan?.name ?? "Session"} · {prettyDate(todayKey())}
-          </div>
-          <div className="display" style={{ fontSize: 28, fontWeight: 800, margin: "2px 0 6px" }}>
-            {isRest ? "Rest Day" : dayPlan?.name ?? "Session"}
-          </div>
-          {dayPlan && (
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-              {dayPlan.muscles.map((m) => (
-                <Tag key={m} style={{ borderRadius: 999, background: "var(--accent)", color: "#fff", border: "none", fontWeight: 700, fontSize: 12 }}>
-                  {MUSCLE_LABELS[m]}
-                </Tag>
-              ))}
+        <Hero tone={isRest ? "surface" : "ember"} embers={!isRest} className="tr-hero">
+          {!isRest && <TrainingHeroBg />}
+          <div className="tr-hero__content">
+            <div className="tr-hero__head">
+              <span className="gothic-eyebrow">{plan?.name ?? "Session"} · {prettyDate(todayKey())}</span>
+              <Link to="/quotes" className="tr-hero__quote" aria-label="Motivation quotes"><TbQuote size={18} /></Link>
             </div>
-          )}
-          {!isRest && totalSets > 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ flex: 1 }}><GlowBar percent={pct} onHero height={10} label="Session progress" /></div>
-              <span style={{ fontSize: 12, fontWeight: 800, minWidth: 34, textAlign: "right" }}>{pct}%</span>
-              {pct < 100 && (
-                <Popconfirm
-                  title="Complete the full day?"
-                  description="Logs every remaining set at planned weight/reps."
-                  okText="Complete" cancelText="Cancel"
-                  onConfirm={completeWholeDay}
-                >
-                  <Button size="small" type="text" icon={<TbChecks size={16} />}
-                    aria-label="Complete full day routine" title="Complete full day"
-                    style={{ flexShrink: 0, padding: "0 4px" }} />
-                </Popconfirm>
+            <div className="tr-hero__row">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="z-hero__title">{isRest ? "Rest day" : dayPlan?.name ?? "Session"}</div>
+                {dayPlan && dayPlan.muscles.length > 0 && (
+                  <div className="tr-hero__chips">
+                    {dayPlan.muscles.map((m) => <span key={m} className="tr-chip">{MUSCLE_LABELS[m]}</span>)}
+                  </div>
+                )}
+                {isRest && <div className="z-hero__sub">Muscle is built between sessions. Pick a day below to train anyway.</div>}
+              </div>
+              {!isRest && totalSets > 0 && (
+                <Rings size={76} stroke={7} rings={[{ key: "s", pct, color: ["#ffffff", "#ffd76b"] }]}>
+                  <span className="tr-hero__pct">{pct}%</span>
+                </Rings>
               )}
             </div>
-          )}
-        </div>
+            {!isRest && totalSets > 0 && (
+              <div className="tr-hero__bar">
+                <div style={{ flex: 1 }}><GlowBar percent={pct} onHero height={10} label="Session progress" /></div>
+                {pct < 100 && (
+                  <Popconfirm title="Complete the full day?" description="Logs every remaining set at planned weight/reps."
+                    okText="Complete" cancelText="Cancel" onConfirm={completeWholeDay}>
+                    <button type="button" className="tr-hero__all" aria-label="Complete full day routine" title="Complete full day">
+                      <TbChecks size={16} /> All
+                    </button>
+                  </Popconfirm>
+                )}
+              </div>
+            )}
+          </div>
+        </Hero>
 
         {!isRest && totalSets > 0 && (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-            background: "var(--surface)", border: `1px solid ${focusOn ? "var(--accent)" : "var(--border)"}`,
-            borderRadius: 14, padding: "10px 14px", marginBottom: 14,
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-              <TbFocus2 size={20} style={{ flexShrink: 0, color: focusOn ? "var(--accent)" : "var(--ink-soft)" }} />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 13 }}>Focus mode</div>
-                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Fullscreen, one set at a time — starts on your first set</div>
-              </div>
-            </div>
-            <Switch
-              checked={focusOn}
-              onChange={(v) => setSetting("gymFocusMode", v ? 1 : 0)}
-              aria-label="Toggle focus mode"
-            />
+          <div className="z-list" style={{ marginTop: 12, marginBottom: 14 }}>
+            <ListRow icon={<TbFocus2 size={16} />} color={focusOn ? "var(--accent)" : "var(--ink-soft)"} label="Focus mode"
+              hint="Fullscreen, one set at a time — starts on your first set"
+              right={<Switch checked={focusOn} onChange={(v) => setSetting("gymFocusMode", v ? 1 : 0)} aria-label="Toggle focus mode" />} />
           </div>
         )}
 
