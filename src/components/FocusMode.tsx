@@ -61,7 +61,7 @@ export function FocusMode({ task, onClose }: Props) {
       >
         {/* Close */}
         <button aria-label="Close focus mode" onClick={onClose} style={{
-          position: "absolute", top: 16, right: 16,
+          position: "absolute", top: "calc(16px + var(--sat))", right: 16,
           background: "transparent", border: "none", color: "var(--ink-soft)", cursor: "pointer",
         }}>
           <TbX size={24} />

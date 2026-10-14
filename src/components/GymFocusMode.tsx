@@ -324,7 +324,7 @@ export function GymFocusMode({
           ) : (
             <>
               <button onClick={handleCloseAttempt} aria-label="Exit focus mode" style={{
-                position: "absolute", top: 8, right: 8, background: "transparent", border: "none",
+                position: "absolute", top: "calc(8px + var(--sat))", right: 8, background: "transparent", border: "none",
                 color: "var(--ink-soft)", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
               }}>
                 <TbX size={24} />
@@ -389,7 +389,7 @@ function LockInGate({ quote, dayName, onLockIn, onSkip, reducedMotion }: {
       style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", maxWidth: 340 }}
     >
       <button onClick={onSkip} aria-label="Exit focus mode" style={{
-        position: "absolute", top: 8, right: 8, background: "transparent", border: "none",
+        position: "absolute", top: "calc(8px + var(--sat))", right: 8, background: "transparent", border: "none",
         color: "var(--ink-soft)", cursor: "pointer", padding: 12, minWidth: 44, minHeight: 44,
       }}>
         <TbX size={24} />
