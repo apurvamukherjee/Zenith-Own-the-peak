@@ -241,3 +241,13 @@ html[data-motion="reduce"] .z-embers { display: none; }
 .z-navstrip__chip svg { color: var(--c); }
 .z-navstrip__chip:hover { color: var(--ink); }
 .z-navstrip__chip:active { transform: scale(0.94); }
+
+.z-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 32px 16px; text-align: center; color: var(--ink-soft); }
+.z-empty__icon {
+  width: 84px; height: 84px; margin-bottom: 6px; border-radius: 28px; display: grid; place-items: center; color: var(--accent);
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--accent) 20%, transparent), color-mix(in srgb, var(--accent) 6%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent), 0 16px 34px -18px var(--ember-glow);
+}
+.z-empty__icon svg { max-width: 44px; max-height: 44px; }
+.z-empty__title { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 15px; font-weight: 800; color: var(--ink); }
+.z-empty__hint { max-width: 290px; font-size: 12.5px; line-height: 1.45; }
