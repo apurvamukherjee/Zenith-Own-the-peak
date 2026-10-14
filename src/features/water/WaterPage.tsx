@@ -16,7 +16,6 @@ import { useTodayWater, useWeeklyWater, useWorkoutToday, addWater, undoLastWater
 import { useSetting } from "../../hooks/useSettings";
 import { useTokens } from "../../hooks/useTokens";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
-import { useOptimisticNumber } from "../../hooks/useOptimistic";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 import { playBellDing } from "../../lib/audio";
 import "./water.css";
@@ -44,21 +43,20 @@ export function WaterPage() {
   const [custom, setCustom] = useState<number>();
 
   const goal = base + (trained ? bump : 0);
-  const { optimistic, commit } = useOptimisticNumber(total, "water");
-  const { status, deltaMl } = computeStatus(optimistic, goal, wakeHour, windowH);
-  const pct = Math.min(100, Math.round((optimistic / goal) * 100));
+  const { status, deltaMl } = computeStatus(total, goal, wakeHour, windowH);
+  const pct = Math.min(100, Math.round((total / goal) * 100));
 
   // Once-a-day payoff: same bell as the rest-timer finish, unlike the quick
   // adds which stay haptic-only since they fire many times an hour.
   const [showedGoalToast, setShowedGoalToast] = useState(false);
   useEffect(() => {
-    if (optimistic >= goal && !showedGoalToast) {
+    if (total >= goal && !showedGoalToast) {
       setShowedGoalToast(true);
       void hapticSuccess();
       playBellDing();
       message.success("Daily goal reached!");
     }
-  }, [optimistic, goal, showedGoalToast, message]);
+  }, [total, goal, showedGoalToast, message]);
 
   const pace = {
     done: "Goal smashed — nice work staying hydrated.",
@@ -69,7 +67,12 @@ export function WaterPage() {
 
   async function log(ml: number) {
     void hapticLight();
-    await commit(ml, () => addWater(ml), "water entry");
+    try {
+      await addWater(ml);
+    } catch (err) {
+      message.error("Couldn't save this water entry.");
+      throw err;
+    }
   }
 
   const hit = weekly.filter((d) => d.ml >= goal).length;
@@ -89,7 +92,7 @@ export function WaterPage() {
             {[0.75, 0.5, 0.25].map((f) => <span key={f} style={{ bottom: `${f * 100}%` }}>{((goal * f) / 1000).toFixed(1)}L</span>)}
           </div>
           <div className="wp-hero__body">
-            <div className="z-hero__big"><AnimatedNumber value={optimistic / 1000} decimals={2} /><small>L</small></div>
+            <div className="z-hero__big"><AnimatedNumber value={total / 1000} decimals={2} /><small>L</small></div>
             <div className="wp-hero__of">
               of {(goal / 1000).toFixed(1)} L
               {trained && bump > 0 && <span className="wp-bump"><TbBarbell size={12} /> +{(bump / 1000).toFixed(2).replace(/0$/, "")}L training day</span>}
