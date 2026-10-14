@@ -1,265 +1,279 @@
-import { useRef, useState } from "react";
-import { Card, Button, App, Avatar, Segmented, Slider, Input, InputNumber, Row, Col, Switch } from "antd";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { Navigate, useSearchParams } from "react-router-dom";
+import { Avatar, Input, Switch } from "antd";
+import { AnimatePresence, motion } from "framer-motion";
+import { useConvexAuth } from "convex/react";
 import {
-  TbPalette, TbBulb, TbUser, TbPhoto, TbMoonStars, TbSun,
-  TbDownload, TbUpload, TbLock, TbTarget, TbAccessible, TbInfoCircle, TbCake,
+  TbUser, TbTarget, TbPalette, TbAccessible, TbBell, TbCloud, TbDatabase, TbCode, TbSearch,
+  TbSparkles, TbAward, TbQuote, TbUsersGroup, TbShare2, TbChevronRight, TbContrast2, TbRun,
 } from "react-icons/tb";
-import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { MountainGrows } from "../../components/MountainGrows";
 import { AvatarFrame } from "../../components/AvatarFrame";
+import { Hero } from "../../components/ui/Hero";
+import { ListGroup, ListRow } from "../../components/ui/List";
 import { useSetting, setSetting } from "../../hooks/useSettings";
-import { exportAll, importAll } from "../../db/db";
-import { encryptString, decryptString } from "../../lib/encryptedExport";
-import { fileToDataURL } from "../../lib/image.utils";
-import { RemindersCard } from "../reminders/RemindersCard";
+import { useXP } from "../../hooks/useXP";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { fmtDuration } from "../../lib/date.utils";
+import { accentById } from "../../lib/rewardVault";
+import { convexConfigured } from "../../lib/convexClient";
+import { useEquippedTitle } from "../vault/useRewardVault";
+import { RemindersPane } from "./RemindersPane";
 import { SyncCard } from "../sync/SyncCard";
 import { GoogleCalendarCard } from "../googleCalendar/GoogleCalendarCard";
 import { PlanImportCard } from "../gym/PlanImportCard";
+import { ProfilePane } from "./ProfilePane";
+import { TargetsPane } from "./TargetsPane";
+import { AppearancePane } from "./AppearancePane";
+import { BackupPane } from "./BackupPane";
+import { searchSettings, SEARCH_INDEX, type PaneId } from "./settingsIndex";
+import "./settings.css";
 
-type Tab = "you" | "sync" | "data";
+const PANES: Record<PaneId, { title: string; icon: ComponentType<{ size?: number }>; color: string }> = {
+  profile: { title: "Profile", icon: TbUser, color: "var(--accent)" },
+  targets: { title: "Daily targets", icon: TbTarget, color: "var(--teal)" },
+  appearance: { title: "Appearance", icon: TbPalette, color: "var(--gold)" },
+  accessibility: { title: "Accessibility", icon: TbAccessible, color: "var(--info)" },
+  reminders: { title: "Reminders", icon: TbBell, color: "var(--danger)" },
+  connections: { title: "Cloud & calendar", icon: TbCloud, color: "var(--info)" },
+  backup: { title: "Backup & restore", icon: TbDatabase, color: "var(--success)" },
+  plan: { title: "Workout plan file", icon: TbCode, color: "var(--ink-soft)" },
+};
+
+const isPane = (v: string | null): v is PaneId => v !== null && v in PANES;
+
+// iOS push: the incoming pane slides over from the right while the outgoing
+// screen drifts left; Back reverses it. `custom` is the direction.
+const slide = {
+  enter: (d: number) => ({ x: d > 0 ? "100%" : "-28%", opacity: d > 0 ? 1 : 0.4 }),
+  center: { x: 0, opacity: 1 },
+  exit: (d: number) => ({ x: d > 0 ? "-28%" : "100%", opacity: d > 0 ? 0.4 : 1 }),
+};
 
 export function SettingsPage() {
-  const [tab, setTab] = useState<Tab>("you");
-  const { message, modal } = App.useApp();
-  const name = useSetting("name");
-  const themeMode = useSetting("themeMode");
-  const profilePic = useSetting("profilePic");
-  const bgImage = useSetting("bgImage");
-  const bgBlur = useSetting("bgBlur");
-  const bgOpacity = useSetting("bgOpacity");
-  const wakeHour = useSetting("wakeHour");
-  const waterGoalMl = useSetting("waterGoalMl");
-  const proteinTargetG = useSetting("proteinTargetG");
-  const calorieTargetKcal = useSetting("calorieTargetKcal");
-  const carbTargetG = useSetting("carbTargetG");
-  const fatTargetG = useSetting("fatTargetG");
-  const sleepTargetMin = useSetting("sleepTargetMin");
-  // Phase-3 additions
-  const birthday = String(useSetting("birthday") ?? "");
-  const highContrast = Number(useSetting("highContrast")) === 1;
-  const reduceMotion = Number(useSetting("reduceMotion")) === 1;
-  const equippedFrame = String(useSetting("equippedFrame"));
+  const reduced = useReducedMotion();
+  const [params, setParams] = useSearchParams();
+  const pane = isPane(params.get("s")) ? (params.get("s") as PaneId) : null;
+  const focus = params.get("f");
+  const [query, setQuery] = useState("");
 
-  const picRef = useRef<HTMLInputElement>(null);
-  const bgRef = useRef<HTMLInputElement>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  // Each pane is its own history entry so device/browser Back closes it.
+  const open = (id: PaneId, f?: string) => setParams(f ? { s: id, f } : { s: id });
 
-  // Local mirrors for the blur/opacity sliders — antd's Slider fires onChange
-  // on every drag tick, and writing to Dexie that often floods the mutation
-  // bus (every write re-triggers the XP + achievement engines app-wide, see
-  // lib/mutations.ts). Track the live value locally for instant label/handle
-  // feedback, and only persist once the drag ends.
-  const [liveBgBlur, setLiveBgBlur] = useState<number | null>(null);
-  const [liveBgOpacity, setLiveBgOpacity] = useState<number | null>(null);
+  useEffect(() => { document.querySelector("main")?.scrollTo({ top: 0 }); }, [pane]);
 
-  async function pickImage(file: File, key: "profilePic" | "bgImage") {
-    try {
-      const dataUrl = await fileToDataURL(file, key === "profilePic" ? 400 : 1400, key === "profilePic" ? 0.85 : 0.8);
-      await setSetting(key, dataUrl);
-    } catch { message.error("Couldn't read that image"); }
+  // Google's OAuth callback lands on /settings?google=… — route it to the
+  // pane that renders the card which consumes those params.
+  if (params.has("google") && !pane) {
+    const next = new URLSearchParams(params);
+    next.set("s", "connections");
+    return <Navigate to={`/settings?${next}`} replace />;
   }
 
-  async function handleExport() {
-    const json = await exportAll();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `zenith-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    message.success("Backup downloaded");
-  }
-
-  function handleImportFile(file: File) {
-    const reader = new FileReader();
-    reader.onload = async () => {
-      modal.confirm({
-        title: "Restore from backup?",
-        content: "This replaces all current data on this device.",
-        okText: "Restore", okButtonProps: { danger: true },
-        onOk: async () => {
-          try {
-            const raw = String(reader.result).trim();
-            let json = raw;
-            if (raw.startsWith("zn1.")) {
-              const pw = prompt("This backup is encrypted. Password:");
-              if (!pw) return;
-              json = await decryptString(raw, pw);
-            }
-            await importAll(json);
-            message.success("Data restored");
-          }
-          catch { message.error("Invalid backup file or wrong password"); }
-        },
-      });
-    };
-    reader.readAsText(file);
-  }
-
-  const num = (label: string, val: number, key: Parameters<typeof setSetting>[0], suffix?: string, step = 1, min = 0) => (
-    <Col span={12} style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>{label}</div>
-      <InputNumber inputMode="decimal" value={val} min={min} step={step} suffix={suffix}
-        style={{ width: "100%" }} onChange={(v) => v != null && setSetting(key, v)} />
-    </Col>
-  );
+  const dir = pane ? 1 : -1;
+  const transition = reduced ? { duration: 0 } : { type: "spring" as const, stiffness: 380, damping: 38, mass: 0.9 };
 
   return (
-    <PageTransition>
-      <SectionTitle title="Settings" />
-      <Segmented block value={tab} onChange={(v) => setTab(v as Tab)} style={{ marginBottom: 12 }}
-        options={[{ label: "You", value: "you" }, { label: "Sync", value: "sync" }, { label: "Data", value: "data" }]} />
-
-      {tab === "you" && <>
-      {/* Profile & targets */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span><TbUser /> Profile</span>}>
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Name</div>
-        <Input value={String(name)} onChange={(e) => setSetting("name", e.target.value)} style={{ marginBottom: 14 }} />
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>
-          <TbCake style={{ verticalAlign: "-2px" }} /> Birthday <span style={{ opacity: 0.6 }}>· MM-DD, optional</span>
-        </div>
-        <Input
-          value={birthday} maxLength={5} placeholder="04-25"
-          onChange={(e) => {
-            const v = e.target.value.replace(/[^\d-]/g, "").slice(0, 5);
-            void setSetting("birthday", v);
-          }}
-          style={{ marginBottom: 14, width: 120 }}
-          inputMode="numeric"
-        />
-        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--violet)", marginBottom: 8 }}><TbTarget style={{ verticalAlign: "-2px" }} /> Daily targets</div>
-        <Row gutter={12}>
-          {num("Wake hour", Number(wakeHour), "wakeHour", ":00", 1, 0)}
-          {num("Water goal", Number(waterGoalMl), "waterGoalMl", "ml", 250)}
-          {num("Protein", Number(proteinTargetG), "proteinTargetG", "g", 5)}
-          {num("Calories", Number(calorieTargetKcal), "calorieTargetKcal", "kcal", 50)}
-          {num("Carbs", Number(carbTargetG), "carbTargetG", "g", 10)}
-          {num("Fat", Number(fatTargetG), "fatTargetG", "g", 5)}
-          {num("Sleep target", Number(sleepTargetMin), "sleepTargetMin", "min", 15, 60)}
-        </Row>
-      </Card>
-
-      {/* Appearance */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span><TbPalette /> Appearance</span>}>
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6 }}><TbBulb /> Theme</div>
-        <Segmented
-          block value={themeMode}
-          onChange={(v) => setSetting("themeMode", v as string)}
-          options={[
-            { label: "Dark", value: "dark", icon: <TbMoonStars /> },
-            { label: "Light", value: "light", icon: <TbSun /> },
-          ]}
-          style={{ marginBottom: 16 }}
-        />
-
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><TbUser /> Profile picture</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <AvatarFrame frameId={equippedFrame}>
-            <Avatar size={48} src={profilePic || undefined} className="avatar-grad">{String(name).charAt(0)}</Avatar>
-          </AvatarFrame>
-          <Button icon={<TbPhoto />} onClick={() => picRef.current?.click()}>Choose</Button>
-          {profilePic && <Button danger type="text" onClick={() => setSetting("profilePic", "")}>Remove</Button>}
-        </div>
-
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}><TbPhoto /> Background image</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Button icon={<TbPhoto />} onClick={() => bgRef.current?.click()}>{bgImage ? "Replace" : "Choose"}</Button>
-          {bgImage && <Button danger type="text" onClick={() => setSetting("bgImage", "")}>Remove</Button>}
-        </div>
-        {bgImage && (
-          <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Blur — {liveBgBlur ?? Number(bgBlur)}px</div>
-            <Slider min={0} max={24} value={liveBgBlur ?? Number(bgBlur)}
-              onChange={setLiveBgBlur}
-              onChangeComplete={(v) => { setLiveBgBlur(null); void setSetting("bgBlur", v); }} />
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Opacity — {liveBgOpacity ?? Number(bgOpacity)}%</div>
-            <Slider min={0} max={100} value={liveBgOpacity ?? Number(bgOpacity)}
-              onChange={setLiveBgOpacity}
-              onChangeComplete={(v) => { setLiveBgOpacity(null); void setSetting("bgOpacity", v); }} />
-          </div>
-        )}
-        <input ref={picRef} type="file" accept="image/*" hidden
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f, "profilePic"); e.target.value = ""; }} />
-        <input ref={bgRef} type="file" accept="image/*" hidden
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f, "bgImage"); e.target.value = ""; }} />
-      </Card>
-
-      </>}
-
-      {tab === "sync" && <>
-      <RemindersCard />
-      <SyncCard />
-      <GoogleCalendarCard />
-      </>}
-
-      {tab === "data" && <>
-
-      {/* Backup */}
-      <Card size="small" style={{ marginBottom: 20 }} title="Data backup">
-        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 12 }}>
-          Everything is stored only on this device. Export regularly so you never lose it.
-        </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <Button block icon={<TbDownload />} onClick={handleExport}>Export</Button>
-          <Button block icon={<TbUpload />} onClick={() => fileRef.current?.click()}>Import</Button>
-        </div>
-        <Button block icon={<TbLock />} style={{ marginTop: 8 }} onClick={async () => {
-          const pw = prompt("Password to encrypt with (remember this!):");
-          if (!pw) return;
-          const json = await exportAll();
-          const blob = await encryptString(json, pw);
-          const dl = new Blob([blob], { type: "text/plain" });
-          const url = URL.createObjectURL(dl);
-          const a = document.createElement("a");
-          a.href = url; a.download = `zenith-encrypted-${new Date().toISOString().slice(0, 10)}.txt`;
-          a.click(); URL.revokeObjectURL(url);
-          message.success("Encrypted backup downloaded");
-        }}>Encrypted export</Button>
-        <input ref={fileRef} type="file" accept="application/json,text/plain" hidden
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ""; }} />
-      </Card>
-
-      <PlanImportCard />
-      </>}
-
-      {tab === "you" && <>
-      {/* Accessibility */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span><TbAccessible /> Accessibility</span>}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>High contrast</div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-              WCAG-AAA text, no gradients. Better for low-vision use.
-            </div>
-          </div>
-          <Switch checked={highContrast} onChange={(v) => setSetting("highContrast", v ? 1 : 0)} />
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>Reduce motion</div>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-              Turns off ember pulse, page slides, and celebratory flourishes.
-            </div>
-          </div>
-          <Switch checked={reduceMotion} onChange={(v) => setSetting("reduceMotion", v ? 1 : 0)} />
-        </div>
-      </Card>
-
-      </>}
-
-      {tab === "data" && (
-      <>
-      {/* About — Zenith mountain grows quietly with each mythic unlock */}
-      <Card size="small" style={{ marginBottom: 20 }} title={<span><TbInfoCircle /> About</span>}>
-        <MountainGrows />
-        <div style={{ textAlign: "center", fontSize: 12, color: "var(--ink-soft)", marginTop: 10 }}>
-          <div style={{ fontWeight: 700, letterSpacing: 0.3 }}>Zenith · Own the peak</div>
-          <div style={{ opacity: 0.7 }}>by Apurva</div>
-        </div>
-      </Card>
-      </>)}
-    </PageTransition>
+    <div className="zs-stage">
+      <AnimatePresence mode="popLayout" initial={false} custom={dir}>
+        <motion.div key={pane ?? "overview"} className="z-page" custom={dir} variants={slide}
+          initial="enter" animate="center" exit="exit" transition={transition}>
+          {pane
+            ? <PaneView id={pane} focus={focus} />
+            : <Overview query={query} setQuery={setQuery} open={open} />}
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }
+
+function PaneView({ id, focus }: { id: PaneId; focus: string | null }) {
+  // Deep link from search: wait for the push to settle, then scroll the
+  // matching control into view and flash it.
+  useEffect(() => {
+    if (!focus) return;
+    const t = window.setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(`[data-row="${CSS.escape(focus)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      el.classList.add("is-flash");
+      window.setTimeout(() => el.classList.remove("is-flash"), 1900);
+    }, 380);
+    return () => window.clearTimeout(t);
+  }, [id, focus]);
+
+  const meta = PANES[id];
+  return (
+    <>
+      <SectionTitle eyebrow="Settings" title={meta.title} />
+      {id === "profile" && <ProfilePane />}
+      {id === "targets" && <TargetsPane />}
+      {id === "appearance" && <AppearancePane />}
+      {id === "accessibility" && <AccessibilityPane />}
+      {id === "reminders" && <RemindersPane />}
+      {id === "connections" && (
+        <div className="zs-cards">
+          <div data-row="cloud"><SyncCard /></div>
+          <div data-row="google"><GoogleCalendarCard /></div>
+        </div>
+      )}
+      {id === "backup" && <BackupPane />}
+      {id === "plan" && <div className="zs-cards" data-row="plan"><PlanImportCard /></div>}
+    </>
+  );
+}
+
+function Overview({ query, setQuery, open }: { query: string; setQuery: (q: string) => void; open: (id: PaneId, f?: string) => void }) {
+  const results = searchSettings(query);
+  return (
+    <>
+      <SectionTitle eyebrow="Zenith" title="Settings" />
+      <Input className="zs-search" allowClear value={query} onChange={(e) => setQuery(e.target.value)}
+        prefix={<TbSearch size={17} />} placeholder="Search settings" aria-label="Search settings" enterKeyHint="search" />
+
+      <AnimatePresence mode="wait" initial={false}>
+        {query.trim() ? (
+          <motion.div key="results" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            {results.length ? (
+              <ListGroup title={`${results.length} result${results.length === 1 ? "" : "s"}`}>
+                {results.map((r) => {
+                  const P = PANES[r.pane];
+                  return (
+                    <ListRow key={`${r.pane}:${r.key}`} icon={<P.icon size={16} />} color={P.color}
+                      label={<Highlight text={r.label} q={query} />} hint={P.title} onClick={() => open(r.pane, r.key)} />
+                  );
+                })}
+              </ListGroup>
+            ) : (
+              <div className="zs-noresult">
+                Nothing matches “{query.trim()}”. Try <button type="button" onClick={() => setQuery("water")}>water</button>,{" "}
+                <button type="button" onClick={() => setQuery("theme")}>theme</button> or{" "}
+                <button type="button" onClick={() => setQuery("backup")}>backup</button>.
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div key="groups" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            <ProfileCard onOpen={() => open("profile")} />
+            <OverviewGroups open={open} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function Highlight({ text, q }: { text: string; q: string }) {
+  const word = q.trim().toLowerCase().split(/\s+/).find((w) => text.toLowerCase().includes(w));
+  if (!word) return <>{text}</>;
+  const i = text.toLowerCase().indexOf(word);
+  return <>{text.slice(0, i)}<mark className="zs-mark">{text.slice(i, i + word.length)}</mark>{text.slice(i + word.length)}</>;
+}
+
+function ProfileCard({ onOpen }: { onOpen: () => void }) {
+  const name = String(useSetting("name"));
+  const pic = String(useSetting("profilePic"));
+  const frame = String(useSetting("equippedFrame"));
+  const { level, next, progress, totalXP } = useXP();
+  const title = useEquippedTitle();
+  return (
+    <motion.button type="button" className="zs-profile" onClick={onOpen} whileTap={{ scale: 0.98 }}>
+      <Hero className="zs-profile__hero">
+        <div className="zs-profile__row">
+          <AvatarFrame frameId={frame}>
+            <Avatar size={60} src={pic || undefined} className="avatar-grad">{name.charAt(0)}</Avatar>
+          </AvatarFrame>
+          <div className="zs-profile__text">
+            <div className="zs-profile__name display">{name}</div>
+            <div className="zs-profile__meta">Lv.{level.level} · {title}</div>
+            {next && (
+              <div className="zs-profile__xp">
+                <span><motion.i initial={{ width: 0 }} animate={{ width: `${Math.round(progress * 100)}%` }} transition={{ type: "spring", stiffness: 60, damping: 16, delay: 0.2 }} /></span>
+                {totalXP - level.xpRequired}/{next.xpRequired - level.xpRequired} XP
+              </div>
+            )}
+          </div>
+          <TbChevronRight size={18} className="z-row__chev" />
+        </div>
+      </Hero>
+    </motion.button>
+  );
+}
+
+function CloudValue() {
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  return <>{isLoading ? "…" : isAuthenticated ? "Signed in" : "Off"}</>;
+}
+
+function OverviewGroups({ open }: { open: (id: PaneId, f?: string) => void }) {
+  const water = Number(useSetting("waterGoalMl"));
+  const protein = Number(useSetting("proteinTargetG"));
+  const sleep = Number(useSetting("sleepTargetMin"));
+  const mode = String(useSetting("themeMode")) === "light" ? "Light" : "Dark";
+  const accent = accentById(String(useSetting("equippedAccent"))).label;
+  const contrast = Number(useSetting("highContrast")) === 1;
+  const motionOff = Number(useSetting("reduceMotion")) === 1;
+  const rem = [useSetting("remWater"), useSetting("remSession"), useSetting("remBedtime"), useSetting("remSupps"), useSetting("remEvents")]
+    .filter((v) => Number(v) === 1).length;
+
+  const row = (id: PaneId, value: ReactNode, hint?: string) => {
+    const P = PANES[id];
+    return <ListRow icon={<P.icon size={16} />} color={P.color} label={P.title} hint={hint} value={value} onClick={() => open(id)} />;
+  };
+
+  return (
+    <>
+      <ListGroup title="You">
+        {row("targets", `${+(water / 1000).toFixed(2)}L · ${protein}g · ${fmtDuration(sleep)}`)}
+        {row("appearance", `${mode} · ${accent}`)}
+        {row("accessibility", contrast && motionOff ? "2 on" : contrast ? "High contrast" : motionOff ? "Less motion" : "Default")}
+      </ListGroup>
+
+      <ListGroup title="Notifications">
+        {row("reminders", `${rem} of 5 on`)}
+      </ListGroup>
+
+      <ListGroup title="Data">
+        {row("connections", convexConfigured ? <CloudValue /> : "Not set up")}
+        {row("backup", "Local")}
+        {row("plan", "Advanced")}
+      </ListGroup>
+
+      <ListGroup title="More">
+        <ListRow icon={<TbSparkles size={16} />} color="var(--gold)" label="Reward Vault" to="/vault" />
+        <ListRow icon={<TbAward size={16} />} color="var(--gold)" label="Hall of Frame" to="/hall" />
+        <ListRow icon={<TbUsersGroup size={16} />} color="var(--info)" label="Leaderboard" to="/leaderboard" />
+        <ListRow icon={<TbQuote size={16} />} color="var(--accent)" label="Motivation quotes" to="/quotes" />
+        <ListRow icon={<TbShare2 size={16} />} color="var(--teal)" label="Share card" to="/glance" />
+      </ListGroup>
+
+      <div className="zs-about">
+        <MountainGrows />
+        <div className="zs-about__brand">Zenith · Own the peak</div>
+        <div className="zs-about__by">by Apurva</div>
+        <div className="zs-about__count">{SEARCH_INDEX.length} settings · searchable</div>
+      </div>
+    </>
+  );
+}
+
+function AccessibilityPane() {
+  const contrast = Number(useSetting("highContrast")) === 1;
+  const motionOff = Number(useSetting("reduceMotion")) === 1;
+  const osReduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  return (
+    <ListGroup title="Display & motion"
+      footer={osReduce ? "Your device already asks apps to reduce motion — Zenith follows it regardless of this switch." : undefined}>
+      <div data-row="contrast">
+        <ListRow icon={<TbContrast2 size={16} />} color="var(--info)" label="High contrast" hint="AAA-contrast text, no gradients"
+          right={<Switch checked={contrast} onChange={(v) => setSetting("highContrast", v ? 1 : 0)} aria-label="High contrast" />} />
+      </div>
+      <div data-row="motion">
+        <ListRow icon={<TbRun size={16} />} color="var(--accent)" label="Reduce motion" hint="Calms embers, waves, page slides and celebrations"
+          right={<Switch checked={motionOff} onChange={(v) => setSetting("reduceMotion", v ? 1 : 0)} aria-label="Reduce motion" />} />
+      </div>
+    </ListGroup>
+  );
+}
+

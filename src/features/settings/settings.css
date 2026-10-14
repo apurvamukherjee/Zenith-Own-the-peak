@@ -1,3 +1,35 @@
+/* Settings. Lists/rows/heroes come from the shared kit (components/ui);
+   this file is only what's unique to Settings. */
+
+/* Panes push horizontally; clip (not hidden) so sticky titles keep working. */
+.zs-stage { position: relative; overflow-x: hidden; overflow-x: clip; }
+
+.zs-search.ant-input-affix-wrapper { min-height: 46px; border-radius: 15px !important; margin-bottom: 4px; }
+.zs-search .ant-input-prefix { color: var(--ink-soft); margin-inline-end: 8px; }
+.zs-mark { background: color-mix(in srgb, var(--accent) 22%, transparent); color: inherit; padding: 0 2px; border-radius: 4px; }
+.zs-noresult { padding: 28px 8px; text-align: center; font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+.zs-noresult button { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--accent); cursor: pointer; }
+
+/* ---------- Overview ---------------------------------------------------- */
+.zs-profile { display: block; width: 100%; margin-top: 12px; padding: 0; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; border-radius: 28px; }
+.zs-profile__hero { padding: 14px 16px; }
+.zs-profile__row { display: flex; align-items: center; gap: 14px; }
+.zs-profile__row .ant-avatar { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; font-size: 24px; }
+.zs-profile__text { flex: 1; min-width: 0; }
+.zs-profile__name { font-size: 20px; font-weight: 800; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zs-profile__meta { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+.zs-profile__xp { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 10.5px; font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.zs-profile__xp span { flex: 1; height: 4px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.zs-profile__xp i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--gold)); }
+
+.zs-about { margin-top: 26px; text-align: center; font-size: 12px; color: var(--ink-soft); }
+.zs-about__brand { margin-top: 10px; font-family: "Cinzel", serif; font-weight: 800; letter-spacing: 0.12em; color: var(--ink); }
+.zs-about__by { opacity: 0.7; margin-top: 2px; font-style: italic; }
+.zs-about__count { opacity: 0.45; margin-top: 8px; font-size: 11px; }
+
+.zs-cards { display: flex; flex-direction: column; gap: 12px; }
+.zs-cards .ant-card { margin-bottom: 0 !important; }
+
 /* ---------- Target dials ------------------------------------------------ */
 .zs-dials { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
 .zs-dial {
