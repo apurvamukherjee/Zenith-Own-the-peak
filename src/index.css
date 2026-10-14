@@ -555,8 +555,9 @@ html[data-contrast="high"] .text-ember {
 .z-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  border-radius: 22px;
   padding: var(--sp-4);
+  box-shadow: 0 12px 26px -22px rgba(0,0,0,.7);
 }
 .z-card--raised { background: var(--surface-2); box-shadow: 0 8px 24px -16px rgba(0,0,0,.55); }
 .z-card--press { cursor: pointer; transition: transform .12s ease; }

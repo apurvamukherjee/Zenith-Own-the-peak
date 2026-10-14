@@ -251,3 +251,18 @@ html[data-motion="reduce"] .z-embers { display: none; }
 .z-empty__icon svg { max-width: 44px; max-height: 44px; }
 .z-empty__title { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 15px; font-weight: 800; color: var(--ink); }
 .z-empty__hint { max-width: 290px; font-size: 12.5px; line-height: 1.45; }
+
+/* ---------- antd surfaces, reskinned ------------------------------------ */
+/* Doubled class beats antd's :where()-scoped single class without
+   !important, so per-instance inline styles (hero gradients) still win. */
+.ant-card.ant-card {
+  border-radius: 22px; border: 1px solid var(--border); background: var(--surface);
+  box-shadow: 0 12px 26px -22px rgba(0, 0, 0, 0.7);
+}
+.ant-card.ant-card > .ant-card-head { min-height: 48px; border-bottom: 1px solid var(--border); padding: 0 16px; }
+.ant-card.ant-card > .ant-card-head .ant-card-head-title {
+  display: flex; align-items: center; gap: 8px; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-weight: 800; font-size: 15px;
+}
+.ant-card.ant-card > .ant-card-head .ant-card-head-title svg { color: var(--accent); flex-shrink: 0; }
+.ant-card.ant-card > .ant-card-body { padding: 14px 16px; }
+.ant-card-small.ant-card > .ant-card-body { padding: 12px 14px; }
