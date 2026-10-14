@@ -104,7 +104,6 @@ src/
   hooks/
     useSettings.ts       Typed key/value settings + DEFAULTS
     useTokens.ts         Concrete hex palette per theme mode (for charts/SVG)
-    useWorkout.ts        Compat read-only hooks for Progress page
     useReminders.ts      Nutrition-specific reminder pinger
     useBackClose.ts      Back button dismisses an overlay instead of navigating
   components/
@@ -184,7 +183,7 @@ Rule: style prop → CSS var. SVG/Progress attribute → `useTokens()`.
   avoid double-fire; native includes them.
 - The old `config/pplProgram.ts` is deleted. `seedProgram.ts` seeds from
   `exerciseLibrary.ts` into Dexie tables. The Planner edits those tables directly.
-- `hooks/useWorkout.ts` is a thin compat shim for the Progress page's read-only
+- `features/workout/useWorkoutProgress.ts` holds the Progress page's read-only
   queries. All write logic lives in `features/gym/useGym.ts`.
 
 ## Deployment
@@ -224,7 +223,7 @@ Full instructions in `DEPLOYMENT.md`. Short version:
   scrolling, no race. Used in SleepPage and the Calendar day-detail sleep editor.
 - **Known repo hygiene issue**: an old `features/workout/ExerciseCard.tsx` (from
   before the gym redesign) can resurface if merging old branches — it imports
-  `useGhostSets`/`logSet`/`deleteSet` from `hooks/useWorkout.ts`, which no longer
+  `useGhostSets`/`logSet`/`deleteSet` from `hooks/useWorkout.ts` (since moved to `features/workout/useWorkoutProgress.ts`), which no longer
   exports them (that logic moved to `features/gym/useGym.ts`). If a Vercel build
   fails with `TS2305 ... has no exported member 'useGhostSets'`, delete that
   stray file from the repo — it is not part of the current architecture.

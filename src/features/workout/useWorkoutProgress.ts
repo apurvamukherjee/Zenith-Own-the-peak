@@ -1,7 +1,6 @@
-// Compat hooks for the Progress page. Session logging moved to features/gym/useGym.ts.
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../db/db";
-import type { WorkoutSetDto } from "../db/types";
+import { db } from "../../db/db";
+import type { WorkoutSetDto } from "../../db/types";
 
 export function useExerciseHistory(exerciseName?: string) {
   return useLiveQuery(

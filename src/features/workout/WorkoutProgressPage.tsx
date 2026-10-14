@@ -8,7 +8,7 @@ import { EmptyState } from "../../components/EmptyState";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { Hero } from "../../components/ui/Hero";
 import { ListGroup, ListRow } from "../../components/ui/List";
-import { useExerciseHistory, useLoggedExercises, useRecentPRs } from "../../hooks/useWorkout";
+import { useExerciseHistory, useLoggedExercises, useRecentPRs } from "./useWorkoutProgress";
 import { progressionByDate, volumeLoad } from "../../lib/workout.utils";
 import { prettyDate } from "../../lib/date.utils";
 import { useTokens } from "../../hooks/useTokens";
