@@ -1,6 +1,6 @@
 import { hapticMedium } from "./haptics";
 import { playRockyFanfare } from "./audio";
-import { notify } from "./notifications";
+import { notify, isNativeNotifications, scheduleRestNotification, cancelRestNotification } from "./notifications";
 
 // -----------------------------------------------------------------------------
 // Global rest-timer state.
@@ -37,6 +37,16 @@ let pausedRemaining = 0;    // seconds banked while paused
 let tickHandle: number | null = null;
 let firedZero = false;
 
+function restBody(): string { return state.label ? `Back to ${state.label}` : "Next set — go."; }
+
+// Native: the OS owns the "Rest over" alert so it lands with the app backgrounded.
+function armNative() {
+  if (isNativeNotifications()) void scheduleRestNotification("Rest over", restBody(), new Date(endsAt));
+}
+function disarmNative() {
+  if (isNativeNotifications()) void cancelRestNotification();
+}
+
 function publish() {
   listeners.forEach((l) => l(state));
 }
@@ -57,7 +67,7 @@ function tick() {
     if (!firedZero) {
       firedZero = true;
       hapticMedium();
-      void notify("Rest over", state.label ? `Back to ${state.label}` : "Next set — go.");
+      if (!isNativeNotifications()) void notify("Rest over", restBody());
       // Egg #9: Rocky trumpets on completion of a rest that started at
       // *exactly* 3:20 (200 s). Not 3:19, not 3:21.
       if (state.totalSec === 200) playRockyFanfare();
@@ -83,6 +93,7 @@ export function startRest(seconds: number, color: string, label?: string): void 
   endsAt = Date.now() + seconds * 1000;
   pausedRemaining = seconds;
   state = { active: true, totalSec: seconds, remaining: seconds, paused: false, color, label };
+  armNative();
   ensureTicking();
   publish();
 }
@@ -91,6 +102,7 @@ export function pauseRest(): void {
   if (!state.active || state.paused) return;
   pausedRemaining = computeRemaining();
   state = { ...state, paused: true, remaining: pausedRemaining };
+  disarmNative();
   publish();
 }
 
@@ -98,6 +110,7 @@ export function resumeRest(): void {
   if (!state.active || !state.paused) return;
   endsAt = Date.now() + pausedRemaining * 1000;
   state = { ...state, paused: false };
+  armNative();
   publish();
 }
 
@@ -106,8 +119,12 @@ export function stop(): void {
   stopTicking();
   publish();
 }
-// Alias — semantically nicer at call sites where the user is skipping.
-export const skipRest = stop;
+// User-initiated skip also withdraws the pending OS alert; the natural
+// zero-hit stop() above must not, or it would cancel the alert as it lands.
+export function skipRest(): void {
+  disarmNative();
+  stop();
+}
 
 export function getRestState(): RestTimerState { return state; }
 

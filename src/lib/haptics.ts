@@ -1,23 +1,19 @@
 // Haptic feedback: real vibration on Capacitor native, navigator.vibrate on web, no-op fallback.
-async function loadPlugin(): Promise<any | null> {
-  try {
-    const mod = "@capacitor/haptics";
-    return (await import(/* @vite-ignore */ mod)).Haptics;
-  } catch { return null; }
-}
+// Static import: a bare dynamic import() is left unresolved by Vite and fails in the WebView.
+import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
 function isNative(): boolean {
   const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   return Boolean(cap?.isNativePlatform?.());
 }
-export async function hapticLight() {
-  if (isNative()) { const H = await loadPlugin(); H?.impact?.({ style: "LIGHT" }); }
+export function hapticLight() {
+  if (isNative()) void Haptics.impact({ style: ImpactStyle.Light });
   else if (navigator.vibrate) navigator.vibrate(10);
 }
-export async function hapticMedium() {
-  if (isNative()) { const H = await loadPlugin(); H?.impact?.({ style: "MEDIUM" }); }
+export function hapticMedium() {
+  if (isNative()) void Haptics.impact({ style: ImpactStyle.Medium });
   else if (navigator.vibrate) navigator.vibrate(25);
 }
-export async function hapticSuccess() {
-  if (isNative()) { const H = await loadPlugin(); H?.notification?.({ type: "SUCCESS" }); }
+export function hapticSuccess() {
+  if (isNative()) void Haptics.notification({ type: NotificationType.Success });
   else if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
 }

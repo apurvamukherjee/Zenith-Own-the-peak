@@ -1,7 +1,10 @@
 // Unified reminders. On a Capacitor native build it schedules REAL OS local
 // notifications that fire even when the app is closed. On the web it falls back
-// to in-tab Notification pings while the app is open. The native plugin is
-// loaded via a dynamic string import so it never enters the web bundle.
+// to in-tab Notification pings while the app is open.
+// Static import on purpose: a bare dynamic import() survives into the bundle
+// unresolved and fails inside the Android WebView. The plugin is a thin
+// registerPlugin proxy, so the web bundle cost is negligible.
+import { LocalNotifications as LN } from "@capacitor/local-notifications";
 
 export interface ReminderConfig {
   water: boolean; waterEveryH: number;
@@ -57,21 +60,14 @@ export function isNativeNotifications(): boolean {
   return Boolean(cap?.isNativePlatform?.());
 }
 
-async function loadPlugin(): Promise<any | null> {
-  try {
-    const mod = "@capacitor/local-notifications";
-    return (await import(/* @vite-ignore */ mod)).LocalNotifications;
-  } catch {
-    return null;
-  }
-}
-
 export async function requestNotificationPermission(): Promise<boolean> {
   if (isNativeNotifications()) {
-    const LN = await loadPlugin();
-    if (!LN) return false;
     const res = await LN.requestPermissions();
-    return res.display === "granted";
+    if (res.display !== "granted") return false;
+    // Only ever sent to the "Alarms & reminders" screen from this explicit tap;
+    // without it, reminders still fire, just inexactly (Doze may delay them).
+    if (!(await canExact())) await LN.changeExactNotificationSetting();
+    return true;
   }
   if (typeof Notification === "undefined") return false;
   const p = await Notification.requestPermission();
@@ -83,20 +79,29 @@ export async function requestNotificationPermission(): Promise<boolean> {
 // queue, so each scheduler only ever cancels/rewrites notifications in its own
 // id range — otherwise re-syncing one would wipe out the other.
 export const TASK_REMINDER_ID_BASE = 20000;
+const DAILY_REMINDER_ID_BASE = 1000;
+// Below both ranges so neither re-sync cancels a running rest timer.
+const REST_TIMER_ID = 1;
+
+// The plugin opens the "Alarms & reminders" settings screen on every schedule()
+// that asks for an exact alarm it isn't allowed — i.e. on every app launch,
+// since the engines re-sync on mount. So only request exact when already granted.
+async function canExact(): Promise<boolean> {
+  return (await LN.checkExactNotificationSetting()).exact_alarm === "granted";
+}
 
 // Schedule all reminders as repeating daily native notifications.
 export async function applyNativeReminders(c: ReminderConfig): Promise<boolean> {
-  const LN = await loadPlugin();
-  if (!LN) return false;
   const planned = planReminders(c);
   try {
+    const exact = await canExact();
     const pending = await LN.getPending();
-    const ours = (pending.notifications ?? []).filter((n: { id: number }) => n.id < TASK_REMINDER_ID_BASE);
-    if (ours.length) await LN.cancel({ notifications: ours.map((n: { id: number }) => ({ id: n.id })) });
+    const ours = pending.notifications.filter((n) => n.id >= DAILY_REMINDER_ID_BASE && n.id < TASK_REMINDER_ID_BASE);
+    if (ours.length) await LN.cancel({ notifications: ours.map((n) => ({ id: n.id })) });
     await LN.schedule({
       notifications: planned.map((p) => {
         const [h, m] = p.at.split(":").map(Number);
-        return { id: p.id, title: p.title, body: p.body, schedule: { on: { hour: h, minute: m }, repeats: true } };
+        return { id: p.id, title: p.title, body: p.body, schedule: { on: { hour: h, minute: m }, repeats: true }, isExactNotification: exact };
       }),
     });
     return true;
@@ -105,22 +110,32 @@ export async function applyNativeReminders(c: ReminderConfig): Promise<boolean> 
   }
 }
 
+// Rest timer on native: scheduled with the OS up front because WebView timers
+// stall once the app is backgrounded, so a fire-at-zero ping would never land.
+export async function scheduleRestNotification(title: string, body: string, at: Date): Promise<void> {
+  if ((await LN.checkPermissions()).display !== "granted") return;
+  const exact = await canExact();
+  await LN.schedule({ notifications: [{ id: REST_TIMER_ID, title, body, schedule: { at, allowWhileIdle: true }, isExactNotification: exact }] });
+}
+export async function cancelRestNotification(): Promise<void> {
+  await LN.cancel({ notifications: [{ id: REST_TIMER_ID }] });
+}
+
 export interface OneOffReminder { id: number; title: string; body: string; at: Date }
 
 // Schedule one-off (non-repeating) native notifications for specific dated
 // calendar events with a "remind me" time set — distinct from the repeating
 // time-of-day reminders above.
 export async function applyOneOffReminders(reminders: OneOffReminder[]): Promise<boolean> {
-  const LN = await loadPlugin();
-  if (!LN) return false;
   try {
+    const exact = await canExact();
     const pending = await LN.getPending();
-    const ours = (pending.notifications ?? []).filter((n: { id: number }) => n.id >= TASK_REMINDER_ID_BASE);
-    if (ours.length) await LN.cancel({ notifications: ours.map((n: { id: number }) => ({ id: n.id })) });
+    const ours = pending.notifications.filter((n) => n.id >= TASK_REMINDER_ID_BASE);
+    if (ours.length) await LN.cancel({ notifications: ours.map((n) => ({ id: n.id })) });
     if (reminders.length) {
       await LN.schedule({
         notifications: reminders.map((r) => ({
-          id: r.id, title: r.title, body: r.body, schedule: { at: r.at, allowWhileIdle: true },
+          id: r.id, title: r.title, body: r.body, schedule: { at: r.at, allowWhileIdle: true }, isExactNotification: exact,
         })),
       });
     }
