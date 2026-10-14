@@ -1,9 +1,12 @@
-import { useState } from "react";
-import {
-  Card, Button, Collapse, Progress, Input, Modal, Tag, App, Segmented, Popconfirm,
-} from "antd";
-import { TbBrandYoutube, TbClock, TbFileText, TbPlus, TbTrash } from "react-icons/tb";
-import { BarChart, Bar, XAxis, ResponsiveContainer } from "recharts";
+import { useState, type CSSProperties } from "react";
+import { Input, Modal, App, Segmented, Popconfirm } from "antd";
+import { AnimatePresence, motion } from "framer-motion";
+import { TbBrandYoutube, TbClock, TbFileText, TbPlus, TbTrash, TbChevronDown, TbPlayerPlay } from "react-icons/tb";
+import { Hero } from "../../components/ui/Hero";
+import { Rings } from "../../components/ui/Rings";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { hapticSuccess } from "../../lib/haptics";
+import "./study.css";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { EmptyState } from "../../components/EmptyState";
@@ -13,54 +16,64 @@ import {
   usePaths, useItems, useWeeklyStudy, addPath, deletePath, addItem, cycleStatus,
   updateNotes, deleteItem, logStudyMinutes, pathProgress, sourceLabel, useAllItems,
 } from "./useStudy";
-import { VIOLET, GOLD } from "../../theme";
-import { useTokens } from "../../hooks/useTokens";
 
-const STATUS_META: Record<StudyStatus, { color: string; label: string }> = {
-  todo: { color: "default", label: "To learn" },
-  doing: { color: "gold", label: "Learning" },
-  done: { color: "green", label: "Done" },
+const STATUS_META: Record<StudyStatus, { c: string; label: string }> = {
+  todo: { c: "var(--ink-soft)", label: "To learn" },
+  doing: { c: "var(--gold)", label: "Learning" },
+  done: { c: "var(--success)", label: "Done" },
 };
 
+function weekdayAgo(days: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toLocaleDateString(undefined, { weekday: "narrow" });
+}
+
 export function StudyPage() {
-  const t = useTokens();
+  const reduced = useReducedMotion();
   const paths = usePaths();
   const weekly = useWeeklyStudy();
   const allItems = useAllItems();
   const [addOpen, setAddOpen] = useState(false);
   const totalMin = weekly.reduce((s, d) => s + d.min, 0);
   const doneAll = allItems.filter((i) => i.status === "done").length;
+  const max = Math.max(30, ...weekly.map((d) => d.min));
+  const todayMin = weekly[weekly.length - 1]?.min ?? 0;
 
   return (
     <PageTransition>
-      <SectionTitle eyebrow="Productivity" title="Study"
-        right={<Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>Path</Button>} />
+      <SectionTitle eyebrow="Sharpen the mind" title="Learn"
+        right={<button type="button" className="z-btn z-btn--solid" onClick={() => setAddOpen(true)}><TbPlus size={16} /> Path</button>} />
 
-      <Card size="small" style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontWeight: 700 }}><TbClock /> {totalMin} min this week</span>
-          <span style={{ color: "var(--ink-soft)" }}>{doneAll} topics done</span>
+      <Hero color="var(--success)" eyebrow="This week" className="st-hero"
+        right={<span className="z-pill" style={{ "--c": todayMin ? "var(--success)" : "var(--ink-soft)" } as CSSProperties}>{todayMin ? `${todayMin} min today` : "Nothing today"}</span>}>
+        <div className="st-hero__row">
+          <div>
+            <div className="z-hero__big">{Math.floor(totalMin / 60)}<small>h</small> {totalMin % 60}<small>m</small></div>
+            <div className="z-hero__sub">{doneAll} topic{doneAll === 1 ? "" : "s"} mastered · {paths.length} path{paths.length === 1 ? "" : "s"}</div>
+          </div>
+          <div className="st-bars" aria-label="Minutes studied per day this week">
+            {weekly.map((d, i) => (
+              <div key={d.date} className={`st-bars__col${i === weekly.length - 1 ? " is-today" : ""}`}>
+                <motion.i initial={reduced ? false : { height: 0 }} animate={{ height: `${Math.max(4, (d.min / max) * 100)}%` }}
+                  transition={{ type: "spring", stiffness: 120, damping: 18, delay: 0.1 + i * 0.05 }}
+                  className={d.min ? "" : "is-zero"} />
+                <span>{weekdayAgo(weekly.length - 1 - i)}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div style={{ width: "100%", height: 70 }}>
-          <ResponsiveContainer>
-            <BarChart data={weekly} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-              <XAxis dataKey="date" tick={{ fontSize: 9 }} />
-              <Bar dataKey="min" fill={t.accent} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
+      </Hero>
 
       {paths.length === 0 ? (
-        <EmptyState
-          icon={<ColdIcon glyph="tome" size={80} />}
-          title="No learning paths yet"
+        <EmptyState icon={<ColdIcon glyph="tome" size={44} />} title="No learning paths yet"
           hint="Add a YouTube playlist, course, or book — then break it into topics and track your way through."
-          actionLabel="Create your first path"
-          onAction={() => setAddOpen(true)}
-        />
+          actionLabel="Create your first path" onAction={() => setAddOpen(true)} />
       ) : (
-        paths.map((p) => <PathCard key={p.id} path={p} />)
+        <>
+          <div className="z-list-title">Paths</div>
+          <div className="st-paths">{paths.map((p) => <PathCard key={p.id} path={p} />)}</div>
+        </>
       )}
 
       <AddPathModal open={addOpen} onClose={() => setAddOpen(false)} />
@@ -69,79 +82,80 @@ export function StudyPage() {
 }
 
 function PathCard({ path }: { path: StudyPathDto }) {
-  const t = useTokens();
   const { message } = App.useApp();
+  const reduced = useReducedMotion();
   const items = useItems(path.id);
   const { pct, done, total, upNext } = pathProgress(items);
   const [newTopic, setNewTopic] = useState("");
   const [noteItem, setNoteItem] = useState<StudyItemDto | null>(null);
+  const [open, setOpen] = useState(false);
+  const add = () => { if (newTopic.trim() && path.id) { void addItem(path.id, newTopic.trim()); setNewTopic(""); } };
 
   return (
-    <Card style={{ marginBottom: 14 }} styles={{ body: { padding: 16 } }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ flex: 1 }}>
-          <div className="display" style={{ fontWeight: 800, fontSize: 18 }}>{path.title}</div>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
-            {path.sourceType === "youtube" && <TbBrandYoutube style={{ color: "#ff0000", marginRight: 4 }} />}
-            {path.sourceUrl ? (
-              <a href={path.sourceUrl} target="_blank" rel="noreferrer">{sourceLabel(path)}</a>
-            ) : sourceLabel(path)}
+    <div className="st-path">
+      <div className="st-path__head">
+        <Rings size={58} stroke={6} reduced={reduced} rings={[{ key: "p", pct, color: ["var(--success)", "var(--gold)"] }]}>
+          <span className="st-path__pct">{pct}%</span>
+        </Rings>
+        <div className="st-path__text">
+          <div className="st-path__title display">{path.title}</div>
+          <div className="st-path__src">
+            {path.sourceType === "youtube" && <TbBrandYoutube size={13} style={{ color: "#ff0000" }} />}
+            {path.sourceUrl ? <a href={path.sourceUrl} target="_blank" rel="noreferrer">{sourceLabel(path)}</a> : sourceLabel(path)}
+            <span>· {done}/{total} topics</span>
           </div>
         </div>
-        <Popconfirm title="Delete this learning path?" description="All its topics and notes will be removed." okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
+        <Popconfirm title="Delete this learning path?" description="All its topics and notes will be removed." okText="Delete" okButtonProps={{ danger: true }}
           onConfirm={() => path.id && deletePath(path.id)}>
-          <Button type="text" danger size="small" icon={<TbTrash />} aria-label="Delete path" />
+          <button type="button" className="st-icon" aria-label={`Delete ${path.title}`}><TbTrash size={16} /></button>
         </Popconfirm>
       </div>
 
-      <div style={{ margin: "12px 0 6px", display: "flex", alignItems: "center", gap: 10 }}>
-        <Progress percent={pct} strokeColor={t.accent} style={{ flex: 1, margin: 0 }} />
-        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)" }}>{done}/{total}</span>
-      </div>
-
       {upNext && (
-        <div style={{ background: "rgba(124,92,252,0.08)", borderRadius: 10, padding: "8px 12px", marginBottom: 8, fontSize: 13 }}>
-          <span style={{ fontWeight: 700, color: VIOLET }}>Up next:</span> {upNext.title}
-        </div>
+        <div className="st-next"><TbPlayerPlay size={13} /> <b>Up next</b> {upNext.title}</div>
       )}
 
-      <Collapse ghost items={[{
-        key: "topics",
-        label: <span style={{ fontWeight: 600 }}>Topics</span>,
-        children: (
-          <>
-            {items.map((it) => (
-              <div key={it.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
-                <Tag color={STATUS_META[it.status].color} style={{ cursor: "pointer", borderRadius: 8, minWidth: 74, textAlign: "center" }}
-                  onClick={() => cycleStatus(it)}>{STATUS_META[it.status].label}</Tag>
-                <span style={{ flex: 1, textDecoration: it.status === "done" ? "line-through" : "none", color: it.status === "done" ? "var(--ink-soft)" : "var(--ink)" }}>{it.title}</span>
-                <Button type="text" size="small" icon={<TbFileText style={{ color: it.notes ? GOLD : undefined }} />} onClick={() => setNoteItem(it)} aria-label="Notes" />
-                <Popconfirm title="Delete this topic?" okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
-                  onConfirm={() => it.id && deleteItem(it.id)}>
-                  <Button type="text" size="small" icon={<TbTrash />} aria-label="Delete topic" />
-                </Popconfirm>
-              </div>
-            ))}
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <Input placeholder="Add topic" value={newTopic} onChange={(e) => setNewTopic(e.target.value)}
-                onPressEnter={() => { if (newTopic.trim() && path.id) { addItem(path.id, newTopic.trim()); setNewTopic(""); } }} />
-              <Button icon={<TbPlus />} onClick={() => { if (newTopic.trim() && path.id) { addItem(path.id, newTopic.trim()); setNewTopic(""); } }} aria-label="Add" />
-            </div>
-          </>
-        ),
-      }]} />
-
-      <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+      <div className="st-path__actions">
         {[25, 45].map((m) => (
-          <Button key={m} size="small" icon={<TbClock />}
-            onClick={() => { if (path.id) { logStudyMinutes(path.id, m); message.success(`+${m} min studied`); } }}>
-            +{m}m
-          </Button>
+          <motion.button key={m} type="button" whileTap={{ scale: 0.93 }} className="z-btn" style={{ flex: 1 }}
+            onClick={() => { if (path.id) { void logStudyMinutes(path.id, m); void hapticSuccess(); message.success(`+${m} min studied`); } }}>
+            <TbClock size={15} /> +{m}m
+          </motion.button>
         ))}
+        <button type="button" className={`z-btn st-toggle${open ? " is-open" : ""}`} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          Topics <TbChevronDown size={15} />
+        </button>
       </div>
 
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div key="topics" className="st-topics" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 340, damping: 34 }}>
+            <div className="st-topics__inner">
+              {items.map((it) => (
+                <div key={it.id} className={`st-topic${it.status === "done" ? " is-done" : ""}`}>
+                  <button type="button" className="z-pill st-topic__status" style={{ "--c": STATUS_META[it.status].c } as CSSProperties}
+                    onClick={() => cycleStatus(it)} aria-label={`Status: ${STATUS_META[it.status].label}. Tap to change.`}>
+                    {STATUS_META[it.status].label}
+                  </button>
+                  <span className="st-topic__title">{it.title}</span>
+                  <button type="button" className={`st-icon${it.notes ? " has-notes" : ""}`} onClick={() => setNoteItem(it)} aria-label="Notes"><TbFileText size={16} /></button>
+                  <Popconfirm title="Delete this topic?" okText="Delete" okButtonProps={{ danger: true }} onConfirm={() => it.id && deleteItem(it.id)}>
+                    <button type="button" className="st-icon" aria-label={`Delete ${it.title}`}><TbTrash size={15} /></button>
+                  </Popconfirm>
+                </div>
+              ))}
+              <div className="st-add">
+                <Input placeholder="Add a topic" value={newTopic} onChange={(e) => setNewTopic(e.target.value)} onPressEnter={add} />
+                <button type="button" className="z-btn z-btn--solid" style={{ "--c": "var(--success)" } as CSSProperties} onClick={add} aria-label="Add topic" disabled={!newTopic.trim()}><TbPlus size={16} /></button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <NotesModal item={noteItem} onClose={() => setNoteItem(null)} />
-    </Card>
+    </div>
   );
 }
 
