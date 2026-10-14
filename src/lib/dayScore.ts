@@ -17,32 +17,6 @@ export function filteredValue(m: DayMetrics, filter: ScoreFilter): number {
   }
 }
 
-export async function computeScoreForDate(date: string, waterGoal: number, proteinTarget: number): Promise<DayMetrics> {
-  const weekday = new Date(date + "T00:00").getDay();
-  const [waterEntries, setsCount, sleepEntry, meals, scheduleEntry] = await Promise.all([
-    db.water.where({ date }).toArray(),
-    db.workoutSets.where("date").equals(date).count(),
-    db.sleep.where({ date }).first(),
-    db.meals.where({ date }).toArray(),
-    db.weekSchedule.where({ weekday }).first(),
-  ]);
-  const waterMl = waterEntries.reduce((s, e) => s + e.amountMl, 0);
-  const waterPct = Math.min(100, Math.round((waterMl / waterGoal) * 100));
-  const sessionDone = setsCount > 0;
-  const sleepLogged = !!sleepEntry;
-  const protein = meals.reduce((s, m) => s + m.protein, 0);
-  const proteinPct = Math.min(100, proteinTarget > 0 ? Math.round((protein / proteinTarget) * 100) : 0);
-  // Rest day (no dayId scheduled, or the "Rest" sentinel dayId 0 — same
-  // convention as SessionLogger's `isRest`) — no training is expected, so the
-  // session pillar is credited automatically instead of dragging the average down.
-  const isRestDay = !scheduleEntry || scheduleEntry.dayId === 0;
-  const sessionCredit = sessionDone || isRestDay ? 100 : 0;
-  const pillars = [waterPct, sessionCredit, sleepLogged ? 100 : 0, proteinPct];
-  const score = Math.round(pillars.reduce((a, b) => a + b, 0) / pillars.length);
-  const hasAny = waterMl > 0 || sessionDone || sleepLogged || protein > 0;
-  return { score, waterPct, sessionDone, sleepLogged, proteinPct, hasAny };
-}
-
 // Batch version for a whole month — avoids N sequential round trips.
 export async function computeScoresForMonth(dates: string[], waterGoal: number, proteinTarget: number): Promise<Map<string, DayMetrics>> {
   const [water, sets, sleep, meals, weekSchedule] = await Promise.all([

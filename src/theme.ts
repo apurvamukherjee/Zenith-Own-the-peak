@@ -68,8 +68,6 @@ export function getTheme(mode: Mode, accentOverride?: string): ThemeConfig {
 
 // For style props (color/background) these CSS vars flip with [data-theme].
 export const VIOLET = "var(--accent)";
-export const TEAL = "var(--teal)";
-export const GOLD = "var(--gold)";
 
 // Concrete hexes for contexts where CSS vars don't resolve (recharts SVG attrs).
 export const TOKENS = {

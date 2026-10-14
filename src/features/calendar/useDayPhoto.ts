@@ -12,13 +12,3 @@ export function usePhotoDatesInMonth(dates: string[]) {
   }, [dates.join(",")]) ?? new Set<string>();
 }
 
-export async function setDayPhoto(date: string, dataUrl: string) {
-  const existing = await db.dayPhotos.where({ date }).first();
-  if (existing?.id) await db.dayPhotos.update(existing.id, { dataUrl });
-  else await db.dayPhotos.add({ date, dataUrl });
-}
-
-export async function removeDayPhoto(date: string) {
-  const existing = await db.dayPhotos.where({ date }).first();
-  if (existing?.id) await db.dayPhotos.delete(existing.id);
-}

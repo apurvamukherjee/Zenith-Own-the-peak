@@ -40,16 +40,6 @@ export function useHabitsToday() {
   }, [date]);
 }
 
-// Live "done today" flag for one habit.
-export function useHabitDoneToday(habitId?: number) {
-  const today = todayKey();
-  return useLiveQuery(async () => {
-    if (!habitId) return false;
-    const row = await db.habitLogs.where("[habitId+date]").equals([habitId, today]).first();
-    return !!row;
-  }, [habitId, today]) ?? false;
-}
-
 export function useHabitStreak(habitId?: number) {
   return useLiveQuery(async () => {
     if (!habitId) return 0;
