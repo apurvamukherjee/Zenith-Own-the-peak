@@ -6,6 +6,7 @@ import { Embers } from "../../components/ui/Hero";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { useSetting } from "../../hooks/useSettings";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { shareText } from "../../lib/saveFile";
 import { useTodayScore, useStreak, useLast7, useTrainingToday } from "../dashboard/useHomeData";
 import "./glance.css";
 
@@ -35,10 +36,9 @@ export function GlancePage() {
   async function share() {
     const text = `Zenith — ${today}\nDiscipline ${score.score}% · ${streak}-day streak · ${name}`;
     try {
-      if (navigator.share) await navigator.share({ title: "Zenith", text });
-      else { await navigator.clipboard.writeText(text); message.success("Copied to clipboard"); }
+      if (await shareText("Zenith", text) === "copied") message.success("Copied to clipboard");
     } catch (err) {
-      if (!(err instanceof DOMException && err.name === "AbortError")) message.error("Couldn't share");
+      message.error(`Couldn't share: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
