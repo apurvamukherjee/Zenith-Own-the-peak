@@ -13,7 +13,7 @@ import { TIER_META, type Tier, defById } from "./achievements";
 // they need no unlock storage at all. See features/vault/useRewardVault.ts.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface VaultContext {
+interface VaultContext {
   totalXp: number;
   level: number;
   tierCounts: Record<Tier, number>;
@@ -102,14 +102,14 @@ export function frameById(id: string): FrameDef | undefined {
 
 // All persisted (non-default) cosmetics — used by the unlock engine to diff
 // against db.cosmeticUnlocks.
-export function allCosmeticDefs(): { id: string; label: string }[] {
+function allCosmeticDefs(): { id: string; label: string }[] {
   return [
     ...ACCENT_THEMES.filter((a) => a.id !== DEFAULT_ACCENT),
     ...FRAMES,
   ];
 }
 
-export function cosmeticUnlocked(id: string, ctx: VaultContext): boolean {
+function cosmeticUnlocked(id: string, ctx: VaultContext): boolean {
   const accent = ACCENT_THEMES.find((a) => a.id === id);
   if (accent) return accent.unlock(ctx);
   const frame = frameById(id);

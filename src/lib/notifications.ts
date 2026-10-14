@@ -19,7 +19,7 @@ interface PlannedReminder { id: number; title: string; body: string; at: string 
 
 function hm(h: number, m = 0) { return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`; }
 
-export interface LiveState { waterMl?: number; waterGoal?: number; }
+interface LiveState { waterMl?: number; waterGoal?: number; }
 
 function waterBody(state?: LiveState): string {
   if (!state?.waterGoal) return "Time for a few sips — stay on pace.";
@@ -31,7 +31,7 @@ function waterBody(state?: LiveState): string {
 }
 
 // Build the concrete daily reminder list from config.
-export function planReminders(c: ReminderConfig, includeSupps = true, state?: LiveState): PlannedReminder[] {
+function planReminders(c: ReminderConfig, includeSupps = true, state?: LiveState): PlannedReminder[] {
   const out: PlannedReminder[] = [];
   let id = 1000;
   if (c.water) {

@@ -5,7 +5,7 @@ import { suppressMutations } from "../lib/mutations";
 // Predictive-input helpers. Values are per-key numbers — no complex shapes.
 // Keys use a "<kind>:<itemId>" convention so different domains can share
 // the table without namespace collisions.
-export type UsageKey =
+type UsageKey =
   | `weight:${number}`
   | `reps:${number}`
   | `grams:${number}`;

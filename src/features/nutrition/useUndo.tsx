@@ -13,7 +13,7 @@ import { TbArrowBackUp } from "react-icons/tb";
 //     undo: () => addMeal(snapshot),
 //     label: "Meal deleted",
 //   });
-export interface UndoOpts {
+interface UndoOpts {
   do: () => void | Promise<void>;
   undo: () => void | Promise<void>;
   label: string;

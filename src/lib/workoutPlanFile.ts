@@ -9,14 +9,14 @@ import type { MuscleGroup, ExerciseDto, WorkoutDayDto, DayExerciseDto } from "..
 
 const VALID_MUSCLES = new Set(Object.keys(MUSCLE_LABELS) as MuscleGroup[]);
 
-export type ScheduleKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+type ScheduleKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 const SCHEDULE_KEYS: ScheduleKey[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 // getDay(): 0 Sun .. 6 Sat — matches WorkoutPlanner's WEEKDAY_NAMES/weekSchedule.weekday
 const SCHEDULE_KEY_TO_WEEKDAY: Record<ScheduleKey, number> = {
   sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6,
 };
 
-export interface WorkoutPlanExerciseDef {
+interface WorkoutPlanExerciseDef {
   name: string;
   sets: number; repLow: number; repHigh: number; weightKg: number; restSec: number;
   // Only used when `name` doesn't match an existing library exercise (case-insensitive).
@@ -32,7 +32,7 @@ export interface WorkoutPlanExerciseDef {
   superset?: string;
 }
 
-export interface WorkoutPlanDayDef {
+interface WorkoutPlanDayDef {
   name: string;
   muscles: MuscleGroup[];
   exercises: WorkoutPlanExerciseDef[];
@@ -45,11 +45,11 @@ export interface WorkoutPlanFile {
   schedule?: Partial<Record<ScheduleKey, string>>; // value = a days[].name from this file, or "Rest"
 }
 
-export type ValidationResult =
+type ValidationResult =
   | { ok: true; plan: WorkoutPlanFile; warnings: string[] }
   | { ok: false; errors: string[] };
 
-export interface ImportResult { daysCreated: number; exercisesCreated: number; warnings: string[]; }
+interface ImportResult { daysCreated: number; exercisesCreated: number; warnings: string[]; }
 
 // ---- Shared pure helpers (single source of truth between validate & import) ----
 

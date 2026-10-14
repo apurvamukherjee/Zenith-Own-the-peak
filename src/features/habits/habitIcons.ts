@@ -7,7 +7,7 @@ import { TbSun, TbMoon, TbDroplet, TbBook2, TbBarbell, TbHeart, TbBolt, TbFlame 
 // categories (expenseIcons.ts) and task lists (TasksPage.tsx's ICON_MAP).
 export const HABIT_ICON_NAMES = ["TbSun", "TbMoon", "TbDroplet", "TbBook2", "TbBarbell", "TbHeart", "TbBolt", "TbFlame"] as const;
 
-export const HABIT_ICON_MAP: Record<string, ComponentType<IconBaseProps>> = {
+const HABIT_ICON_MAP: Record<string, ComponentType<IconBaseProps>> = {
   TbSun, TbMoon, TbDroplet, TbBook2, TbBarbell, TbHeart, TbBolt, TbFlame,
 };
 

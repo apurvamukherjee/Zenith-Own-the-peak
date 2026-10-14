@@ -1,6 +1,6 @@
 export type PaneId = "profile" | "targets" | "appearance" | "accessibility" | "reminders" | "connections" | "backup" | "plan";
 
-export interface SearchEntry {
+interface SearchEntry {
   pane: PaneId;
   /** Matches the `data-row` attribute the pane puts on that control. */
   key: string;

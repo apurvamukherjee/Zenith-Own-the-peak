@@ -8,7 +8,7 @@ import { todayKey } from "../../lib/date.utils";
 import { spawnRecurring } from "../tasks/useRecurringSpawner";
 import { completeTask } from "../tasks/useTasks";
 
-export type SlotStatus = "done" | "due" | "overdue" | "upcoming";
+type SlotStatus = "done" | "due" | "overdue" | "upcoming";
 
 // Phase 7 — meds/supplements/meal-reminders are unified into the Task +
 // RecurringRule system so they become real calendar events. This module keeps

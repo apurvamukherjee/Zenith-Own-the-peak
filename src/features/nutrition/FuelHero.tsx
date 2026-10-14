@@ -55,7 +55,7 @@ export function FuelHero({ meals, proteinTarget, fatTarget, carbTarget, kcalTarg
 }
 
 // Breakfast / lunch / dinner / snack calorie split.
-export function TimeOfDayBar({ meals }: { meals: MealDto[] }) {
+function TimeOfDayBar({ meals }: { meals: MealDto[] }) {
   const buckets: Record<MealDto["mealType"], number> = { breakfast: 0, lunch: 0, dinner: 0, snack: 0 };
   for (const m of meals) buckets[m.mealType] += m.calories || 0;
   const total = buckets.breakfast + buckets.lunch + buckets.dinner + buckets.snack;

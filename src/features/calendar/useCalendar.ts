@@ -4,7 +4,7 @@ import { db } from "../../db/db";
 import { computeScoresForMonth } from "../../lib/dayScore";
 import { todayKey } from "../../lib/date.utils";
 
-export interface DayCell {
+interface DayCell {
   date: string; score: number; hasAny: boolean; isToday: boolean; isFuture: boolean;
   waterPct: number; sessionDone: boolean; sleepLogged: boolean; proteinPct: number;
 }

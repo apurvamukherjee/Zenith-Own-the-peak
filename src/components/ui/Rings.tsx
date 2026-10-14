@@ -1,7 +1,7 @@
 import { useId, type ReactNode } from "react";
 import { motion } from "framer-motion";
 
-export interface RingSpec {
+interface RingSpec {
   key: string;
   pct: number;
   /** Any CSS color (CSS vars included) or a two-stop gradient. Applied via

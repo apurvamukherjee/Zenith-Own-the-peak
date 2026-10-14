@@ -1,7 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 
-export interface GymDayInfo {
+interface GymDayInfo {
   date: string;
   dayId: number;
   dayName: string;

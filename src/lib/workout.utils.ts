@@ -13,7 +13,7 @@ export function bestE1RM(sets: WorkoutSetDto[]): number {
 }
 
 // Group a flat set list into one point per date: the top e1RM that day.
-export interface ProgressPoint {
+interface ProgressPoint {
   date: string;
   topE1rm: number;
   topWeight: number;

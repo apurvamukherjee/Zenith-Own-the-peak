@@ -1,7 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 
-export interface MonthSummary {
+interface MonthSummary {
   avgScore: number; bestWeek: { weekLabel: string; avg: number } | null;
   totalVolume: number; totalSets: number; totalStudyMin: number; daysActive: number;
 }

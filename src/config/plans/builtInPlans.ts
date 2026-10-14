@@ -5,9 +5,9 @@
 // exists in config/exerciseLibrary.ts.
 import type { WorkoutPlanFile } from "../../lib/workoutPlanFile";
 
-export type BuiltInPlanKey = "classic-ppl" | "ppl-rest" | "bro-split";
+type BuiltInPlanKey = "classic-ppl" | "ppl-rest" | "bro-split";
 
-export interface BuiltInPlanDef {
+interface BuiltInPlanDef {
   key: BuiltInPlanKey;
   name: string;
   description: string;

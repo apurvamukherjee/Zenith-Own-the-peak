@@ -5,7 +5,7 @@
 // over local data, same spirit as the hand-rolled sleep→lift insight in
 // useWeeklyReview.ts, just generalized and run over a longer window.
 
-export interface CompassInsight { text: string; good: boolean; }
+interface CompassInsight { text: string; good: boolean; }
 
 export interface CompassRow {
   date: string;

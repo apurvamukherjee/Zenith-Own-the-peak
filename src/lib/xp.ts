@@ -22,7 +22,7 @@ export const XP = {
   badge_iron:    60,   // "platinum" renamed to iron
   badge_mythic:  100,
 } as const;
-export type XpAction = keyof typeof XP;
+type XpAction = keyof typeof XP;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LEVELS  (level = floor(sqrt(totalXP / 50)), soft cap at 20)

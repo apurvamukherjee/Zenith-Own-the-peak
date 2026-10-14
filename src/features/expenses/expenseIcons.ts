@@ -9,7 +9,7 @@ import {
 // string name on ExpenseCategoryDto, resolved here at render time. Shared
 // between ExpensesPage and QuickLogFab's inline quick-spend modal so both
 // stay in sync with a single map.
-export const EXPENSE_ICON_MAP: Record<string, ComponentType<IconBaseProps>> = {
+const EXPENSE_ICON_MAP: Record<string, ComponentType<IconBaseProps>> = {
   TbToolsKitchen2, TbCoffee, TbBus, TbRepeat, TbBarbell, TbSparkles, TbDotsCircleHorizontal,
 };
 

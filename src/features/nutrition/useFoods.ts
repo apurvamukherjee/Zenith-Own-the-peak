@@ -43,7 +43,7 @@ export async function deleteFood(id: number) {
 
 // Compute macros for a food at a given amount.
 // unit "g"/"ml" ⇒ base = per-100; unit "piece"/"scoop"/"tbsp"/"slice" ⇒ base = per-1.
-export interface MacroPreview { protein: number; fat: number; carbs: number; kcal: number; }
+interface MacroPreview { protein: number; fat: number; carbs: number; kcal: number; }
 export function computeMacros(food: FoodDto, amount: number): MacroPreview {
   const isPer100 = food.unit === "g" || food.unit === "ml";
   const factor = isPer100 ? amount / 100 : amount;

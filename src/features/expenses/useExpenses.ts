@@ -91,7 +91,7 @@ export async function setCategoryBudget(categoryId: string, monthlyBudget: numbe
   await db.categoryBudgets.put({ categoryId, monthlyBudget });
 }
 
-export interface ExpenseStats {
+interface ExpenseStats {
   total: number;
   byCategory: Record<string, number>;
   totalBudget: number;

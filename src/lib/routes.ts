@@ -1,6 +1,6 @@
-export interface RouteMeta { title: string; rank: number; tab: boolean }
+interface RouteMeta { title: string; rank: number; tab: boolean }
 
-export const ROUTE_META: Record<string, RouteMeta> = {
+const ROUTE_META: Record<string, RouteMeta> = {
   "/":          { title: "Home",        rank: 0, tab: true },
   "/workout":   { title: "Train",       rank: 0, tab: true },
   "/planner":   { title: "Planner",     rank: 1, tab: false },

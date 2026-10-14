@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 // Morning (8–12): burnt-orange → blood-red.  Midday (12–15): deep red at peak.
 // Afternoon (15–18): red → crimson.  Evening (18–21): crimson → ember-black.
 // Wind-down (21–24) + late-night (0–5): deep dried-blood into black.
-export interface TimeGradient { grad: string; label: string; }
+interface TimeGradient { grad: string; label: string; }
 function pickGradient(h: number): TimeGradient {
   if (h >= 5 && h < 8) return { label: "dawn", grad: "linear-gradient(135deg, #f6b93b, #ff6b3d)" };
   if (h >= 8 && h < 12) return { label: "morning", grad: "linear-gradient(135deg, #ff6b3d, #ff2740)" };

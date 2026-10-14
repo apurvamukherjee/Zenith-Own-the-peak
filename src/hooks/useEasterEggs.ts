@@ -16,7 +16,7 @@ import { unlockAudio } from "../lib/audio";
 //               Renders a full-screen gradient fade via <PeakFlash/>.
 //   showDebug — controls the IDDQD debug panel (lazy-mounted by consumer).
 // -----------------------------------------------------------------------------
-export interface EasterEggState {
+interface EasterEggState {
   peakFlash: number;   // rerender key; 0 means idle
   showDebug: boolean;
   closeDebug: () => void;

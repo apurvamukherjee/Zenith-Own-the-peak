@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 // Offline, zero-dependency (only dayjs for date math).
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface ParsedTask {
+interface ParsedTask {
   title: string;
   date?: string;       // YYYY-MM-DD
   time?: string;       // HH:mm

@@ -80,8 +80,8 @@ export function useVoiceLog() {
 // Parse a voice utterance into a meal draft.
 // "log 3 eggs and 200 ml milk" → best-effort quantity + noun.
 // Falls back to name-only if no quantity is detected.
-export interface VoiceParsed { name: string; grams?: number; count?: number; }
-export function parseVoiceMeal(text: string): VoiceParsed | null {
+interface VoiceParsed { name: string; grams?: number; count?: number; }
+function parseVoiceMeal(text: string): VoiceParsed | null {
   if (!text.trim()) return null;
   const cleaned = text.trim().replace(/^(log|add|ate|had)\s+/i, "");
   // "200g paneer" / "200 gram paneer" / "3 eggs" / "1 roti"

@@ -3,8 +3,8 @@ import { db } from "../../db/db";
 import { useSetting } from "../../hooks/useSettings";
 import { lastNDates } from "../../lib/date.utils";
 
-export interface Insight { emoji: string; text: string; good: boolean; }
-export interface ReviewStat { key: string; label: string; value: number; decimals: number; suffix?: string; prefix?: string; deltaPct: number | null; }
+interface Insight { emoji: string; text: string; good: boolean; }
+interface ReviewStat { key: string; label: string; value: number; decimals: number; suffix?: string; prefix?: string; deltaPct: number | null; }
 
 function pctDelta(cur: number, prev: number): number | null {
   if (prev <= 0) return cur > 0 ? 100 : null;

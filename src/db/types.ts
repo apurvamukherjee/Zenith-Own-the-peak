@@ -145,8 +145,8 @@ export interface MealDto {
 // A food's macros can be stored per-100g or per whole-piece.
 // unit "g" or "ml" => amounts are per-100 of that unit; user picks grams/ml.
 // unit "piece" | "scoop" | "tbsp" | "slice" => amounts are per one unit; user picks count.
-export type FoodUnit = "g" | "ml" | "piece" | "scoop" | "tbsp" | "slice";
-export type FoodCategory = "protein" | "carb" | "fat" | "hybrid" | "beverage" | "custom";
+type FoodUnit = "g" | "ml" | "piece" | "scoop" | "tbsp" | "slice";
+type FoodCategory = "protein" | "carb" | "fat" | "hybrid" | "beverage" | "custom";
 export interface FoodPresetDto { label: string; amount: number; }
 export interface FoodDto {
   id?: number;

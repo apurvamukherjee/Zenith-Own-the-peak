@@ -12,9 +12,9 @@ import { hapticLight } from "../../lib/haptics";
 import { useTokens } from "../../hooks/useTokens";
 
 export const HOUR_H = 60; // px per hour
-export const SNAP = 15;   // snap to 15-min grid
+const SNAP = 15;   // snap to 15-min grid
 export const START_HOUR = 5; // grid starts at 5am
-export const END_HOUR = 23;  // ends at 11pm
+const END_HOUR = 23;  // ends at 11pm
 export const TOTAL_H = (END_HOUR - START_HOUR) * HOUR_H;
 
 export function isToday(date: string): boolean {

@@ -72,7 +72,7 @@ export interface AchievementContext {
 }
 
 // Longest consecutive-day run in a set of YYYY-MM-DD dates.
-export function longestRun(dates: string[]): number {
+function longestRun(dates: string[]): number {
   if (!dates.length) return 0;
   const sorted = [...new Set(dates)].sort();
   let best = 1, cur = 1;

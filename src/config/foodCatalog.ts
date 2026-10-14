@@ -5,7 +5,7 @@ import { db } from "../db/db";
 // unit "g"/"ml" ⇒ values are per 100 units; unit "piece"/"scoop"/"tbsp"/"slice" ⇒ per 1 unit.
 type Seed = Omit<FoodDto, "id" | "createdAt" | "favorite" | "isCustom">;
 
-export const FOOD_CATALOG: Seed[] = [
+const FOOD_CATALOG: Seed[] = [
   // Primary proteins
   { name: "Chicken Breast (cooked)", category: "protein", unit: "g",
     protein: 31, fat: 3.6, carbs: 0, kcal: 165,

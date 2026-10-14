@@ -8,7 +8,7 @@ import type { TaskDto, TaskPriority, TaskStatus } from "../../db/types";
 
 const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-export interface GoogleEventBody {
+interface GoogleEventBody {
   summary: string;
   location?: string;
   description?: string;
@@ -75,7 +75,7 @@ function timeRange(task: TaskDto): Pick<GoogleEventBody, "start" | "end"> {
   };
 }
 
-export type TaskChanges = Partial<Pick<
+type TaskChanges = Partial<Pick<
   TaskDto,
   "title" | "status" | "priority" | "listId" | "date" | "time" | "endTime" | "allDay" | "spanEnd" | "location" | "notes" | "dose" | "remindBefore"
 >>;

@@ -11,7 +11,7 @@ import type { DayExerciseDto } from "../../db/types";
 
 const LEG_MUSCLES = new Set(["quads", "hamstrings", "glutes", "calves"]);
 
-export interface OverloadSuggestion {
+interface OverloadSuggestion {
   exerciseId: number;
   exerciseName: string;
   currentKg: number;

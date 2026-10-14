@@ -18,7 +18,7 @@ import { notify, isNativeNotifications, scheduleRestNotification, cancelRestNoti
 // (the desired behavior in supersets and manual re-triggers alike).
 // -----------------------------------------------------------------------------
 
-export interface RestTimerState {
+interface RestTimerState {
   active: boolean;
   totalSec: number;
   remaining: number;   // seconds, rounded down for display
@@ -127,9 +127,9 @@ export function skipRest(): void {
   stop();
 }
 
-export function getRestState(): RestTimerState { return state; }
+function getRestState(): RestTimerState { return state; }
 
-export function subscribeRest(l: Listener): () => void {
+function subscribeRest(l: Listener): () => void {
   listeners.add(l);
   return () => { listeners.delete(l); };
 }

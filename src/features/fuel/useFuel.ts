@@ -3,7 +3,7 @@ import { db } from "../../db/db";
 import type { FuelDto } from "../../db/types";
 import { monthKey, todayKey } from "../../lib/date.utils";
 
-export interface FuelRow extends FuelDto {
+interface FuelRow extends FuelDto {
   distanceKm: number | null;  // vs previous fill
   mileage: number | null;     // km per litre (full-to-full)
 }
