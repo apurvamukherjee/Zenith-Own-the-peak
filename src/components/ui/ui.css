@@ -196,3 +196,19 @@ a.z-row:active, button.z-row:active, .z-row[role="button"]:active { background: 
 html[data-motion="reduce"] .z-aura, html[data-motion="reduce"] .z-embers, html[data-motion="reduce"] .z-wave,
 html[data-motion="reduce"] .z-bubbles, html[data-motion="reduce"] .z-ring-done, html[data-motion="reduce"] .z-stagger > * { animation: none !important; }
 html[data-motion="reduce"] .z-embers { display: none; }
+
+/* ---------- Page chrome ------------------------------------------------- */
+.z-page { padding: 4px 16px 24px; }
+.z-section-title {
+  position: sticky; top: 0; z-index: 5; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  margin-bottom: 14px; padding: 6px 0 10px;
+  background: linear-gradient(var(--section-title-bg) 75%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+  -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent);
+}
+/* Full-bleed inside the standard page gutter only, where the math is known. */
+.z-page > .z-section-title { margin-inline: -16px; padding-inline: 16px; }
+.z-section-title h2 { margin: 2px 0 0; font-size: 28px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.z-section-title__eyebrow { display: flex; align-items: center; gap: 7px; }
+.z-section-title__eyebrow::before { content: ""; width: 16px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+.z-section-title__right { flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
