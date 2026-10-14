@@ -256,6 +256,20 @@ html[data-motion="reduce"] .z-embers { display: none; }
 .z-pill.is-bad { --c: var(--danger); }
 .z-stat { min-height: 104px; }
 
+.z-coach {
+  position: relative; margin: 0 0 14px; padding: 12px 14px; border-radius: 20px; color: var(--ink);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); box-shadow: 0 16px 34px -22px var(--ember-glow);
+}
+.z-coach__head { display: flex; align-items: center; gap: 8px; }
+.z-coach__title { flex: 1; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 14px; font-weight: 800; }
+.z-coach__x { width: 36px; height: 36px; margin: -6px -8px -6px 0; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--ink-soft); cursor: pointer; }
+.z-coach__body { margin: 6px 0 10px; font-size: 13px; line-height: 1.45; color: var(--ink-soft); }
+.z-coach__foot { display: flex; align-items: center; justify-content: space-between; }
+.z-coach__dots { display: flex; gap: 4px; }
+.z-coach__dots i { width: 6px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 18%, transparent); transition: width 0.3s, background 0.3s; }
+.z-coach__dots i.is-on { width: 16px; background: var(--accent); }
+
 /* ---------- antd surfaces, reskinned ------------------------------------ */
 /* Doubled class beats antd's :where()-scoped single class without
    !important, so per-instance inline styles (hero gradients) still win. */

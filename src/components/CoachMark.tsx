@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TbX } from "react-icons/tb";
+import { TbX, TbBulb } from "react-icons/tb";
 
 export function CoachMark({ steps, current, onNext, onDone }: {
   steps: { title: string; body: string }[];
@@ -12,21 +12,20 @@ export function CoachMark({ steps, current, onNext, onDone }: {
   const isLast = current >= steps.length - 1;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      style={{ position: "relative", margin: "0 12px 12px",
-        background: "var(--surface-2)", color: "var(--ink)", border: "1px solid var(--accent)", borderRadius: 14, padding: "12px 14px",
-        boxShadow: "0 8px 24px -12px var(--ember-glow)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-        <span style={{ fontWeight: 800, fontSize: 13 }}>{current + 1}/{steps.length} — {s.title}</span>
-        <button onClick={onDone} aria-label="Dismiss tip" style={{ background: "none", border: "none", color: "var(--ink-soft)", cursor: "pointer", minWidth: 40, minHeight: 40 }}><TbX /></button>
+    <motion.div key={current} className="z-coach" role="note"
+      initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 26 }}>
+      <div className="z-coach__head">
+        <span className="z-ico z-ico--sm"><TbBulb size={15} /></span>
+        <span className="z-coach__title">{s.title}</span>
+        <button type="button" onClick={onDone} aria-label="Dismiss tip" className="z-coach__x"><TbX size={16} /></button>
       </div>
-      <div style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 10 }}>{s.body}</div>
-      <button onClick={isLast ? onDone : onNext}
-        style={{ background: "var(--accent)", border: "none", color: "#fff", borderRadius: 10,
-          minHeight: 40, padding: "0 18px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
-        {isLast ? "Got it!" : "Next →"}
-      </button>
+      <div className="z-coach__body">{s.body}</div>
+      <div className="z-coach__foot">
+        <span className="z-coach__dots" aria-label={`Tip ${current + 1} of ${steps.length}`}>
+          {steps.map((_, i) => <i key={i} className={i === current ? "is-on" : ""} />)}
+        </span>
+        <button type="button" className="z-btn z-btn--solid" onClick={isLast ? onDone : onNext}>{isLast ? "Got it" : "Next"}</button>
+      </div>
     </motion.div>
   );
 }

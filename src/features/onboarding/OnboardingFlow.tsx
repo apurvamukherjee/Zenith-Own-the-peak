@@ -1,14 +1,36 @@
 import { useState } from "react";
-import { Button, Input, InputNumber, Segmented } from "antd";
+import { Input } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
-import { TbArrowRight, TbCheck } from "react-icons/tb";
+import { TbArrowRight, TbCheck, TbMinus, TbPlus, TbDroplet, TbMeat, TbSunrise } from "react-icons/tb";
+import { Embers } from "../../components/ui/Hero";
 import { setSetting } from "../../hooks/useSettings";
+import { hapticLight } from "../../lib/haptics";
+import "./onboarding.css";
 
 const steps = [
-  { title: "What should we call you?", sub: "This is your personal tracker." },
-  { title: "When do you wake up?", sub: "So we can pace your hydration." },
-  { title: "Set your daily targets", sub: "You can change these anytime in Settings." },
+  { title: "What should we call you?", sub: "This is your personal tracker — local, private, yours." },
+  { title: "When do you wake up?", sub: "Hydration pace and reminders start from here." },
+  { title: "Set your daily targets", sub: "Tune these anytime in Settings → Daily targets." },
 ];
+
+function Stepper({ icon, label, value, unit, step, min, max, onChange }: {
+  icon: React.ReactNode; label: string; value: number; unit: string; step: number; min: number; max: number; onChange: (v: number) => void;
+}) {
+  const set = (v: number) => { onChange(Math.min(max, Math.max(min, v))); void hapticLight(); };
+  return (
+    <div className="ob-stepper">
+      <div className="ob-stepper__label">{icon}{label}</div>
+      <div className="ob-stepper__row">
+        <button type="button" aria-label={`Less ${label}`} disabled={value <= min} onClick={() => set(value - step)}><TbMinus size={18} /></button>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.b key={value} initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -12, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 34 }}>{value.toLocaleString()}<small>{unit}</small></motion.b>
+        </AnimatePresence>
+        <button type="button" aria-label={`More ${label}`} disabled={value >= max} onClick={() => set(value + step)}><TbPlus size={18} /></button>
+      </div>
+    </div>
+  );
+}
 
 export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState(0);
@@ -27,55 +49,51 @@ export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "var(--bg)",
-      display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 24 }}>
-      <div style={{ maxWidth: 360, width: "100%" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-          <img src="/logo-mark.png" alt="Zenith" width={44} height={44} style={{ objectFit: "contain" }} />
-        </div>
-        {/* Progress dots */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 28 }}>
-          {steps.map((_, i) => (
-            <div key={i} style={{ width: 32, height: 4, borderRadius: 2, background: i <= step ? "var(--accent)" : "var(--border)", transition: "background 0.3s" }} />
-          ))}
+    <div className="ob">
+      <div className="ob__aura" aria-hidden />
+      <Embers />
+      <div className="ob__inner">
+        <motion.img src="/logo-mark.png" alt="Zenith" width={52} height={52} className="ob__logo"
+          initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 220, damping: 16 }} />
+        <div className="ob__progress" aria-label={`Step ${step + 1} of ${steps.length}`}>
+          {steps.map((_, i) => <i key={i}><motion.span initial={false} animate={{ scaleX: i <= step ? 1 : 0 }} transition={{ type: "spring", stiffness: 200, damping: 26 }} /></i>)}
         </div>
 
         <AnimatePresence mode="wait">
           <motion.div key={step} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.25 }}>
-            <h2 className="display" style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>{steps[step].title}</h2>
-            <p style={{ color: "var(--ink-soft)", marginBottom: 24, fontSize: 14 }}>{steps[step].sub}</p>
+            exit={{ opacity: 0, x: -30 }} transition={{ type: "spring", stiffness: 300, damping: 30 }}>
+            <h2 className="display ob__title">{steps[step].title}</h2>
+            <p className="ob__sub">{steps[step].sub}</p>
 
             {step === 0 && (
               <Input size="large" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)}
-                style={{ fontSize: 18, fontWeight: 700 }} autoFocus />
+                className="ob__name" autoFocus maxLength={24} onPressEnter={() => setStep(1)} />
             )}
             {step === 1 && (
-              <Segmented block size="large" value={wake}
-                onChange={(v) => setWake(v as number)}
-                options={[6, 7, 8, 9, 10].map((h) => ({ label: `${h}:00`, value: h }))} />
+              <div className="ob__hours" role="radiogroup" aria-label="Wake-up hour">
+                {[5, 6, 7, 8, 9, 10, 11].map((h) => (
+                  <button key={h} type="button" role="radio" aria-checked={wake === h} className={wake === h ? "is-on" : ""} onClick={() => { setWake(h); void hapticLight(); }}>
+                    {wake === h && <motion.span layoutId="ob-hour" className="ob__hour-bg" transition={{ type: "spring", stiffness: 500, damping: 34 }} />}
+                    <span className="ob__hour-label"><TbSunrise size={14} /> {String(h).padStart(2, "0")}:00</span>
+                  </button>
+                ))}
+              </div>
             )}
             {step === 2 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Water goal (ml)</div>
-                  <InputNumber inputMode="decimal" size="large" value={water} onChange={(v) => setWater(v ?? 3500)} step={250} min={1000} style={{ width: "100%" }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Protein target (g)</div>
-                  <InputNumber inputMode="decimal" size="large" value={protein} onChange={(v) => setProtein(v ?? 100)} step={10} min={30} style={{ width: "100%" }} />
-                </div>
+              <div className="ob__targets">
+                <Stepper icon={<TbDroplet size={15} />} label="Water" value={water} unit=" ml" step={250} min={1000} max={6000} onChange={setWater} />
+                <Stepper icon={<TbMeat size={15} />} label="Protein" value={protein} unit=" g" step={5} min={30} max={300} onChange={setProtein} />
               </div>
             )}
           </motion.div>
         </AnimatePresence>
 
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 32 }}>
-          <Button type="text" onClick={() => { setSetting("onboarded", 1); onDone(); }}>Skip</Button>
+        <div className="ob__nav">
+          <button type="button" className="z-btn z-btn--ghost" onClick={() => { void setSetting("onboarded", 1); onDone(); }}>Skip</button>
           {step < 2 ? (
-            <Button type="primary" size="large" icon={<TbArrowRight />} onClick={() => setStep(step + 1)}>Next</Button>
+            <button type="button" className="z-btn z-btn--solid ob__next" onClick={() => setStep(step + 1)}>Next <TbArrowRight size={17} /></button>
           ) : (
-            <Button type="primary" size="large" icon={<TbCheck />} onClick={finish}>Let's go</Button>
+            <button type="button" className="z-btn z-btn--solid ob__next" onClick={finish}><TbCheck size={17} /> Let's go</button>
           )}
         </div>
       </div>
