@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { Card, Button, Input, Popconfirm, App } from "antd";
+import { useState, type CSSProperties } from "react";
+import { Button, Input, Popconfirm, App } from "antd";
+import { AnimatePresence, motion } from "framer-motion";
+import { Hero } from "../../components/ui/Hero";
+import { Rings } from "../../components/ui/Rings";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+import "./habits.css";
 import { TbPlus, TbTrash, TbCheck, TbFlame, TbArrowRight } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
@@ -8,28 +13,48 @@ import { ColdIcon } from "../../components/ColdIcon";
 import { Sheet } from "../../components/Sheet";
 import { useBackClose } from "../../hooks/useBackClose";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
-import { useHabits, addHabit, deleteHabit, useHabitDoneToday, useHabitStreak, toggleHabitToday } from "./useHabits";
+import { useHabitsToday, addHabit, deleteHabit, useHabitStreak, toggleHabitToday } from "./useHabits";
 import { habitIconFor, HABIT_ICON_NAMES } from "./habitIcons";
 import type { HabitDto } from "../../db/types";
 
 export function HabitsPage() {
-  const habits = useHabits();
+  const reduced = useReducedMotion();
+  const habits = useHabitsToday();
   const [addOpen, setAddOpen] = useState(false);
+  const list = habits ?? [];
+  const done = list.filter((h) => h.done).length;
+  const pct = list.length ? (done / list.length) * 100 : 0;
 
   return (
     <PageTransition>
-      <SectionTitle eyebrow="Forged Habits" title="Trigger → action" />
+      <SectionTitle eyebrow="Forged habits" title="Habits"
+        right={<button type="button" className="z-btn z-btn--solid" onClick={() => setAddOpen(true)}><TbPlus size={16} /> Habit</button>} />
 
-      {habits.length === 0 ? (
-        <EmptyState icon={<ColdIcon glyph="rune" size={80} />} title="No habits yet"
+      {habits !== undefined && list.length === 0 ? (
+        <EmptyState icon={<ColdIcon glyph="rune" size={44} />} title="No habits yet"
           hint="Pair a trigger with an action — e.g. 'After waking' → 'Cold shower' — and build a streak."
           actionLabel="Add a habit" onAction={() => setAddOpen(true)} />
       ) : (
         <>
-          {habits.map((h) => <HabitCard key={h.id} habit={h} />)}
-          <Button block size="large" icon={<TbPlus />} onClick={() => setAddOpen(true)} style={{ marginTop: 4 }}>
-            Add a habit
-          </Button>
+          <Hero eyebrow="Today" color="var(--accent)" className="hb2-hero"
+            right={<span className="z-pill" style={{ "--c": done === list.length && list.length ? "var(--success)" : "var(--ink-soft)" } as CSSProperties}>
+              {done === list.length && list.length ? "All forged" : `${list.length - done} to go`}
+            </span>}>
+            <div className="hb2-hero__row">
+              <Rings size={96} stroke={9} reduced={reduced} rings={[{ key: "h", pct, color: pct >= 100 ? ["var(--success)", "var(--gold)"] : ["var(--accent)", "var(--gold)"] }]}>
+                <span className="hb2-hero__count display">{done}<small>/{list.length}</small></span>
+              </Rings>
+              <div>
+                <div className="z-hero__title">{done === list.length && list.length ? "Chain unbroken." : done ? "Keep the chain going." : "Light the first one."}</div>
+                <div className="z-hero__sub">Triggers are already part of your day — just attach the action.</div>
+              </div>
+            </div>
+          </Hero>
+
+          <div className="z-list-title">Your chains</div>
+          <div className="hb2-list">
+            {list.map((h) => <HabitCard key={h.id} habit={h} done={h.done} />)}
+          </div>
         </>
       )}
 
@@ -38,52 +63,47 @@ export function HabitsPage() {
   );
 }
 
-function HabitCard({ habit }: { habit: HabitDto }) {
-  const done = useHabitDoneToday(habit.id);
+function HabitCard({ habit, done }: { habit: HabitDto; done: boolean }) {
   const streak = useHabitStreak(habit.id);
   const Icon = habitIconFor(habit.icon);
+  const [burst, setBurst] = useState(0);
 
   async function toggle() {
     if (!habit.id) return;
     const nowDone = await toggleHabitToday(habit.id);
-    if (nowDone) hapticSuccess(); else hapticLight();
+    if (nowDone) { void hapticSuccess(); setBurst(Date.now()); } else void hapticLight();
   }
 
   return (
-    <Card size="small" style={{ marginBottom: 10 }} styles={{ body: { padding: 14 } }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{
-          width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-          background: `${habit.color}22`, display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <Icon size={20} style={{ color: habit.color }} />
+    <div className={`hb2-card${done ? " is-done" : ""}`} style={{ "--c": habit.color } as CSSProperties}>
+      <span className="z-ico z-ico--lg"><Icon size={21} /></span>
+      <div className="hb2-card__text">
+        <div className="hb2-card__chain">
+          <span>{habit.triggerLabel}</span>
+          <TbArrowRight size={13} />
+          <b>{habit.actionLabel}</b>
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
-            <span>{habit.triggerLabel}</span>
-            <TbArrowRight size={13} style={{ color: "var(--ink-soft)" }} />
-            <span>{habit.actionLabel}</span>
-          </div>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-            <TbFlame size={13} style={{ color: streak > 0 ? "var(--gold)" : "var(--ink-soft)" }} />
-            {streak > 0 ? `${streak} day streak` : "No streak yet"}
-          </div>
+        <div className="hb2-card__streak">
+          <TbFlame size={13} /> {streak > 0 ? `${streak} day streak` : "No streak yet"}
         </div>
-        <button onClick={toggle} aria-label={done ? "Mark not done today" : "Mark done today"}
-          style={{
-            width: 34, height: 34, borderRadius: 10, flexShrink: 0, cursor: "pointer",
-            border: `1.5px solid ${done ? "var(--teal)" : "var(--border)"}`,
-            background: done ? "var(--teal)" : "transparent",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-          {done && <TbCheck size={18} color="#fff" />}
-        </button>
-        <Popconfirm title="Delete this habit?" description="Its streak history goes with it." okText="Delete" cancelText="Cancel" okButtonProps={{ danger: true }}
-          onConfirm={() => habit.id && deleteHabit(habit.id)}>
-          <Button type="text" size="small" danger icon={<TbTrash />} aria-label="Delete habit" />
-        </Popconfirm>
       </div>
-    </Card>
+      <motion.button type="button" className="hb2-check" whileTap={{ scale: 0.82 }} onClick={toggle}
+        aria-label={done ? `Mark ${habit.actionLabel} not done today` : `Mark ${habit.actionLabel} done today`} aria-pressed={done}>
+        <AnimatePresence>
+          {done && (
+            <motion.span key="c" initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }}
+              transition={{ type: "spring", stiffness: 520, damping: 18 }}>
+              <TbCheck size={20} />
+            </motion.span>
+          )}
+        </AnimatePresence>
+        {burst > 0 && <motion.i key={burst} className="hb2-burst" initial={{ scale: 0.6, opacity: 0.9 }} animate={{ scale: 2.2, opacity: 0 }} transition={{ duration: 0.6, ease: "easeOut" }} />}
+      </motion.button>
+      <Popconfirm title="Delete this habit?" description="Its streak history goes with it." okText="Delete" okButtonProps={{ danger: true }}
+        onConfirm={() => habit.id && deleteHabit(habit.id)}>
+        <button type="button" className="hb2-del" aria-label={`Delete ${habit.actionLabel}`}><TbTrash size={15} /></button>
+      </Popconfirm>
+    </div>
   );
 }
 
