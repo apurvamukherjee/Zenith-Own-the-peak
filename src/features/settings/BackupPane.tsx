@@ -5,15 +5,7 @@ import { ListGroup, ListRow } from "../../components/ui/List";
 import { exportAll, importAll } from "../../db/db";
 import { encryptString, decryptString } from "../../lib/encryptedExport";
 import { hapticSuccess } from "../../lib/haptics";
-
-function download(content: string, type: string, name: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+import { saveFile } from "../../lib/saveFile";
 
 const stamp = () => new Date().toISOString().slice(0, 10);
 
@@ -48,8 +40,11 @@ export function BackupPane() {
   }
 
   async function exportPlain() {
-    download(await exportAll(), "application/json", `zenith-backup-${stamp()}.json`);
-    message.success("Backup downloaded");
+    try {
+      if (await saveFile(`zenith-backup-${stamp()}.json`, await exportAll(), "application/json") === "done") message.success("Backup exported");
+    } catch (err) {
+      message.error(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   function restore(json: string) {
@@ -84,9 +79,9 @@ export function BackupPane() {
     setBusy(true);
     try {
       if (pw.mode === "encrypt") {
-        download(await encryptString(await exportAll(), pwValue), "text/plain", `zenith-encrypted-${stamp()}.txt`);
-        message.success("Encrypted backup downloaded");
+        const sealed = await encryptString(await exportAll(), pwValue);
         setPw(null);
+        if (await saveFile(`zenith-encrypted-${stamp()}.txt`, sealed, "text/plain") === "done") message.success("Encrypted backup exported");
       } else {
         const json = await decryptString(pw.raw, pwValue);
         setPw(null);

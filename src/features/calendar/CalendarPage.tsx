@@ -36,6 +36,7 @@ import { GoalDetailSheet } from "./GoalDetailSheet";
 import { usePhotoDatesInMonth } from "./useDayPhoto";
 import { backfillSession } from "../gym/useGym";
 import { buildICS, exportICS } from "../../lib/icsExport";
+import { shareText } from "../../lib/saveFile";
 import type { TaskDto, GoalDayDto } from "../../db/types";
 import dayjs from "dayjs";
 import { pressable } from "../../lib/a11y";
@@ -149,8 +150,11 @@ export function CalendarPage() {
     const end = dayjs().add(180, "day").format("YYYY-MM-DD");
     const tasks = await db.tasks.where("date").between(start, end, true, true).toArray();
     const ics = buildICS(tasks.filter((tsk) => tsk.status !== "cancelled"));
-    await exportICS("zenith-calendar.ics", ics);
-    message.success("Calendar exported");
+    try {
+      if (await exportICS("zenith-calendar.ics", ics) === "done") message.success("Calendar exported");
+    } catch (err) {
+      message.error(`Couldn't export the calendar: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   function openEditor(task?: TaskDto, defaults?: { date?: string; time?: string; endTime?: string }) {
@@ -257,13 +261,12 @@ export function CalendarPage() {
     return { from: a, to: b, days: inRange.length, activeDays: active.length, avg };
   }, [rangeStart, rangeEnd, dates, scoreMap]);
 
-  function exportMonth() {
+  async function exportMonth() {
     const text = `Zenith — ${monthLabel}\nAvg discipline: ${summary.avgScore}%\nBest week: ${summary.bestWeek?.weekLabel ?? "–"} (${summary.bestWeek?.avg ?? 0}%)\nTraining volume: ${summary.totalVolume}kg across ${summary.totalSets} sets\nStudy time: ${summary.totalStudyMin} min\nActive days: ${summary.daysActive}/${dates.length}`;
-    if (navigator.share) {
-      navigator.share({ title: `Zenith — ${monthLabel}`, text }).catch(() => {});
-    } else {
-      navigator.clipboard?.writeText(text);
-      message.success("Summary copied to clipboard");
+    try {
+      if (await shareText(`Zenith — ${monthLabel}`, text) === "copied") message.success("Summary copied to clipboard");
+    } catch (err) {
+      message.error(`Couldn't share: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

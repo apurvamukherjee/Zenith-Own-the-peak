@@ -1,3 +1,4 @@
+import { saveFile, type ShareOutcome } from "./saveFile";
 import type { TaskDto } from "../db/types";
 
 // Minimal RFC 5545 ICS builder. Recurring rules aren't re-expressed as RRULEs
@@ -68,26 +69,8 @@ export function buildICS(tasks: TaskDto[]): string {
   return lines.join("\r\n");
 }
 
-// Triggers a share sheet (mobile) or a file download (desktop) for the given
-// ICS content — one-way export only, no two-way sync.
-export async function exportICS(filename: string, ics: string): Promise<void> {
-  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-  const file = new File([blob], filename, { type: "text/calendar" });
-  const nav = navigator as Navigator & { canShare?: (data: { files: File[] }) => boolean };
-  if (nav.canShare?.({ files: [file] }) && navigator.share) {
-    try {
-      await navigator.share({ files: [file], title: filename });
-      return;
-    } catch {
-      // fall through to download
-    }
-  }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+// One-way export only, no two-way sync: share sheet in the Android app, a
+// file download in the browser.
+export function exportICS(filename: string, ics: string): Promise<ShareOutcome> {
+  return saveFile(filename, ics, "text/calendar;charset=utf-8");
 }

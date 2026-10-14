@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Card, Button, App, Segmented, Collapse, Typography } from "antd";
 import { TbDownload, TbUpload, TbCode } from "react-icons/tb";
 import { validateWorkoutPlanFile, exportWorkoutPlan, importWorkoutPlan } from "../../lib/workoutPlanFile";
+import { saveFile } from "../../lib/saveFile";
 
 const EXAMPLE = `{
   "type": "zenith-workout-plan",
@@ -32,15 +33,12 @@ export function PlanImportCard() {
 
   async function handleDownload() {
     const plan = await exportWorkoutPlan();
-    const json = JSON.stringify(plan, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `zenith-workout-plan-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    message.success("Plan file downloaded");
+    const name = `zenith-workout-plan-${new Date().toISOString().slice(0, 10)}.json`;
+    try {
+      if (await saveFile(name, JSON.stringify(plan, null, 2), "application/json") === "done") message.success("Plan file exported");
+    } catch (err) {
+      message.error(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   function handleFile(file: File) {
