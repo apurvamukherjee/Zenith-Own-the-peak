@@ -212,3 +212,21 @@ html[data-motion="reduce"] .z-embers { display: none; }
 .z-section-title__eyebrow { display: flex; align-items: center; gap: 7px; }
 .z-section-title__eyebrow::before { content: ""; width: 16px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
 .z-section-title__right { flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+
+.z-appbar {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px;
+  height: calc(52px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 10px 0;
+  background: var(--nav-bg); transition: box-shadow 0.25s;
+}
+.z-appbar.is-scrolled { box-shadow: 0 1px 0 var(--border), 0 10px 24px -20px rgba(0, 0, 0, 0.8); }
+.z-appbar__back {
+  width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; cursor: pointer;
+  color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.z-appbar__title {
+  text-align: center; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 15px; font-weight: 800;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s cubic-bezier(.22, 1, .36, 1);
+}
+.z-appbar.is-scrolled .z-appbar__title { opacity: 1; transform: none; }
