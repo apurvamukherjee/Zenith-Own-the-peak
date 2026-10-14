@@ -53,3 +53,12 @@
   display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
   font-size: 11px; font-weight: 700; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent);
 }
+
+/* ---------- Rings ------------------------------------------------------- */
+.z-rings { position: relative; flex-shrink: 0; }
+.z-rings__center {
+  position: absolute; inset: 0; pointer-events: none; text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.z-ring-done { animation: z-breathe 2.6s ease-in-out infinite; }
+@keyframes z-breathe { 50% { opacity: 0.6; } }
