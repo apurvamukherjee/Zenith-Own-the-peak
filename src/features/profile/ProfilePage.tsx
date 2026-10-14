@@ -1,13 +1,19 @@
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Card, Row, Col, Statistic, Progress, Button, App, Avatar, Empty } from "antd";
+import { App, Avatar, Modal } from "antd";
+import { motion } from "framer-motion";
 import {
-  TbBolt, TbBook2, TbBulb, TbClipboardList, TbDroplet,
+  TbBolt, TbBook2, TbBulb, TbClipboardList, TbDroplet, TbBarbell, TbChartLine, TbChevronRight, TbPlus,
   TbFlame, TbGasStation, TbMoon, TbTrendingUp, TbTrendingDown, TbTrophy, TbSparkles,
 } from "react-icons/tb";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 import { PageTransition } from "../../components/PageTransition";
 import { AnimatedNumber } from "../../components/AnimatedNumber";
 import { SectionTitle } from "../../components/SectionTitle";
+import { Skeleton } from "../../components/Skeleton";
+import { SmartInputNumber } from "../../components/SmartInputNumber";
+import { Hero } from "../../components/ui/Hero";
+import { ListGroup, ListRow } from "../../components/ui/List";
 import { useProfileStats, logBodyweight } from "./useProfile";
 import { YearHeatmap } from "./YearHeatmap";
 import { PhotoTimeline } from "./PhotoTimeline";
@@ -15,240 +21,185 @@ import { EfficiencyCard } from "./EfficiencyCard";
 import { BodyComposition } from "./BodyComposition";
 import { BeforeAfterSlider } from "./BeforeAfterSlider";
 import { useSetting } from "../../hooks/useSettings";
+import { useXP } from "../../hooks/useXP";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { fmtDuration } from "../../lib/date.utils";
 import { useWeeklyReview } from "../review/useWeeklyReview";
 import { CompassCard } from "./CompassCard";
-import { VIOLET, TEAL, GOLD } from "../../theme";
 import { useTokens } from "../../hooks/useTokens";
 import { useAchievements, useUnseenAchievements } from "../achievements/useAchievements";
 import { AvatarFrame } from "../../components/AvatarFrame";
 import { useEquippedTitle, useUnseenCosmetics } from "../vault/useRewardVault";
+import "./profile.css";
 
 export function ProfilePage() {
   const t = useTokens();
-  const { message, modal } = App.useApp();
+  const reduced = useReducedMotion();
+  const { message } = App.useApp();
   const stats = useProfileStats();
   const review = useWeeklyReview();
   const { unlockedCount, total } = useAchievements();
   const unseen = useUnseenAchievements();
-  const name = useSetting("name");
-  const profilePic = useSetting("profilePic");
+  const name = String(useSetting("name"));
+  const profilePic = String(useSetting("profilePic"));
   const equippedFrame = String(useSetting("equippedFrame"));
   const equippedTitle = useEquippedTitle();
   const unseenCosmetics = useUnseenCosmetics();
+  const { level, next, progress, totalXP } = useXP();
+  const [bwOpen, setBwOpen] = useState(false);
+  const [bwVal, setBwVal] = useState<number | null>(null);
 
-  async function logBw() {
-    const cur = stats?.bodyweight.latest || 50;
-    let val = cur;
-    modal.confirm({
-      title: "Log bodyweight",
-      content: (
-        <input type="number" defaultValue={cur} step="0.1"
-          onChange={(e) => (val = parseFloat(e.target.value))}
-          style={{ width: "100%", padding: 8, fontSize: 16, borderRadius: 8, border: "1px solid var(--border)", marginTop: 8 }} />
-      ),
-      okText: "Save",
-      onOk: async () => { if (val > 0) { await logBodyweight(val); message.success(`Logged ${val} kg`); } },
-    });
-  }
-
-  if (!stats) return <PageTransition><Empty description="Loading…" /></PageTransition>;
+  if (!stats) return <PageTransition><Skeleton height={220} radius={28} /></PageTransition>;
   const { gym, study, sleep, water, fuel, bodyweight } = stats;
 
   return (
     <PageTransition>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-        <AvatarFrame frameId={equippedFrame}>
-          <Avatar size={56} src={profilePic || undefined} className="avatar-grad" style={{ fontWeight: 800, fontSize: 22 }}>
-            {String(name).charAt(0)}
-          </Avatar>
-        </AvatarFrame>
-        <div>
-          <h2 className="display" style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{name}</h2>
-          <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{equippedTitle} · Own the peak.</div>
+      <SectionTitle eyebrow="Your record" title="Stats" />
+
+      <Hero className="pf-hero" right={<span className="z-pill" style={{ "--c": "var(--gold)" } as CSSProperties}><TbTrophy size={12} /> {unlockedCount}/{total}</span>}
+        eyebrow="Own the peak">
+        <div className="pf-id">
+          <AvatarFrame frameId={equippedFrame}>
+            <Avatar size={64} src={profilePic || undefined} className="avatar-grad" style={{ fontWeight: 800, fontSize: 26 }}>{name.charAt(0)}</Avatar>
+          </AvatarFrame>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div className="pf-id__name display">{name}</div>
+            <div className="pf-id__title">Lv.{level.level} · {equippedTitle}</div>
+            {next && (
+              <div className="pf-xp">
+                <span><motion.i initial={reduced ? false : { width: 0 }} animate={{ width: `${Math.round(progress * 100)}%` }} transition={{ type: "spring", stiffness: 60, damping: 16, delay: 0.2 }} /></span>
+                {totalXP - level.xpRequired}/{next.xpRequired - level.xpRequired} XP
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+        <div className="pf-chips">
+          <div><TbFlame size={15} style={{ color: "var(--accent)" }} /><b><AnimatedNumber value={gym.streak} /></b><small>day gym streak</small></div>
+          <div><TbTrophy size={15} style={{ color: "var(--gold)" }} /><b><AnimatedNumber value={gym.prs} /></b><small>PRs</small></div>
+          <div><TbBarbell size={15} style={{ color: "var(--teal)" }} /><b><AnimatedNumber value={gym.sessions} /></b><small>sessions</small></div>
+        </div>
+      </Hero>
 
-      {/* Reward Vault entry */}
-      <Link to="/vault" style={{ textDecoration: "none" }}>
-        <Card size="small" hoverable style={{ marginBottom: 10, overflow: "hidden" }}
-          styles={{ body: { padding: 0 } }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 12, background: "var(--surface-2)", color: "var(--ink)" }}>
-            <div style={{ position: "relative", width: 38, height: 38, borderRadius: 11, background: "var(--ember-inner)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <TbSparkles size={24} />
-              {unseenCosmetics > 0 && (
-                <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
-                  {unseenCosmetics}
-                </span>
-              )}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="display" style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.1 }}>Reward Vault</div>
-              <div style={{ fontSize: 12.5, opacity: 0.9 }}>
-                {unseenCosmetics > 0 ? `${unseenCosmetics} new — go claim ${unseenCosmetics === 1 ? "it" : "them"}` : "Accent themes, frames & titles"}
-              </div>
-            </div>
-            <span style={{ fontSize: 18, color: "var(--ink-soft)" }}>→</span>
-          </div>
-        </Card>
-      </Link>
+      <ListGroup title="Rewards & tools">
+        <ListRow icon={<TbSparkles size={16} />} color="var(--gold)" label="Reward Vault" to="/vault"
+          hint={unseenCosmetics > 0 ? `${unseenCosmetics} new to claim` : "Accent themes, frames & titles"}
+          value={unseenCosmetics > 0 ? <span className="z-pill" style={{ "--c": "var(--accent)" } as CSSProperties}>{unseenCosmetics} new</span> : undefined} />
+        <ListRow icon={<TbTrophy size={16} />} color="var(--accent)" label="Hall of Frame" to="/hall"
+          hint={unseen > 0 ? `${unseen} new to claim` : `${unlockedCount} of ${total} conquered`}
+          value={unseen > 0 ? <span className="z-pill" style={{ "--c": "var(--accent)" } as CSSProperties}>{unseen} new</span> : undefined} />
+        <ListRow icon={<TbClipboardList size={16} />} color="var(--teal)" label="Workout planner" hint="Exercises, days & weekly schedule" to="/planner" />
+        <ListRow icon={<TbChartLine size={16} />} color="var(--info)" label="Strength progress" hint="e1RM charts and PR log" to="/progress" />
+      </ListGroup>
 
-      {/* Hall of Frame entry */}
-      <Link to="/hall" style={{ textDecoration: "none" }}>
-        <Card size="small" hoverable style={{ marginBottom: 10, overflow: "hidden" }}
-          styles={{ body: { padding: 0 } }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 12, background: "var(--surface-2)", color: "var(--ink)" }}>
-            <div style={{ position: "relative", width: 38, height: 38, borderRadius: 11, background: "var(--ember-inner)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <TbTrophy size={24} />
-              {unseen > 0 && (
-                <span style={{ position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#fff", color: "var(--accent)", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
-                  {unseen}
-                </span>
-              )}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="display" style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.1 }}>Hall of Frame</div>
-              <div style={{ fontSize: 12.5, opacity: 0.9 }}>
-                {unseen > 0 ? `${unseen} new — go claim ${unseen === 1 ? "it" : "them"}` : `${unlockedCount} of ${total} conquered`}
-              </div>
-            </div>
-            <span style={{ fontSize: 18, color: "var(--ink-soft)" }}>→</span>
-          </div>
-        </Card>
-      </Link>
-
-      {/* Year heatmap */}
-      <YearHeatmap />
-      <PhotoTimeline />
-      <BeforeAfterSlider />
-      <EfficiencyCard />
-      <BodyComposition />
-
-      {/* Bodyweight */}
-      <Card size="small" style={{ marginBottom: 16 }}
-        title={<span><TbTrendingUp /> Bodyweight</span>}
-        extra={<Button size="small" type="primary" onClick={logBw}>Log</Button>}>
-        <Row gutter={12} style={{ marginBottom: 8 }}>
-          <Col span={12}><Statistic title="Current" value={bodyweight.latest || "–"} suffix="kg" valueStyle={{ color: VIOLET, fontWeight: 800 }} /></Col>
-          <Col span={12}><Statistic title="30-day change" value={bodyweight.change30} suffix="kg"
-            valueStyle={{ color: bodyweight.change30 >= 0 ? TEAL : "#ff5c7a", fontWeight: 800 }}
-            prefix={bodyweight.change30 > 0 ? "+" : ""} /></Col>
-        </Row>
-        {bodyweight.series.length > 1 && (
-          <div style={{ width: "100%", height: 120 }}>
-            <ResponsiveContainer>
-              <LineChart data={bodyweight.series} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 9 }} />
-                <YAxis tick={{ fontSize: 9 }} domain={["dataMin - 1", "dataMax + 1"]} />
-                <Tooltip formatter={(v: number) => [`${v} kg`, "Weight"]} />
-                <Line type="monotone" dataKey="kg" stroke={t.accent} strokeWidth={3} dot={{ r: 2 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </Card>
-
-      {/* Weekly Review */}
       {review && (
-        <Card size="small" style={{ marginBottom: 16 }}
-          title={<span><TbTrendingUp /> This week</span>}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-            {review.stats.slice(0, 6).map((s) => (
-              <div key={s.key} style={{ padding: "8px 10px", background: "var(--bg)", borderRadius: 10 }}>
-                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>{s.label}</div>
-                <div className="display" style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.2 }}>
-                  {s.prefix}<AnimatedNumber value={s.value} decimals={s.decimals} />{s.suffix}
-                  {s.deltaPct != null && (
-                    <span style={{ fontSize: 12, marginLeft: 4, color: s.deltaPct >= 0 ? "var(--teal)" : "#ff5c7a" }}>
-                      {s.deltaPct >= 0 ? <TbTrendingUp style={{ verticalAlign: "-2px" }} /> : <TbTrendingDown style={{ verticalAlign: "-2px" }} />}{Math.abs(s.deltaPct)}%
-                    </span>
-                  )}
+        <>
+          <div className="z-list-title">This week</div>
+          <div className="z-bento">
+            {review.stats.slice(0, 6).map((st) => (
+              <div key={st.key} className="z-tile pf-tile">
+                <div className="z-tile__head">{st.label}</div>
+                <div className="z-tile__big">
+                  <b>{st.prefix}<AnimatedNumber value={st.value} decimals={st.decimals} /></b>
+                  {st.suffix && <small>{st.suffix.trim()}</small>}
                 </div>
+                {st.deltaPct != null && (
+                  <span className={`z-pill ${st.deltaPct >= 0 ? "is-good" : "is-bad"}`} style={{ alignSelf: "flex-start", marginTop: 6 }}>
+                    {st.deltaPct >= 0 ? <TbTrendingUp size={12} /> : <TbTrendingDown size={12} />}{Math.abs(st.deltaPct)}%
+                  </span>
+                )}
               </div>
             ))}
           </div>
           {review.insights.length > 0 && (
-            <div style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 6 }}><TbBulb /> Insights</div>
+            <ListGroup title="Insights">
               {review.insights.slice(0, 3).map((ins, i) => (
-                <div key={i} style={{ fontSize: 13, color: "var(--ink)", marginBottom: 6, paddingLeft: 8, borderLeft: `2px solid ${ins.good ? "var(--teal)" : "#ff5c7a"}` }}>
-                  {ins.text}
-                </div>
+                <ListRow key={i} icon={<TbBulb size={16} />} color={ins.good ? "var(--success)" : "var(--danger)"} label={<span className="pf-insight">{ins.text}</span>} />
               ))}
-            </div>
+            </ListGroup>
           )}
-        </Card>
+        </>
       )}
 
-      <CompassCard />
+      <div className="pf-cards">
+        <CompassCard />
+        <YearHeatmap />
+        <PhotoTimeline />
+        <BeforeAfterSlider />
+        <EfficiencyCard />
+        <BodyComposition />
+      </div>
 
-      <SectionTitle title="Everything, measured" />
-
-      {/* Gym */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span style={{ color: VIOLET }}><TbBolt /> Gym</span>}>
-        <Row gutter={[12, 12]}>
-          <Col span={8}><Statistic title="Sessions" value={gym.sessions} /></Col>
-          <Col span={8}><Statistic title="Total sets" value={gym.totalSets} /></Col>
-          <Col span={8}><Statistic title="Streak" value={gym.streak} suffix="d" valueStyle={{ color: GOLD }} prefix={<TbFlame />} /></Col>
-          <Col span={8}><Statistic title="Volume" value={gym.volume} suffix="kg" /></Col>
-          <Col span={8}><Statistic title="PRs" value={gym.prs} valueStyle={{ color: GOLD }} prefix={<TbTrophy />} /></Col>
-          <Col span={8}><Statistic title="Best e1RM" value={gym.bestE1rm} suffix="kg" valueStyle={{ color: VIOLET }} /></Col>
-        </Row>
-      </Card>
-
-      {/* Study */}
-      <Card size="small" style={{ marginBottom: 12 }} title={<span style={{ color: VIOLET }}><TbBook2 /> Study</span>}>
-        <Progress percent={study.pct} strokeColor={t.accent} />
-        <Row gutter={12} style={{ marginTop: 8 }}>
-          <Col span={8}><Statistic title="Topics" value={`${study.topicsDone}/${study.topicsTotal}`} /></Col>
-          <Col span={8}><Statistic title="Paths" value={study.paths} /></Col>
-          <Col span={8}><Statistic title="Minutes" value={study.totalMin} valueStyle={{ color: TEAL }} /></Col>
-        </Row>
-      </Card>
-
-      {/* Sleep + Water */}
-      <Row gutter={12} style={{ marginBottom: 12 }}>
-        <Col span={12}>
-          <Card size="small" title={<span style={{ color: VIOLET }}><TbMoon /> Sleep</span>}>
-            <Statistic title="7-day avg" value={sleep.avgMin ? fmtDuration(sleep.avgMin) : "–"} valueStyle={{ fontSize: 18, fontWeight: 800, color: VIOLET }} />
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
-              Quality {sleep.avgQuality || "–"}/5 · debt {fmtDuration(sleep.debtMin)}
-            </div>
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card size="small" title={<span style={{ color: TEAL }}><TbDroplet style={{ verticalAlign: "-2px" }} /> Water</span>}>
-            <Statistic title="Today" value={water.todayPct} suffix="%" valueStyle={{ fontSize: 18, fontWeight: 800, color: TEAL }} />
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
-              7-day {water.adherence}% · streak {water.streak}d
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Fuel */}
-      <Card size="small" style={{ marginBottom: 20 }} title={<span style={{ color: VIOLET }}><TbGasStation style={{ verticalAlign: "-2px" }} /> Bike fuel</span>}>
-        <Row gutter={12}>
-          <Col span={6}><Statistic title="Avg" value={fuel.avgMileage} suffix="km/L" valueStyle={{ fontSize: 16 }} /></Col>
-          <Col span={6}><Statistic title="₹/km" value={fuel.costPerKm} valueStyle={{ fontSize: 16 }} /></Col>
-          <Col span={6}><Statistic title="Month" value={fuel.monthSpend} prefix="₹" valueStyle={{ fontSize: 16, color: GOLD }} /></Col>
-          <Col span={6}><Statistic title="Total km" value={fuel.totalKm} valueStyle={{ fontSize: 16 }} /></Col>
-        </Row>
-      </Card>
-
-      {/* Workout planner */}
-      <Link to="/planner">
-        <Card size="small" style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <TbClipboardList size={20} style={{ color: "var(--accent)" }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700 }}>Workout planner</div>
-              <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Edit exercises, days & weekly schedule</div>
+      <ListGroup title="Bodyweight" right={<button type="button" className="pf-link" onClick={() => { setBwVal(bodyweight.latest || null); setBwOpen(true); }}><TbPlus size={14} /> Log</button>}>
+        <div className="pf-bw">
+          <div className="pf-bw__stats">
+            <div><small>Current</small><b>{bodyweight.latest || "–"}<em> kg</em></b></div>
+            <div><small>30-day change</small>
+              <b style={{ color: bodyweight.change30 > 0 ? "var(--success)" : bodyweight.change30 < 0 ? "var(--danger)" : undefined }}>
+                {bodyweight.change30 > 0 ? "+" : ""}{bodyweight.change30}<em> kg</em>
+              </b>
             </div>
           </div>
-        </Card>
-      </Link>
+          {bodyweight.series.length > 1 ? (
+            <div className="pf-bw__chart">
+              <ResponsiveContainer>
+                <LineChart data={bodyweight.series} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 9, fill: t.ink }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 9, fill: t.ink }} domain={["dataMin - 1", "dataMax + 1"]} axisLine={false} tickLine={false} />
+                  <Tooltip formatter={(v: number) => [`${v} kg`, "Weight"]} />
+                  <Line type="monotone" dataKey="kg" stroke={t.accent} strokeWidth={3} dot={{ r: 2.5, fill: t.accent, strokeWidth: 0 }} isAnimationActive={!reduced} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : <div className="pf-muted">Log your weight a couple of times to see the trend.</div>}
+        </div>
+      </ListGroup>
+
+      <div className="z-list-title">Everything, measured</div>
+      <div className="pf-modules">
+        <Module icon={<TbBolt size={15} />} c="var(--accent)" title="Gym" to="/progress" wide stats={[
+          ["Sessions", gym.sessions], ["Sets", gym.totalSets], ["Volume", `${gym.volume.toLocaleString()} kg`],
+          ["PRs", gym.prs], ["Best e1RM", `${gym.bestE1rm} kg`], ["Streak", `${gym.streak} d`],
+        ]} />
+        <Module icon={<TbBook2 size={15} />} c="var(--success)" title="Study" to="/study" bar={study.pct} stats={[
+          ["Topics", `${study.topicsDone}/${study.topicsTotal}`], ["Minutes", study.totalMin],
+        ]} />
+        <Module icon={<TbMoon size={15} />} c="var(--gold)" title="Sleep" to="/sleep" stats={[
+          ["7-day avg", sleep.avgMin ? fmtDuration(sleep.avgMin) : "–"], ["Debt", fmtDuration(sleep.debtMin)],
+        ]} />
+        <Module icon={<TbDroplet size={15} />} c="var(--info)" title="Water" to="/water" bar={water.todayPct} stats={[
+          ["7-day", `${water.adherence}%`], ["Streak", `${water.streak} d`],
+        ]} />
+        <Module icon={<TbGasStation size={15} />} c="var(--gold)" title="Bike fuel" to="/fuel" stats={[
+          ["Mileage", `${fuel.avgMileage} km/L`], ["₹/km", fuel.costPerKm], ["Month", `₹${fuel.monthSpend}`], ["Total", `${fuel.totalKm} km`],
+        ]} />
+      </div>
+
+      <Modal open={bwOpen} title="Log bodyweight" okText="Save" onCancel={() => setBwOpen(false)} destroyOnClose
+        okButtonProps={{ disabled: !bwVal || bwVal <= 0 }}
+        onOk={async () => {
+          if (!bwVal || bwVal <= 0) return;
+          await logBodyweight(bwVal);
+          setBwOpen(false);
+          message.success(`Logged ${bwVal} kg`);
+        }}>
+        <SmartInputNumber autoFocus value={bwVal} min={20} max={300} step={0.1} suffix="kg" style={{ width: "100%" }}
+          onChange={(v) => setBwVal(v == null ? null : Number(v))} aria-label="Bodyweight in kg" />
+      </Modal>
     </PageTransition>
+  );
+}
+
+function Module({ icon, c, title, to, stats, bar, wide }: {
+  icon: ReactNode; c: string; title: string; to: string; stats: [string, ReactNode][]; bar?: number; wide?: boolean;
+}) {
+  return (
+    <Link to={to} className={`z-tile z-tile--press pf-module${wide ? " is-wide" : ""}`} style={{ "--c": c } as CSSProperties}>
+      <div className="z-tile__head"><span className="z-ico z-ico--sm">{icon}</span>{title}<TbChevronRight size={14} style={{ marginLeft: "auto", opacity: 0.5 }} /></div>
+      {bar !== undefined && <div className="pf-module__bar"><i style={{ width: `${Math.min(100, bar)}%` }} /></div>}
+      <dl className="pf-module__stats">
+        {stats.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+      </dl>
+    </Link>
   );
 }
