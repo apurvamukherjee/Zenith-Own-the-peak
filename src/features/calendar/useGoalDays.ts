@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { todayKey } from "../../lib/date.utils";
@@ -26,9 +27,7 @@ export async function deleteGoalDay(id: number) {
 }
 
 export function daysUntil(date: string): number {
-  const today = new Date(todayKey());
-  const target = new Date(date);
-  return Math.round((target.getTime() - today.getTime()) / 86400000);
+  return dayjs(date).diff(todayKey(), "day");
 }
 
 // Summit Push — milestone checklist items for a goal day. `goalDayId` is
