@@ -3,6 +3,8 @@ import { onMutation, GAMEPLAY_TABLES } from "../lib/mutations";
 import { grantXP, getTotalXP, xpToLevel } from "../lib/xp";
 import { db } from "../db/db";
 import { todayKey } from "../lib/date.utils";
+import { computeUnifiedStreak } from "../lib/streak.utils";
+import { computeTodayScore } from "../lib/todayScore";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // XP ENGINE — mounted once in AppShell (next to achievement engine).
@@ -11,96 +13,52 @@ import { todayKey } from "../lib/date.utils";
 // ─────────────────────────────────────────────────────────────────────────────
 export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
   const lastTotalRef = useRef<number | null>(null);
-  const lastSetDateRef = useRef<string>("");
-  const lastWaterDateRef = useRef<string>("");
-  const lastSleepDateRef = useRef<string>("");
-  const lastDiscipline80Ref = useRef<string>("");
-  const lastDiscipline100Ref = useRef<string>("");
-  const lastMealCountRef = useRef<{ date: string; count: number }>({ date: "", count: 0 });
 
   useEffect(() => {
     const run = async () => {
       const today = todayKey();
+      // Today's grants are the dedup source: they survive app restarts, unlike
+      // in-memory flags, which re-granted every once-a-day action on launch.
+      const grantedToday = await db.xpEvents.where("createdAt").aboveOrEqual(new Date().setHours(0, 0, 0, 0)).toArray();
+      const granted = (action: string) => grantedToday.filter((e) => e.action === action).length;
 
-      // ── Sets ──────────────────────────────────────────────────────────────
-      // Grant +2 XP per set logged today (capped check: count how many today,
-      // compare to last-known count, grant delta).
+      // ── Sets: +2 per set logged today, PR bonus for the fresh ones ────────
+      // Counting grants (not current sets) means deleting and re-logging a
+      // set can't farm XP.
       const todaySets = await db.workoutSets.where("date").equals(today).toArray();
-      const lastSetCount = parseInt(localStorage.getItem(`xp-sets-${today}`) ?? "0", 10);
-      const newSets = todaySets.length - lastSetCount;
-      if (newSets > 0) {
-        localStorage.setItem(`xp-sets-${today}`, String(todaySets.length));
-        for (let i = 0; i < newSets; i++) await grantXP("set");
-        // Check for PR in the newest sets (isPR flag)
-        const freshSets = todaySets.slice(lastSetCount);
-        for (const s of freshSets) {
-          if (s.isPR) await grantXP("pr");
-        }
+      const setsGranted = granted("set");
+      if (todaySets.length > setsGranted) {
+        for (let i = setsGranted; i < todaySets.length; i++) await grantXP("set");
+        for (const s of todaySets.slice(setsGranted)) if (s.isPR) await grantXP("pr");
       }
 
-      // ── Session done (first set of a new session) ─────────────────────────
-      if (lastSetDateRef.current !== today && todaySets.length > 0) {
-        lastSetDateRef.current = today;
-        await grantXP("session_done");
-      }
+      // ── Session done (first set of the day) ───────────────────────────────
+      if (todaySets.length > 0 && !granted("session_done")) await grantXP("session_done");
 
       // ── Water goal ────────────────────────────────────────────────────────
-      if (lastWaterDateRef.current !== today) {
+      if (!granted("water_goal")) {
         const waterRows = await db.water.where("date").equals(today).toArray();
         const totalMl = waterRows.reduce((s, r) => s + r.amountMl, 0);
         const goal = Number((await db.settings.get("waterGoalMl"))?.value ?? 3500);
-        if (totalMl >= goal) {
-          lastWaterDateRef.current = today;
-          await grantXP("water_goal");
-        }
+        if (totalMl >= goal) await grantXP("water_goal");
       }
 
       // ── Sleep ──────────────────────────────────────────────────────────────
-      if (lastSleepDateRef.current !== today) {
-        const sleepToday = await db.sleep.where("date").equals(today).first();
-        if (sleepToday) {
-          lastSleepDateRef.current = today;
-          await grantXP("sleep");
-        }
-      }
+      if (!granted("sleep") && await db.sleep.where("date").equals(today).first()) await grantXP("sleep");
 
       // ── Meals (capped at 5 per day) ────────────────────────────────────────
-      const mealsToday = await db.meals.where("date").equals(today).toArray();
-      const prevMealState = lastMealCountRef.current;
-      const cappedNew = Math.min(mealsToday.length, 5) - (prevMealState.date === today ? prevMealState.count : 0);
-      if (cappedNew > 0) {
-        lastMealCountRef.current = { date: today, count: Math.min(mealsToday.length, 5) };
-        for (let i = 0; i < cappedNew; i++) await grantXP("meal");
-      }
+      const mealsToday = await db.meals.where("date").equals(today).count();
+      for (let i = granted("meal"); i < Math.min(mealsToday, 5); i++) await grantXP("meal");
 
-      // ── Streak day ────────────────────────────────────────────────────────
-      // Grant once per calendar day when the streak is ≥1.
-      const streakGrantedKey = `xp-streak-${today}`;
-      if (!localStorage.getItem(streakGrantedKey)) {
-        const { computeUnifiedStreak } = await import("../lib/streak.utils");
-        const streak = await computeUnifiedStreak();
-        if (streak > 0) {
-          localStorage.setItem(streakGrantedKey, "1");
-          await grantXP("streak_day");
-        }
-      }
+      // ── Streak day: once per calendar day while the streak is ≥1 ──────────
+      if (!granted("streak_day") && await computeUnifiedStreak() > 0) await grantXP("streak_day");
 
-      // ── Discipline 80 / 100 ───────────────────────────────────────────────
-      // Read from the dayScore cache — only grant once per day per threshold.
-      try {
-        const { computeTodayScore } = await import("../lib/todayScore");
-        const waterGoal = Number((await db.settings.get("waterGoalMl"))?.value ?? 3500);
-        const proteinTarget = Number((await db.settings.get("proteinTargetG"))?.value ?? 100);
-        const scoreResult = await computeTodayScore(waterGoal, proteinTarget);
-        if (scoreResult.score >= 100 && lastDiscipline100Ref.current !== today) {
-          lastDiscipline100Ref.current = today;
-          lastDiscipline80Ref.current = today; // also marks 80 so we don't double-grant
-          await grantXP("discipline_100");
-        } else if (scoreResult.score >= 80 && lastDiscipline80Ref.current !== today) {
-          lastDiscipline80Ref.current = today;
-          await grantXP("discipline_80");
-        }
-      } catch { /* computeTodayScore optional */ }
+      // ── Discipline 80 / 100: once per day per threshold ───────────────────
+      const waterGoal = Number((await db.settings.get("waterGoalMl"))?.value ?? 3500);
+      const proteinTarget = Number((await db.settings.get("proteinTargetG"))?.value ?? 100);
+      const { score } = await computeTodayScore(waterGoal, proteinTarget);
+      if (score >= 100 && !granted("discipline_100")) await grantXP("discipline_100");
+      else if (score >= 80 && !granted("discipline_80") && !granted("discipline_100")) await grantXP("discipline_80");
 
       // ── Level-up check ────────────────────────────────────────────────────
       const totalXP = await getTotalXP();
