@@ -9,6 +9,7 @@ import { TbFocus2, TbGripVertical, TbCheck } from "react-icons/tb";
 import { updateTask } from "../tasks/useTasks";
 import type { TaskDto, TaskListDto } from "../../db/types";
 import { hapticLight } from "../../lib/haptics";
+import { todayKey } from "../../lib/date.utils";
 import { useTokens } from "../../hooks/useTokens";
 
 export const HOUR_H = 60; // px per hour
@@ -18,7 +19,7 @@ const END_HOUR = 23;  // ends at 11pm
 export const TOTAL_H = (END_HOUR - START_HOUR) * HOUR_H;
 
 export function isToday(date: string): boolean {
-  return date === new Date().toISOString().slice(0, 10);
+  return date === todayKey();
 }
 
 // pointerEvents: "none" throughout — these are purely decorative and must not
