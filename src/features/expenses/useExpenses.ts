@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import type { ExpenseDto, ExpenseItemDto, ExpensePresetDto, CategoryBudgetDto } from "../../db/types";
+import type { ExpenseDto, ExpenseItemDto, CategoryBudgetDto } from "../../db/types";
 import { monthKey, todayKey } from "../../lib/date.utils";
 
 export function useExpenseCategories() {
@@ -70,23 +70,6 @@ export async function deleteExpense(id: number) {
 export async function addExpenseItem(item: Omit<ExpenseItemDto, "id" | "createdAt" | "favorite" | "isCustom">) {
   return db.expenseItems.add({ ...item, favorite: 0, isCustom: 1, createdAt: Date.now() });
 }
-// Save a quick-add amount preset onto an expense item (mirrors nutrition's
-// food presets — see useFoods.ts's savePreset/removePreset).
-export async function savePreset(itemId: number, preset: ExpensePresetDto) {
-  const it = await db.expenseItems.get(itemId);
-  if (!it) return;
-  const existing = it.presets ?? [];
-  if (existing.some((p) => p.amount === preset.amount && p.label === preset.label)) return;
-  await db.expenseItems.update(itemId, { presets: [...existing, preset] });
-}
-export async function removePreset(itemId: number, presetIndex: number) {
-  const it = await db.expenseItems.get(itemId);
-  if (!it) return;
-  const next = [...(it.presets ?? [])];
-  next.splice(presetIndex, 1);
-  await db.expenseItems.update(itemId, { presets: next });
-}
-
 export async function setCategoryBudget(categoryId: string, monthlyBudget: number) {
   await db.categoryBudgets.put({ categoryId, monthlyBudget });
 }
