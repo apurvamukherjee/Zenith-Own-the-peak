@@ -1,7 +1,6 @@
 import { db } from "../db/db";
 import { computeScoresForMonth } from "./dayScore";
 import { computeUnifiedStreak } from "./streak.utils";
-import { todayKey } from "./date.utils";
 import type { GlyphName } from "../components/ColdIcon";
 
 // ---- Tiers ---------------------------------------------------------------
@@ -400,5 +399,3 @@ export async function syncAchievements(ctx: AchievementContext): Promise<string[
   }
   return fresh;
 }
-
-export const TODAY = todayKey;

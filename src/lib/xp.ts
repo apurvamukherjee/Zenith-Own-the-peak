@@ -127,5 +127,3 @@ export async function getTotalXP(): Promise<number> {
   await db.settings.put({ key: "xpTotalCache", value: total });
   return total;
 }
-
-/** XP earned in the current ISO week. */
