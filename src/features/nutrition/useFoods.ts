@@ -86,14 +86,6 @@ export async function savePreset(foodId: number, preset: FoodPresetDto) {
   await db.foods.update(foodId, { presets: [...existing, preset] });
 }
 
-export async function removePreset(foodId: number, presetIndex: number) {
-  const f = await db.foods.get(foodId);
-  if (!f) return;
-  const next = [...(f.presets ?? [])];
-  next.splice(presetIndex, 1);
-  await db.foods.update(foodId, { presets: next });
-}
-
 // Build a MealDto from food+amount and add it.
 export async function logFood(food: FoodDto, amount: number, mealType: MealDto["mealType"], date: string, time: string) {
   const macros = computeMacros(food, amount);
