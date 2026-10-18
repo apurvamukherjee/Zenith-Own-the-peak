@@ -89,7 +89,7 @@ function change30d(bw: { date: string; kg: number }[]): number {
   if (bw.length < 2) return 0;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 30);
-  const key = cutoff.toISOString().slice(0, 10);
+  const key = todayKey(cutoff);
   const past = bw.filter((b) => b.date <= key).pop() ?? bw[0];
   return +(bw[bw.length - 1].kg - past.kg).toFixed(1);
 }
