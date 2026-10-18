@@ -52,7 +52,7 @@ export function useUpcomingTasks(days = 7) {
     const dates: string[] = [];
     for (let i = 1; i <= days; i++) {
       const d = new Date(); d.setDate(d.getDate() + i);
-      dates.push(d.toISOString().slice(0, 10));
+      dates.push(todayKey(d));
     }
     const arr = await db.tasks.where("date").anyOf(dates).toArray();
     return arr
