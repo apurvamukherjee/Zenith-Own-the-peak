@@ -197,16 +197,27 @@ export async function exportAll(): Promise<string> {
 }
 
 export async function importAll(json: string): Promise<void> {
-  const d = JSON.parse(json);
+  const d: unknown = JSON.parse(json);
+  // Every table is cleared before refilling, so anything that isn't an
+  // exportAll() snapshot (a workout-plan file, a random JSON) would wipe the
+  // device. Reject it before touching a single table.
+  if (!isBackup(d)) throw new Error("Not a Zenith backup file");
   suppressMutations(true);
   try {
     await db.transaction("rw", db.tables, async () => {
       for (const t of db.tables) {
         await t.clear();
-        if (Array.isArray(d[t.name])) await t.bulkAdd(d[t.name]);
+        const rows = d[t.name];
+        if (Array.isArray(rows)) await t.bulkAdd(rows);
       }
     });
   } finally {
     suppressMutations(false);
   }
+}
+
+function isBackup(d: unknown): d is Record<string, unknown> {
+  if (typeof d !== "object" || d === null) return false;
+  const o = d as Record<string, unknown>;
+  return typeof o.exportedAt === "string" && Array.isArray(o.settings);
 }
