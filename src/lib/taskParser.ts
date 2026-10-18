@@ -96,7 +96,7 @@ export function parseTaskInput(raw: string): ParsedTask {
 
   const inN = /\bin\s+(\d+)\s*(day|week|month)s?\b/i.exec(text);
   if (inN && !result.date) {
-    result.date = dayjs().add(parseInt(inN[1]), inN[2].toLowerCase() as any).format("YYYY-MM-DD");
+    result.date = dayjs().add(parseInt(inN[1]), inN[2].toLowerCase() as "day" | "week" | "month").format("YYYY-MM-DD");
     text = text.replace(inN[0], "");
   }
 

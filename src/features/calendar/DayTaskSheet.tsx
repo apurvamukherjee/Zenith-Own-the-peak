@@ -116,7 +116,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
   }
 
   // Swipe left/right to change day
-  function handleHorizontalDrag(_: any, info: PanInfo) {
+  function handleHorizontalDrag(_: unknown, info: PanInfo) {
     if (!date) return;
     if (info.offset.x < -SWIPE_THRESHOLD || info.velocity.x < -VELOCITY_THRESHOLD) {
       hapticLight();
@@ -128,7 +128,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
   }
 
   // Swipe down to dismiss
-  function handleVerticalDrag(_: any, info: PanInfo) {
+  function handleVerticalDrag(_: unknown, info: PanInfo) {
     if (info.offset.y > 100 || info.velocity.y > 400) {
       onClose();
     }

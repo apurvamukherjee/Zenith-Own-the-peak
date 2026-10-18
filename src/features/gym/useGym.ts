@@ -116,9 +116,9 @@ export async function updateSet(
 }
 
 // ---- Planner writes ----
-export async function addWorkoutDay(name: string, muscles: string[]): Promise<number> {
+export async function addWorkoutDay(name: string, muscles: MuscleGroup[]): Promise<number> {
   const count = await db.workoutDays.count();
-  return db.workoutDays.add({ name, muscles: muscles as any, order: count });
+  return db.workoutDays.add({ name, muscles, order: count });
 }
 
 export async function deleteWorkoutDay(id: number) {

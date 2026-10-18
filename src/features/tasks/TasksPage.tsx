@@ -35,7 +35,7 @@ function inferMealType() {
   return "snack" as const;
 }
 
-const ICON_MAP: Record<string, React.ComponentType<any>> = {
+const ICON_MAP: Record<string, IconType> = {
   TbBriefcase, TbHome, TbBarbell, TbShoppingCart, TbCash, TbPill, TbShoppingBag, TbMotorbike,
   TbCapsule, TbToolsKitchen2, TbBook2,
 };
@@ -106,7 +106,7 @@ function TaskHub() {
         padding: "10px 12px", border: "1px solid var(--border)",
       }}>
         <input
-          ref={inputRef as any}
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
