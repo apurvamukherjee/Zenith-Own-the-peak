@@ -8,6 +8,7 @@ import { useSetting, setSetting } from "../../hooks/useSettings";
 import { getTotalXP, xpToLevel, isoWeek } from "../../lib/xp";
 import { computeTodayScore } from "../../lib/todayScore";
 import { computeUnifiedStreak } from "../../lib/streak.utils";
+import { todayKey } from "../../lib/date.utils";
 import { ACHIEVEMENTS } from "../../lib/achievements";
 
 export { convexConfigured } from "../../lib/convexClient";
@@ -160,7 +161,7 @@ function getMonday(d: Date): string {
   const day = date.getDay();
   const diff = date.getDate() - day + (day === 0 ? -6 : 1);
   date.setDate(diff);
-  return date.toISOString().slice(0, 10);
+  return todayKey(date);
 }
 
 // Headless, mounted once in AppShell (behind convexConfigured): owns the
