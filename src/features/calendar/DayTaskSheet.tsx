@@ -264,7 +264,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
         )}
 
         {/* Task list (scrollable) */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "8px 16px", WebkitOverflowScrolling: "touch" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "8px 16px" }}>
           {dayTasks.length === 0 && (
             <div style={{ textAlign: "center", padding: "32px 0", color: "var(--ink-soft)", fontSize: 13 }}>
               Nothing scheduled

@@ -68,7 +68,6 @@ export function WeekView({ weekStart, onDayTap, onFocus, onTapTask, onToggleDone
       <div ref={scrollRef} style={{
         position: "relative", height: 460, overflow: "auto",
         background: "var(--surface)", borderRadius: 18, border: "1px solid var(--border)",
-        WebkitOverflowScrolling: "touch",
       }}>
         <div style={{ position: "relative", width: GUTTER + 7 * COL_W }}>
           {/* Sticky day header */}
