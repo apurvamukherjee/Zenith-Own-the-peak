@@ -6,8 +6,8 @@ import { exportAll, importAll } from "../../db/db";
 import { encryptString, decryptString } from "../../lib/encryptedExport";
 import { hapticSuccess } from "../../lib/haptics";
 import { saveFile } from "../../lib/saveFile";
+import { todayKey } from "../../lib/date.utils";
 
-const stamp = () => new Date().toISOString().slice(0, 10);
 
 function fmtBytes(n: number) {
   if (n < 1024 * 1024) return `${Math.max(1, Math.round(n / 1024))} KB`;
@@ -41,7 +41,7 @@ export function BackupPane() {
 
   async function exportPlain() {
     try {
-      if (await saveFile(`zenith-backup-${stamp()}.json`, await exportAll(), "application/json") === "done") message.success("Backup exported");
+      if (await saveFile(`zenith-backup-${todayKey()}.json`, await exportAll(), "application/json") === "done") message.success("Backup exported");
     } catch (err) {
       message.error(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -81,7 +81,7 @@ export function BackupPane() {
       if (pw.mode === "encrypt") {
         const sealed = await encryptString(await exportAll(), pwValue);
         setPw(null);
-        if (await saveFile(`zenith-encrypted-${stamp()}.txt`, sealed, "text/plain") === "done") message.success("Encrypted backup exported");
+        if (await saveFile(`zenith-encrypted-${todayKey()}.txt`, sealed, "text/plain") === "done") message.success("Encrypted backup exported");
       } else {
         const json = await decryptString(pw.raw, pwValue);
         setPw(null);

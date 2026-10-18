@@ -3,6 +3,7 @@ import { Card, Button, App, Segmented, Collapse, Typography } from "antd";
 import { TbDownload, TbUpload, TbCode } from "react-icons/tb";
 import { validateWorkoutPlanFile, exportWorkoutPlan, importWorkoutPlan } from "../../lib/workoutPlanFile";
 import { saveFile } from "../../lib/saveFile";
+import { todayKey } from "../../lib/date.utils";
 
 const EXAMPLE = `{
   "type": "zenith-workout-plan",
@@ -33,7 +34,7 @@ export function PlanImportCard() {
 
   async function handleDownload() {
     const plan = await exportWorkoutPlan();
-    const name = `zenith-workout-plan-${new Date().toISOString().slice(0, 10)}.json`;
+    const name = `zenith-workout-plan-${todayKey()}.json`;
     try {
       if (await saveFile(name, JSON.stringify(plan, null, 2), "application/json") === "done") message.success("Plan file exported");
     } catch (err) {
