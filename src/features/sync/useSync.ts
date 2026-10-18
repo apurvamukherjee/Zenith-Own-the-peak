@@ -62,6 +62,7 @@ export function useSync() {
         headers: { "Content-Type": "application/json" },
         body: json,
       });
+      if (!uploadRes.ok) throw new Error(`Backup upload failed: ${uploadRes.status}`);
       const { storageId } = await uploadRes.json();
       await saveBackup({ storageId });
 
