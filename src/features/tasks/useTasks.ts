@@ -74,8 +74,8 @@ export function useTaskCountByList() {
 
 // Every write below goes through a plain Dexie table method (add/update/put/
 // delete), and db.ts already registers creating/updating/deleting hooks on
-// EVERY table that call bumpMutation(table.name) automatically — including
-// for the query-based .delete() in deleteTaskList. Calling bumpMutation()
+// EVERY table that call bumpMutation(table.name) automatically, query-based
+// .delete()s included. Calling bumpMutation()
 // again here was pure duplication (double-firing the mutation bus, and with
 // no table name, defeating the gameplay-table filter other listeners use).
 
@@ -99,13 +99,4 @@ export async function completeTask(id: number): Promise<void> {
 
 export async function deleteTask(id: number): Promise<void> {
   await db.tasks.delete(id);
-}
-
-export async function deleteTaskList(id: string): Promise<void> {
-  // Don't delete defaults
-  const list = await db.taskLists.get(id);
-  if (list?.isDefault) return;
-  await db.taskLists.delete(id);
-  // Also delete all tasks in this list
-  await db.tasks.where("listId").equals(id).delete();
 }

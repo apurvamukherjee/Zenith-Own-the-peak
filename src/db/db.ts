@@ -180,9 +180,8 @@ for (const table of db.tables) {
 // synchronously here would throw "object store not found". Dexie's
 // `deleting` hook fires for bulkDelete/query-.delete() too, not just
 // single-row .delete() — so this one hook covers every current delete path
-// (useTasks.deleteTask, useRecurringSpawner.stopRecurringSeries,
-// useTasks.deleteTaskList) and any future one, with nothing to remember to
-// wire up at each call site.
+// (useTasks.deleteTask, useRecurringSpawner.stopRecurringSeries) and any
+// future one, with nothing to remember to wire up at each call site.
 db.tasks.hook("deleting", (_primKey, obj) => {
   const googleEventId = (obj as TaskDto).googleEventId;
   if (!googleEventId) return;
