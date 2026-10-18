@@ -85,7 +85,7 @@ function BadgeCard({ v, index }: { v: AchievementView; index: number }) {
       <div style={{ marginTop: 12 }}>
         {unlocked ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, fontWeight: 700 }}>
-            <span style={{ textTransform: "uppercase", letterSpacing: 1, color: tier.ring, textShadow: `0 0 12px ${tier.glow}` }}>
+            <span style={{ textTransform: "uppercase", letterSpacing: 1, color: `color-mix(in srgb, ${tier.ring} 65%, var(--ink))`, textShadow: `0 0 12px ${tier.glow}` }}>
               {tier.label}
             </span>
             <span style={{ color: "var(--ink-soft)" }}>
