@@ -7,10 +7,6 @@ import { todayKey, consecutiveStreak } from "../../lib/date.utils";
 // set" call already made for expense categories / task lists).
 const PALETTE = ["#ff2740", "#f59e0b", "#22c55e", "#06b6d4", "#8b5cf6", "#ec4899", "#eab308", "#14b8a6"];
 
-export function useHabits() {
-  return useLiveQuery(() => db.habits.where("active").equals(1).sortBy("order"), []) ?? [];
-}
-
 export async function addHabit(input: { name?: string; triggerLabel: string; actionLabel: string; icon: string }) {
   const count = await db.habits.count();
   const name = input.name?.trim() || `${input.triggerLabel} → ${input.actionLabel}`;
