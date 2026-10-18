@@ -75,7 +75,7 @@ export function useSync() {
       // no access to IndexedDB — only the persistence step is server-side.
       const name = String((await db.settings.get("name"))?.value ?? "Anonymous");
       const shareCode = await ensureProfile({ displayName: name }).catch(() => "");
-      if (shareCode) await db.settings.put({ key: "shareCode" as any, value: shareCode });
+      if (shareCode) await setSetting("shareCode", shareCode);
 
       const totalXP = await getTotalXP();
       const level = xpToLevel(totalXP);

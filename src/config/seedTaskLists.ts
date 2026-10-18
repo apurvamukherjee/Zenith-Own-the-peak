@@ -81,5 +81,5 @@ export async function migrateSchedulesToTasks(): Promise<void> {
       createdAt: now,
     });
   }
-  await db.settings.put({ key: "tasksMigratedV2" as any, value: 1 });
+  await db.settings.put({ key: "tasksMigratedV2", value: 1 });
 }

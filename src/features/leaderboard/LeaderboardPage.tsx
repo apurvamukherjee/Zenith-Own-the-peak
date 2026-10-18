@@ -37,7 +37,7 @@ export function LeaderboardPage() {
 function LeaderboardPageInner() {
   const { message } = App.useApp();
   const sync = useSync();
-  const shareCode = String(useSetting("shareCode" as any) || "");
+  const shareCode = useSetting("shareCode");
   const [addCode, setAddCode] = useState("");
   const [addOpen, setAddOpen] = useState(false);
 

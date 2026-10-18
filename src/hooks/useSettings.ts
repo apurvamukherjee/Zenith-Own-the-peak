@@ -20,6 +20,7 @@ export const DEFAULTS = {
   // Cloud
   autoBackup: 0,           // 1 = push to cloud on change
   backupCount: 0,          // lifetime successful cloud backups (for achievements)
+  shareCode: "",           // cached ZN-XXXX leaderboard code, mirrors Convex profiles.shareCode
   onboarded: 0,            // 1 = onboarding completed
   firstSeenAt: 0,          // epoch ms of first launch — drives 7-day review nudge
   reviewNudgeDone: 0,      // 1 = nudge shown/dismissed, never show again
