@@ -22,7 +22,7 @@ export async function computeUnifiedStreak(): Promise<number> {
 // One freeze per calendar week (Mon-Sun via weekKey). Returns false if the
 // week's freeze is already used.
 export async function useStreakFreeze(date: string): Promise<boolean> {
-  const wk = weekKey(new Date(date));
+  const wk = weekKey(date);
   const existing = await db.streakFreezes.where({ weekKey: wk }).first();
   if (existing) return false;
   await db.streakFreezes.add({ date, weekKey: wk });
@@ -30,7 +30,7 @@ export async function useStreakFreeze(date: string): Promise<boolean> {
 }
 
 export async function isFreezeAvailable(date: string): Promise<boolean> {
-  const wk = weekKey(new Date(date));
+  const wk = weekKey(date);
   const existing = await db.streakFreezes.where({ weekKey: wk }).first();
   return !existing;
 }

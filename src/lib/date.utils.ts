@@ -9,7 +9,8 @@ export function todayKey(d: Date = new Date()): string {
 }
 
 // ISO week key like 2026-W28, used to group sessions by training week.
-export function weekKey(d: Date = new Date()): string {
+// A "YYYY-MM-DD" string is read as a local day (new Date() would read UTC).
+export function weekKey(d: Date | string = new Date()): string {
   const dj = dayjs(d);
   return `${dj.isoWeekYear()}-W${String(dj.isoWeek()).padStart(2, "0")}`;
 }

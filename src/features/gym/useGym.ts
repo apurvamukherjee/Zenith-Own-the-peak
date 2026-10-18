@@ -272,7 +272,7 @@ export async function completeAllRemainingForDay(
 export async function backfillSession(date: string, dayId: number): Promise<number> {
   const plan = await db.dayExercises.where({ dayId }).sortBy("order");
   const session = await db.workoutSessions.add({
-    date, weekKey: weekKey(new Date(date)), dayId, createdAt: Date.now(),
+    date, weekKey: weekKey(date), dayId, createdAt: Date.now(),
     notes: "Backfilled",
   });
   for (const ex of plan) {
