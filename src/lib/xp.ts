@@ -1,5 +1,6 @@
 import { db } from "../db/db";
 import type { XpEventDto } from "../db/types";
+import { weekKey } from "./date.utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // XP RATES  (researched against Zenith mutation bus events)
@@ -80,17 +81,6 @@ export function levelProgress(totalXP: number): number {
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** ISO week key: "2025-W12" */
-export function isoWeek(d = new Date()): string {
-  // Copy date so we don't mutate the original.
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  // ISO weeks start on Monday. Adjust Thursday to find the correct year.
-  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  const week = Math.ceil((((date.getTime() - yearStart.getTime()) / 86_400_000) + 1) / 7);
-  return `${date.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
-}
-
 /** Grant XP and persist to the xpEvents table. Returns the XpEventDto id. */
 export async function grantXP(action: XpAction): Promise<number> {
   const xp = XP[action];
@@ -101,7 +91,7 @@ export async function grantXP(action: XpAction): Promise<number> {
   const event: Omit<XpEventDto, "id"> = {
     action,
     xp,
-    weekKey: isoWeek(),
+    weekKey: weekKey(),
     createdAt: Date.now(),
   };
   const id = await db.xpEvents.add(event as XpEventDto);

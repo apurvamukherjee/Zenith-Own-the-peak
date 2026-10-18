@@ -12,7 +12,7 @@ import { useSync } from "../sync/useSync";
 import { convexConfigured } from "../../lib/convexClient";
 import { useSetting } from "../../hooks/useSettings";
 import { api } from "../../../convex/_generated/api";
-import { isoWeek } from "../../lib/xp";
+import { weekKey } from "../../lib/date.utils";
 import { LEVELS } from "../../lib/xp";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 
@@ -50,7 +50,7 @@ function LeaderboardPageInner() {
   const loading = Boolean(sync.session) && rawEntries === undefined;
   const entries = rawEntries ?? [];
 
-  const weekKey = isoWeek();
+  const thisWeek = weekKey();
 
   async function handleFollow() {
     if (!addCode.trim()) return;
@@ -133,7 +133,7 @@ function LeaderboardPageInner() {
 
       {/* Week label */}
       <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 10, letterSpacing: "0.1em" }}>
-        {weekKey} · Mon–Sun
+        {thisWeek} · Mon–Sun
       </div>
 
       {loading && <SkeletonList rows={3} />}

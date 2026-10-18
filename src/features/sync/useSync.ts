@@ -5,10 +5,10 @@ import { api } from "../../../convex/_generated/api";
 import { exportAll, importAll, db } from "../../db/db";
 import { onMutation } from "../../lib/mutations";
 import { useSetting, setSetting } from "../../hooks/useSettings";
-import { getTotalXP, xpToLevel, isoWeek } from "../../lib/xp";
+import { getTotalXP, xpToLevel } from "../../lib/xp";
 import { computeScoresForMonth } from "../../lib/dayScore";
 import { computeUnifiedStreak } from "../../lib/streak.utils";
-import { lastNDates } from "../../lib/date.utils";
+import { lastNDates, weekKey } from "../../lib/date.utils";
 import { ACHIEVEMENTS } from "../../lib/achievements";
 
 type Status = "idle" | "syncing" | "error";
@@ -77,7 +77,7 @@ export function useSync() {
 
       const totalXP = await getTotalXP();
       const level = xpToLevel(totalXP);
-      const weekKey = isoWeek();
+      const thisWeek = weekKey();
       const waterGoal = Number((await db.settings.get("waterGoalMl"))?.value ?? 3500);
       const proteinTarget = Number((await db.settings.get("proteinTargetG"))?.value ?? 100);
       const streak = await computeUnifiedStreak();
@@ -90,7 +90,7 @@ export function useSync() {
       const sets = await db.workoutSets.where("date").aboveOrEqual(monday).toArray();
       const volumeKg = Math.round(sets.reduce((s, r) => s + r.weightKg * r.reps, 0));
 
-      const weekEvents = await db.xpEvents.where("weekKey").equals(weekKey).toArray();
+      const weekEvents = await db.xpEvents.where("weekKey").equals(thisWeek).toArray();
       const weekXP = weekEvents.reduce((s, e) => s + e.xp, 0);
 
       const allBadges = await db.achievements.toArray();
@@ -105,7 +105,7 @@ export function useSync() {
       const topBadges = badgeViews.slice(0, 6);
 
       await pushWeeklySnapshot({
-        weekKey,
+        weekKey: thisWeek,
         disciplineAvg,
         streakEnd: streak,
         volumeKg,
