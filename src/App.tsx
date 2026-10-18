@@ -11,7 +11,6 @@ import { OnboardingFlow } from "./features/onboarding/OnboardingFlow";
 import { seedIfEmpty } from "./config/seedProgram";
 import { seedTaskLists, migrateSchedulesToTasks } from "./config/seedTaskLists";
 import { seedExpenseCategories } from "./config/expenseCategories";
-import { useAdaptiveTheme } from "./hooks/useAdaptiveTheme";
 import { accentById, DEFAULT_ACCENT } from "./lib/rewardVault";
 import { hideNativeSplash } from "./lib/nativeShell";
 
@@ -37,7 +36,6 @@ export default function App() {
   const reduceMotion = Number(useSetting("reduceMotion")) === 1;
   const [showOnboarding, setShowOnboarding] = useState(false);
   const resolved: Mode = mode === "light" ? "light" : "dark";
-  const adaptive = useAdaptiveTheme();
   const equippedAccent = String(useSetting("equippedAccent")) || DEFAULT_ACCENT;
   const accentHex = equippedAccent === DEFAULT_ACCENT ? undefined : accentById(equippedAccent)[resolved];
 
@@ -51,9 +49,9 @@ export default function App() {
   }, [resolved]);
 
   // Reward Vault — equipped accent theme. Only ever touches --accent (never
-  // --hero, which stays gothic dark always — see the adaptive-theme effect
-  // below). Clearing the inline override for the default lets the stylesheet's
-  // :root / [data-theme=dark] values apply normally again.
+  // --hero, which stays gothic dark always). Clearing the inline override for
+  // the default lets the stylesheet's :root / [data-theme=dark] values apply
+  // normally again.
   useEffect(() => {
     if (accentHex) document.documentElement.style.setProperty("--accent", accentHex);
     else document.documentElement.style.removeProperty("--accent");
@@ -68,16 +66,6 @@ export default function App() {
     if (reduceMotion) document.documentElement.setAttribute("data-motion", "reduce");
     else document.documentElement.removeAttribute("data-motion");
   }, [reduceMotion]);
-
-  // Adaptive theme: publish the time-of-day gradient as --time-grad.
-  // We deliberately do NOT override --hero here — that variable drives all
-  // hero cards (.hero-grad), the Hall of Frame entry, glance card, etc.
-  // Overriding it with the morning orange gradient was making every dark card
-  // go orange/pink (the "AI slop" look). --hero stays gothic dark always.
-  // Components that WANT the time colour can use var(--time-grad) directly.
-  useEffect(() => {
-    document.documentElement.style.setProperty("--time-grad", adaptive.grad);
-  }, [adaptive.grad]);
 
   // Transition class lives ~450ms around a theme change only: a permanent
   // `*` transition re-animates every color change app-wide and janks mid-range Android.

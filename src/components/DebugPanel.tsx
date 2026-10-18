@@ -5,8 +5,8 @@ import { onMutation } from "../lib/mutations";
 import { useBackClose } from "../hooks/useBackClose";
 
 // Egg #8 — the IDDQD dev panel. Lazy-mounted from AppShell so its cost is
-// zero until triggered. Shows raw table counts, mutation events per second,
-// and current adaptive-theme tick. No writes, purely diagnostic.
+// zero until triggered. Shows raw table counts and mutation events per
+// second. No writes, purely diagnostic.
 export function DebugPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   useBackClose(open, onClose);
 
