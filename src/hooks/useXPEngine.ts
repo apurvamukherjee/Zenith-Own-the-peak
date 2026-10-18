@@ -19,7 +19,7 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
   const lastMealCountRef = useRef<{ date: string; count: number }>({ date: "", count: 0 });
 
   useEffect(() => {
-    const unsub = onMutation(async () => {
+    const run = async () => {
       const today = todayKey();
 
       // ── Sets ──────────────────────────────────────────────────────────────
@@ -112,8 +112,14 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
         }
       }
       lastTotalRef.current = totalXP;
+    };
+    // One run at a time: every guard above is check-then-grant across awaits,
+    // and a single user action bumps several tables at once, so overlapping
+    // runs would each pass the same guard and grant twice.
+    let queue = Promise.resolve();
+    return onMutation(() => {
+      queue = queue.then(run).catch((err: unknown) => { console.error("XP engine run failed", err); });
     }, GAMEPLAY_TABLES);
-    return unsub;
   }, [onLevelUp]);
 }
 
