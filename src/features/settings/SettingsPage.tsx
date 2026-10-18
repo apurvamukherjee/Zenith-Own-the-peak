@@ -189,7 +189,7 @@ function ProfileCard({ onOpen }: { onOpen: () => void }) {
             <div className="zs-profile__meta">Lv.{level.level} · {title}</div>
             {next && (
               <div className="zs-profile__xp">
-                <span><motion.i initial={{ width: 0 }} animate={{ width: `${Math.round(progress * 100)}%` }} transition={{ type: "spring", stiffness: 60, damping: 16, delay: 0.2 }} /></span>
+                <span><motion.i style={{ width: "100%", transformOrigin: "0 50%" }} initial={{ scaleX: 0 }} animate={{ scaleX: progress }} transition={{ type: "spring", stiffness: 60, damping: 16, delay: 0.2 }} /></span>
                 {totalXP - level.xpRequired}/{next.xpRequired - level.xpRequired} XP
               </div>
             )}

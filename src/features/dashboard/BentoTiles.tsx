@@ -90,8 +90,8 @@ export function MacrosTile({ protein, carbs, fat, kcal, targets }: {
           <div key={b.k} className="hb-macros__row">
             <span>{b.k}</span>
             <div className="hb-macros__track">
-              <motion.i style={{ background: b.c }}
-                initial={{ width: 0 }} animate={{ width: `${b.t > 0 ? Math.min(100, (b.v / b.t) * 100) : 0}%` }}
+              <motion.i style={{ background: b.c, width: "100%", transformOrigin: "0 50%" }}
+                initial={{ scaleX: 0 }} animate={{ scaleX: b.t > 0 ? Math.min(1, b.v / b.t) : 0 }}
                 transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.2 + i * 0.08 }} />
             </div>
           </div>
@@ -123,7 +123,7 @@ export function SleepTile({ last, targetMin, bedtime, hour }: { last: SleepDto |
       <div className="hb-tile__big">
         <span className="display">{last ? fmtDuration(last.durationMin) : "—"}</span>
       </div>
-      <div className="hb-sleepbar"><motion.i initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.3 }} /></div>
+      <div className="hb-sleepbar"><motion.i style={{ width: "100%", transformOrigin: "0 50%" }} initial={{ scaleX: 0 }} animate={{ scaleX: pct / 100 }} transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.3 }} /></div>
       <div className="hb-tile__foot">
         {untilBed !== null && untilBed > 0
           ? <><TbMoonStars size={12} /> Bed in {fmtDuration(untilBed)}</>

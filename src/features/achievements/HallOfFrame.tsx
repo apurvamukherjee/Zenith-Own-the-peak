@@ -136,7 +136,7 @@ export function HallOfFrame() {
           </div>
           {next && (
             <div className="hf-level__bar">
-              <motion.i initial={reduced ? false : { width: 0 }} animate={{ width: `${Math.round(lvProgress * 100)}%` }} transition={{ type: "spring", stiffness: 60, damping: 16, delay: 0.3 }} />
+              <motion.i style={{ width: "100%", transformOrigin: "0 50%" }} initial={reduced ? false : { scaleX: 0 }} animate={{ scaleX: lvProgress }} transition={{ type: "spring", stiffness: 60, damping: 16, delay: 0.3 }} />
             </div>
           )}
         </div>

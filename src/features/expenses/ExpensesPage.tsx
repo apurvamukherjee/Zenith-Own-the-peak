@@ -76,8 +76,8 @@ export function ExpensesPage() {
                 <div><small>{stats.remaining >= 0 ? "Remaining" : "Over budget"}</small>
                   <b style={{ color: stats.remaining >= 0 ? "var(--success)" : "var(--danger)" }}>₹{Math.abs(stats.remaining).toLocaleString()}</b></div>
                 <div><small>Safe to spend / day</small><b>₹{perDay?.toLocaleString()}</b></div>
-                <div className="ex-budgetbar"><motion.i initial={reduced ? false : { width: 0 }} animate={{ width: `${overall}%` }}
-                  style={{ background: overall >= 100 ? "var(--danger)" : overall > 80 ? "var(--warn)" : "var(--success)" }}
+                <div className="ex-budgetbar"><motion.i initial={reduced ? false : { scaleX: 0 }} animate={{ scaleX: Math.min(100, overall) / 100 }}
+                  style={{ width: "100%", transformOrigin: "0 50%", background: overall >= 100 ? "var(--danger)" : overall > 80 ? "var(--warn)" : "var(--success)" }}
                   transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.3 }} /></div>
                 <small className="ex-muted">₹{stats.total.toLocaleString()} of ₹{stats.totalBudget.toLocaleString()} budget{fuelSpend > 0 ? " · fuel not budgeted" : ""}</small>
               </>
