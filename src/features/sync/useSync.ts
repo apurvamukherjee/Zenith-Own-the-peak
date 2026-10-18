@@ -11,8 +11,6 @@ import { computeUnifiedStreak } from "../../lib/streak.utils";
 import { lastNDates } from "../../lib/date.utils";
 import { ACHIEVEMENTS } from "../../lib/achievements";
 
-export { convexConfigured } from "../../lib/convexClient";
-
 type Status = "idle" | "syncing" | "error";
 
 // One status for the whole app: the background engine and whichever screen
