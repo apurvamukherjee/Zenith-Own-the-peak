@@ -210,16 +210,22 @@ export function SummitCard({ score, pillars, streak, freezeAvailable, week, urge
           </span>
           {nextMilestone && <span className="hb-foot__sub">{nextMilestone - streak} to {nextMilestone}</span>}
         </span>
-        <span className="hb-bars" aria-label="Last 7 days">
+        <span className="hb-week" aria-label="Last 7 days">
           {week.map((d, i) => {
-            const band = !d.hasAny ? "" : d.score >= 75 ? " is-high" : d.score >= 40 ? " is-mid" : " is-low";
-            const h = d.hasAny ? 6 + (Math.min(100, d.score) / 100) * 20 : 4;
+            const day = new Date(d.date + "T00:00").getDay();
+            const color = !d.hasAny ? undefined : d.score >= 75 ? "var(--success)" : d.score >= 40 ? "var(--gold)" : "var(--danger)";
             return (
-              <motion.i key={d.date} className={`hb-bars__bar${band}${d.isToday ? " is-today" : ""}`}
-                title={`${WEEKDAY[new Date(d.date + "T00:00").getDay()]} · ${d.hasAny ? `${d.score}%` : "no data"}`}
-                style={{ height: h }}
-                initial={reduced ? false : { scaleY: 0 }} animate={{ scaleY: 1 }}
-                transition={{ delay: 0.5 + i * 0.05, type: "spring", stiffness: 380, damping: 20 }} />
+              <span key={d.date} className={`hb-week__day${d.isToday ? " is-today" : ""}`}
+                title={`${WEEKDAY[day]} · ${d.hasAny ? `${d.score}%` : "no data"}`}>
+                <span className="hb-week__track">
+                  {color && (
+                    <motion.i style={{ "--c": color, height: `${Math.max(22, Math.min(100, d.score))}%` } as CSSProperties}
+                      initial={reduced ? false : { scaleY: 0 }} animate={{ scaleY: 1 }}
+                      transition={{ delay: 0.5 + i * 0.06, type: "spring", stiffness: 220, damping: 20 }} />
+                  )}
+                </span>
+                <span className="hb-week__lbl">{WEEKDAY[day][0]}</span>
+              </span>
             );
           })}
         </span>
