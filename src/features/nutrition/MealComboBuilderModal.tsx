@@ -3,7 +3,7 @@ import { Modal, Input, Button, Segmented, App, List, Empty, Popconfirm } from "a
 import { TbPlus, TbTrash } from "react-icons/tb";
 import type { FoodDto, MealType } from "../../db/types";
 import { FoodPickerModal } from "./FoodPickerModal";
-import { computeMacros, portionLabel } from "./useFoods";
+import { computeMacros, portionLabel, round1 } from "./useFoods";
 import { createCombo } from "./useMealTemplates";
 import { useBackClose } from "../../hooks/useBackClose";
 
@@ -92,5 +92,3 @@ export function MealComboBuilderModal({ open, onClose }: Props) {
     </Modal>
   );
 }
-
-function round1(n: number) { return Math.round(n * 10) / 10; }

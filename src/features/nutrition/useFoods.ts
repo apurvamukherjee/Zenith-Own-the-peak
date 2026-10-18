@@ -54,7 +54,7 @@ export function computeMacros(food: FoodDto, amount: number): MacroPreview {
     kcal: Math.round(food.kcal * factor),
   };
 }
-function round1(n: number) { return Math.round(n * 10) / 10; }
+export function round1(n: number) { return Math.round(n * 10) / 10; }
 
 // Human portion label from unit + amount.
 export function portionLabel(food: FoodDto, amount: number): string {

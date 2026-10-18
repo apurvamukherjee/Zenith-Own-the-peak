@@ -3,7 +3,7 @@ import { db } from "../../db/db";
 import { todayKey } from "../../lib/date.utils";
 import type { MealDto, MealTemplateDto, MealType } from "../../db/types";
 import dayjs from "dayjs";
-import { computeMacros } from "./useFoods";
+import { computeMacros, round1 } from "./useFoods";
 
 export function useMealTemplates() {
   return useLiveQuery(() => db.mealTemplates.orderBy("createdAt").toArray(), []) ?? [];
@@ -90,8 +90,6 @@ export async function createCombo(name: string, mealType: MealType, items: { foo
   );
   return id;
 }
-
-function round1(n: number) { return Math.round(n * 10) / 10; }
 
 // Add-on #8 — copy every meal from yesterday into today with fresh timestamps.
 export async function copyYesterdayMeals(): Promise<number> {
