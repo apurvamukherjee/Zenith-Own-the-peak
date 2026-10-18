@@ -5,7 +5,7 @@ import type { XpEventDto } from "../db/types";
 // XP RATES  (researched against Zenith mutation bus events)
 // Every rate is a named constant so it's easy to balance-tune later.
 // ─────────────────────────────────────────────────────────────────────────────
-export const XP = {
+const XP = {
   set:           2,   // complete one set
   pr:            25,  // new e1RM personal record
   session_done:  5,   // any session with ≥1 set completed

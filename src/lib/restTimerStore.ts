@@ -115,7 +115,7 @@ export function resumeRest(): void {
   publish();
 }
 
-export function stop(): void {
+function stop(): void {
   state = { ...state, active: false, remaining: 0, paused: false };
   stopTicking();
   publish();

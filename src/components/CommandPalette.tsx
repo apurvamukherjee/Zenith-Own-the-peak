@@ -24,7 +24,7 @@ interface Command {
   keywords?: string;
 }
 
-export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
+function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   useBackClose(open, onClose);
   const navigate = useNavigate();
   const [q, setQ] = useState("");
