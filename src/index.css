@@ -92,22 +92,17 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 
+/* Scroll chaining. Never put `overscroll-behavior` on `*`, on either axis:
+   every `overflow: hidden` card/hero is a scroll container, and on Android
+   (where every scroller is composited) a swipe that starts on one latches to
+   it and stops there — the page only scrolled when the finger landed in a gap
+   between components. Swipes must always chain up to `<main>`. The root alone
+   stops the chain from becoming pull-to-refresh or a back/forward swipe, and
+   overlays contain their own scroll so it never reaches the page behind. */
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-}
-
-/* Scroll chaining. Do NOT put `overscroll-behavior: contain` (both axes) on
-   `*`: every `overflow: hidden` card, the Home `.tight-page`, and every
-   horizontal chip row is a scroll container, so a vertical swipe that starts
-   on any of them got trapped there instead of chaining to `<main>` — the page
-   only scrolled when the finger landed in a gap between components. Only the
-   x-axis is contained globally (a sideways fling on a chip row must not
-   become browser back/forward); vertical swipes always chain to `<main>`.
-   Overlays contain both axes so their scroll never reaches the page behind. */
-* {
-  overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
 }
 .ant-modal-wrap, .ant-drawer-body { overscroll-behavior: contain; }
 
