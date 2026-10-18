@@ -446,17 +446,6 @@ h1, h2, h3, h4, .display {
   pointer-events: none;
 }
 
-/* Deterministic "fits one screen" height for no-scroll pages (Home).
-   AppBar is a fixed 48px + its own safe-area-top padding; BottomNav content is
-   ~62px + its own safe-area-bottom padding. Computed directly so it doesn't
-   depend on ancestor flex/percentage cascades resolving correctly. */
-.tight-page {
-  height: calc(100vh - 48px - 62px - var(--sat) - var(--sab));
-  height: calc(100dvh - 48px - 62px - var(--sat) - var(--sab));
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
 /* ghost placeholder styling for "beat last week" numbers */
 .ghost input::placeholder { color: var(--ink-soft); opacity: 0.7; font-weight: 500; }
 
