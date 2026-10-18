@@ -82,7 +82,7 @@ export function QuickBackfillBar({ date, defaultDayId }: Props) {
         title={`Log meal — ${dateLabel}`}
       />
 
-      <Modal open={sleepOpen} onCancel={() => setSleepOpen(false)} footer={null} destroyOnClose title={`Sleep — ${dateLabel}`}>
+      <Modal open={sleepOpen} onCancel={() => setSleepOpen(false)} footer={null} destroyOnHidden title={`Sleep — ${dateLabel}`}>
         <SleepForm date={date} onDone={() => setSleepOpen(false)} />
       </Modal>
 

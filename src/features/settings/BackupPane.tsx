@@ -124,7 +124,7 @@ export function BackupPane() {
 
       <Modal open={!!pw} title={pw?.mode === "decrypt" ? "Unlock backup" : "Encrypt backup"}
         okText={pw?.mode === "decrypt" ? "Unlock" : "Encrypt & download"} confirmLoading={busy}
-        okButtonProps={{ disabled: !pwValue }} onOk={submitPassword} onCancel={() => setPw(null)} destroyOnClose>
+        okButtonProps={{ disabled: !pwValue }} onOk={submitPassword} onCancel={() => setPw(null)} destroyOnHidden>
         <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 0 }}>
           {pw?.mode === "decrypt" ? "This backup is encrypted. Enter the password it was made with." : "There's no recovery if you forget this password."}
         </p>

@@ -230,7 +230,7 @@ export function NutritionPage() {
       <ManageScheduleModal open={manageOpen} onClose={() => setManageOpen(false)} />
       <FoodPickerModal open={foodOpen} onClose={() => setFoodOpen(false)} defaultMealType={inferMealType()} />
       <MealComboBuilderModal open={comboOpen} onClose={() => setComboOpen(false)} />
-      <Modal open={!!tplMeal} title="Save as template" okText="Save" onCancel={() => setTplMeal(null)} destroyOnClose
+      <Modal open={!!tplMeal} title="Save as template" okText="Save" onCancel={() => setTplMeal(null)} destroyOnHidden
         okButtonProps={{ disabled: !tplName.trim() }}
         onOk={async () => {
           if (!tplMeal || !tplName.trim()) return;

@@ -175,7 +175,7 @@ export function ProfilePage() {
         ]} />
       </div>
 
-      <Modal open={bwOpen} title="Log bodyweight" okText="Save" onCancel={() => setBwOpen(false)} destroyOnClose
+      <Modal open={bwOpen} title="Log bodyweight" okText="Save" onCancel={() => setBwOpen(false)} destroyOnHidden
         okButtonProps={{ disabled: !bwVal || bwVal <= 0 }}
         onOk={async () => {
           if (!bwVal || bwVal <= 0) return;
