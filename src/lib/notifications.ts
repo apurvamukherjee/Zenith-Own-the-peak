@@ -4,6 +4,7 @@
 // Static import on purpose: a bare dynamic import() survives into the bundle
 // unresolved and fails inside the Android WebView. The plugin is a thin
 // registerPlugin proxy, so the web bundle cost is negligible.
+import { Capacitor } from "@capacitor/core";
 import { LocalNotifications as LN } from "@capacitor/local-notifications";
 
 export interface ReminderConfig {
@@ -56,8 +57,7 @@ export async function notify(title: string, body: string): Promise<void> {
 }
 
 export function isNativeNotifications(): boolean {
-  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
-  return Boolean(cap?.isNativePlatform?.());
+  return Capacitor.isNativePlatform();
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
