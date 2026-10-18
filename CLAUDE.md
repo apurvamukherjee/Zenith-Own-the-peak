@@ -162,6 +162,18 @@ Rule: style prop → CSS var. SVG/Progress attribute → `useTokens()`.
 
 ## Critical conventions
 
+- **Never put `overscroll-behavior` on `*`** (either axis). Every
+  `overflow: hidden` card is a scroll container; on Android a swipe that
+  starts on one latches there and the page only scrolls from the gaps
+  between components. Only `html` (blocks pull-to-refresh/back-swipe) and
+  overlays (`.ant-modal-wrap`, `.ant-drawer-body`) set it.
+- **Dates are local days.** Build `YYYY-MM-DD` keys with `todayKey(date)` /
+  `weekKey(dateOrKey)` from `lib/date.utils.ts`, never
+  `toISOString().slice(0, 10)` (that's the UTC date — yesterday in IST
+  until 05:30) or `new Date("YYYY-MM-DD")` (UTC midnight).
+- **XP dedup reads `xpEvents`.** `useXPEngine` decides "already granted
+  today" from today's `xpEvents` rows and runs one mutation at a time —
+  don't reintroduce in-memory or localStorage guards (they reset on launch).
 - **exerciseLibrary.ts is plain .ts** (data only). MuscleIcon (JSX) lives in
   `components/MuscleIcon.tsx`. Mixing JSX into the .ts file broke Vite's dev
   server — don't merge them back.
@@ -237,7 +249,7 @@ rewrite and restored — if `db.quotes` ever throws "does not exist", check the
 
 All 10 calendar features implemented in `features/calendar/CalendarPage.tsx`:
 
-1. **Streak freeze** — `lib/streak.utils.ts` `useStreakFreeze()`/`isFreezeAvailable()`,
+1. **Streak freeze** — `lib/streak.utils.ts` `spendStreakFreeze()`/`isFreezeAvailable()`,
    one per ISO week, offered only on past days with zero logged activity.
 2. **Month summary** — tap the month title, `useMonthSummary()` aggregates
    avg score/best week/volume/sets/study time for the visible month.
@@ -437,10 +449,8 @@ Schema bumped to **v4** with 4 new tables:
 **Deferred to Phase 4:** #6 cost-per-meal, #10 photo-per-meal.
 
 ### Batch 4 features
-- **Adaptive theme** — `useAdaptiveTheme` picks a 7-slot gradient (dawn/morning/
-  midday/afternoon/evening/wind-down/late-night) and publishes it as `--hero`
-  in dark mode only. Light mode keeps the calm violet. Hourly re-tick aligned
-  to the top of each hour.
+- **Adaptive theme** — removed (2026-10). It ended up publishing a
+  `--time-grad` variable that nothing read; `--hero` stays gothic dark always.
 - **Voice log** — `useVoiceLog` wraps Web Speech API; `VoiceLogModal` mounts on
   the FAB grid (now 6 cols). Parses "200g paneer" / "3 eggs" and fuzzy-matches
   the catalog. Gracefully hides on unsupported browsers (iOS Safari).
@@ -487,7 +497,7 @@ no RLS-equivalent policy layer to hand-write, the function just doesn't accept
 the arg.
 
 ### New/changed files
-- `src/lib/xp.ts` — XP rates, 21-level curve, `grantXP()`, `isoWeek()`, `xpToLevel()` (unchanged, purely local)
+- `src/lib/xp.ts` — XP rates, 21-level curve, `grantXP()` (atomic, one Dexie transaction), `xpToLevel()`; week keys come from `date.utils` `weekKey()`
 - `convex/schema.ts`, `convex/auth.ts`, `convex/auth.config.ts`, `convex/ResendOTP.ts`, `convex/http.ts` — Convex Auth + email-OTP wiring
 - `convex/social.ts` — `ensureProfile`, `pushWeeklySnapshot`, `followByCode`, `unfollowUser`, `getLeaderboard` (mutations/query; replaces old `src/lib/social.ts`)
 - `convex/backups.ts` — `generateUploadUrl`, `saveBackup`, `getBackup` (file-storage backup flow)
@@ -705,9 +715,9 @@ the user's primary calendar). Full setup in
   `googleEventId` would otherwise be lost the instant it's deleted locally,
   before a push ever runs. `db.ts`'s new `db.tasks.hook("deleting", ...)`
   captures it into the new `googleSyncOutbox` table first — one hook, not a
-  patch to each of the three current delete call sites (`useTasks.deleteTask`,
-  `useRecurringSpawner.stopRecurringSeries`, `useTasks.deleteTaskList`),
-  since Dexie's `deleting` hook fires for bulk/query deletes too.
+  patch to each delete call site (`useTasks.deleteTask`,
+  `useRecurringSpawner.stopRecurringSeries`), since Dexie's `deleting` hook
+  fires for bulk/query deletes too.
 - **Feedback-loop guard**: pull-merge writes run inside
   `suppressMutations(true)/(false)` (the same guard `importAll()` uses) *and*
   stamp `syncedAt = updatedAt` on every row they touch, so the debounced
