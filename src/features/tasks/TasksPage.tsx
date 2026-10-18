@@ -166,7 +166,7 @@ function TaskHub() {
       {/* List cards grid — frosted glass with icon glow */}
       <div style={{ marginBottom: 20 }}>
         <span className="gothic-eyebrow" style={{ display: "block", marginBottom: 10 }}>LISTS</span>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
           {lists.map((l) => {
             const Icon = ICON_MAP[l.icon] ?? TbFlag;
             const count = counts.get(l.id) ?? 0;
