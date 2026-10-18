@@ -7,12 +7,18 @@ const toMin = (hhmm: string) => {
   return (h || 0) * 60 + (m || 0);
 };
 
+// Geometry lives in a fixed viewBox; the dial itself is fluid (sl-clock in
+// sleep.css) and everything inside scales with it.
+const VB = 150;
+const pct = (v: number) => `${(v / VB) * 100}%`;
+
 // 24-hour dial (midnight at the top) with the night drawn as an arc from
 // bedtime to wake-up. Angles are clockwise from 12 o'clock.
-export function SleepClock({ sleepAt, wakeAt, size = 150, reduced, children }: {
-  sleepAt?: string; wakeAt?: string; size?: number; reduced?: boolean; children?: React.ReactNode;
+export function SleepClock({ sleepAt, wakeAt, reduced, children }: {
+  sleepAt?: string; wakeAt?: string; reduced?: boolean; children?: React.ReactNode;
 }) {
   const uid = useId().replace(/:/g, "");
+  const size = VB;
   const c = size / 2;
   const r = c - 14;
   const pt = (min: number, rad = r) => {
@@ -30,8 +36,8 @@ export function SleepClock({ sleepAt, wakeAt, size = 150, reduced, children }: {
   const [wx, wy] = pt(e, r);
 
   return (
-    <div className="sl-clock" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+    <div className="sl-clock">
+      <svg viewBox={`0 0 ${size} ${size}`} aria-hidden>
         <defs>
           <linearGradient id={`${uid}-g`} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" style={{ stopColor: "var(--info)" }} />
@@ -57,8 +63,8 @@ export function SleepClock({ sleepAt, wakeAt, size = 150, reduced, children }: {
       </svg>
       {has && (
         <>
-          <span className="sl-clock__pin" style={{ left: mx, top: my, color: "var(--info)" }}><TbMoon size={11} /></span>
-          <span className="sl-clock__pin" style={{ left: wx, top: wy, color: "var(--gold)" }}><TbSun size={11} /></span>
+          <span className="sl-clock__pin" style={{ left: pct(mx), top: pct(my), color: "var(--info)" }}><TbMoon size="1em" /></span>
+          <span className="sl-clock__pin" style={{ left: pct(wx), top: pct(wy), color: "var(--gold)" }}><TbSun size="1em" /></span>
         </>
       )}
       <div className="sl-clock__center">{children}</div>
