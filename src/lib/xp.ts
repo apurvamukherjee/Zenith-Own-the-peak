@@ -84,19 +84,21 @@ export function levelProgress(totalXP: number): number {
 /** Grant XP and persist to the xpEvents table. Returns the XpEventDto id. */
 export async function grantXP(action: XpAction): Promise<number> {
   const xp = XP[action];
-  // Read the running total BEFORE adding this event, so the cache write below
-  // is exactly `prior + xp` — see getTotalXP()'s comment for why this cache
-  // exists at all.
-  const priorTotal = await getTotalXP();
-  const event: Omit<XpEventDto, "id"> = {
-    action,
-    xp,
-    weekKey: weekKey(),
-    createdAt: Date.now(),
-  };
-  const id = await db.xpEvents.add(event as XpEventDto);
-  await db.settings.put({ key: "xpTotalCache", value: priorTotal + xp });
-  return id;
+  // One transaction, so two grants racing (XP engine + badge unlocks) can't
+  // both read the same prior total and drop one grant from the cache — see
+  // getTotalXP()'s comment for why this cache exists at all.
+  return db.transaction("rw", db.xpEvents, db.settings, async () => {
+    const priorTotal = await getTotalXP();
+    const event: Omit<XpEventDto, "id"> = {
+      action,
+      xp,
+      weekKey: weekKey(),
+      createdAt: Date.now(),
+    };
+    const id = await db.xpEvents.add(event as XpEventDto);
+    await db.settings.put({ key: "xpTotalCache", value: priorTotal + xp });
+    return id;
+  });
 }
 
 /**
