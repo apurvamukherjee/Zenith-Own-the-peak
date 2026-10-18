@@ -6,9 +6,9 @@ import { exportAll, importAll, db } from "../../db/db";
 import { onMutation } from "../../lib/mutations";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { getTotalXP, xpToLevel, isoWeek } from "../../lib/xp";
-import { computeTodayScore } from "../../lib/todayScore";
+import { computeScoresForMonth } from "../../lib/dayScore";
 import { computeUnifiedStreak } from "../../lib/streak.utils";
-import { todayKey } from "../../lib/date.utils";
+import { lastNDates } from "../../lib/date.utils";
 import { ACHIEVEMENTS } from "../../lib/achievements";
 
 export { convexConfigured } from "../../lib/convexClient";
@@ -82,9 +82,12 @@ export function useSync() {
       const waterGoal = Number((await db.settings.get("waterGoalMl"))?.value ?? 3500);
       const proteinTarget = Number((await db.settings.get("proteinTargetG"))?.value ?? 100);
       const streak = await computeUnifiedStreak();
-      const todayScore = await computeTodayScore(waterGoal, proteinTarget);
+      // Monday through today — the leaderboard ranks the week, not one day.
+      const weekDates = lastNDates(((new Date().getDay() + 6) % 7) + 1);
+      const weekScores = [...(await computeScoresForMonth(weekDates, waterGoal, proteinTarget)).values()];
+      const disciplineAvg = Math.round(weekScores.reduce((s, d) => s + d.score, 0) / weekScores.length);
 
-      const monday = getMonday(new Date());
+      const monday = weekDates[0];
       const sets = await db.workoutSets.where("date").aboveOrEqual(monday).toArray();
       const volumeKg = Math.round(sets.reduce((s, r) => s + r.weightKg * r.reps, 0));
 
@@ -104,7 +107,7 @@ export function useSync() {
 
       await pushWeeklySnapshot({
         weekKey,
-        disciplineAvg: todayScore.score,
+        disciplineAvg,
         streakEnd: streak,
         volumeKg,
         xpEarned: weekXP,
@@ -154,14 +157,6 @@ export function useSync() {
     verifyCode: (email: string, code: string) => signIn("resend-otp", { email, code }),
     signOut: () => authSignOut(),
   };
-}
-
-function getMonday(d: Date): string {
-  const date = new Date(d);
-  const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-  date.setDate(diff);
-  return todayKey(date);
 }
 
 // Headless, mounted once in AppShell (behind convexConfigured): owns the
