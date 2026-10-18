@@ -8,7 +8,7 @@ import {
 } from "react-icons/tb";
 import { addWater } from "../water/useWater";
 import { setSetting } from "../../hooks/useSettings";
-import { useStreakFreeze as spendStreakFreeze } from "../../lib/streak.utils";
+import { spendStreakFreeze } from "../../lib/streak.utils";
 import { todayKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 import type { Move, MoveKind } from "./nextMoves";
