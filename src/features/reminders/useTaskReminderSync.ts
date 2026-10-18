@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import dayjs from "dayjs";
+import { todayKey } from "../../lib/date.utils";
 import { db } from "../../db/db";
 import { useSetting } from "../../hooks/useSettings";
 import {
@@ -19,7 +20,7 @@ export function useTaskReminderSync(): void {
 
   const reminders = useLiveQuery(async () => {
     if (!remEvents) return [] as OneOffReminder[];
-    const today = dayjs().format("YYYY-MM-DD");
+    const today = todayKey();
     const end = dayjs().add(HORIZON_DAYS, "day").format("YYYY-MM-DD");
     const tasks = await db.tasks
       .where("date").between(today, end, true, true)

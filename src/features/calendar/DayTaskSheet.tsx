@@ -7,6 +7,7 @@ import {
 } from "react-icons/tb";
 import { useLiveQuery } from "dexie-react-hooks";
 import dayjs from "dayjs";
+import { todayKey } from "../../lib/date.utils";
 import { db } from "../../db/db";
 import { useTaskLists, addTask } from "../tasks/useTasks";
 import { parseTaskInput } from "../../lib/taskParser";
@@ -77,7 +78,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
   // Overdue tasks (past dates, still todo)
   const overdue = useLiveQuery(async (): Promise<TaskDto[]> => {
     if (!date) return [];
-    const today = dayjs().format("YYYY-MM-DD");
+    const today = todayKey();
     if (date !== today) return [];
     const pastTasks = await db.tasks.where("status").equals("todo").toArray();
     return pastTasks.filter((t) => t.date && t.date < today);
@@ -136,7 +137,7 @@ export function DayTaskSheet({ date, onClose, onDateChange, onFocus, onGymTap }:
   if (!date) return null;
 
   const dayLabel = dayjs(date).format("ddd, MMM D");
-  const isToday = date === dayjs().format("YYYY-MM-DD");
+  const isToday = date === todayKey();
 
   return (
     <AnimatePresence>
