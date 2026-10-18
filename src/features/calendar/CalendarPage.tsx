@@ -314,7 +314,7 @@ export function CalendarPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <Button type="text" icon={<TbChevronLeft />} onClick={() => stepPeriod(-1)} aria-label="Previous" />
         <button onClick={() => view === "month" && setShowSummary(true)} style={{
-          background: "none", border: "none",
+          background: "none", border: "none", padding: "10px 8px", margin: "-10px -8px",
           fontFamily: '"Cinzel", "Plus Jakarta Sans", serif',
           fontWeight: 700, fontSize: view === "month" ? 15 : 13, letterSpacing: "0.1em",
           textTransform: "uppercase", cursor: view === "month" ? "pointer" : "default", color: "var(--ink)",

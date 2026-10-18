@@ -16,7 +16,7 @@
 .pf-insight { font-size: 13px; font-weight: 500; line-height: 1.45; }
 .pf-cards { display: flex; flex-direction: column; margin-top: 16px; }
 .pf-cards > * { margin-bottom: 12px !important; }
-.pf-link { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--accent); }
+.pf-link { display: inline-flex; align-items: center; gap: 4px; padding: 9px 6px; margin: -9px -6px; border: 0; border-radius: 8px; background: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--accent); }
 .pf-bw { padding: 14px; }
 .pf-bw__stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .pf-bw__stats small { display: block; font-size: 11px; font-weight: 700; color: var(--ink-soft); }

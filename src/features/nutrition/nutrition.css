@@ -18,7 +18,7 @@
 .nu-tod__legend i, .nu-legend i { width: 7px; height: 7px; border-radius: 2px; }
 
 .nu-link {
-  display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; margin: -4px -6px; border: 0; border-radius: 8px;
+  display: inline-flex; align-items: center; gap: 4px; padding: 8px 6px; margin: -8px -6px; border: 0; border-radius: 8px;
   background: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--accent);
 }
 .nu-link--danger { color: var(--danger); }
