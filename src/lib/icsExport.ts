@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { saveFile, type ShareOutcome } from "./saveFile";
 import type { TaskDto } from "../db/types";
 
@@ -49,9 +50,7 @@ export function buildICS(tasks: TaskDto[]): string {
       lines.push(`DTSTART;VALUE=DATE:${toICSDate(t.date)}`);
       const spanEnd = t.spanEnd && t.spanEnd >= t.date ? t.spanEnd : t.date;
       // ICS all-day DTEND is exclusive — bump one day past the last inclusive day.
-      const endExclusive = new Date(spanEnd + "T00:00:00");
-      endExclusive.setDate(endExclusive.getDate() + 1);
-      lines.push(`DTEND;VALUE=DATE:${toICSDate(endExclusive.toISOString().slice(0, 10))}`);
+      lines.push(`DTEND;VALUE=DATE:${toICSDate(dayjs(spanEnd).add(1, "day").format("YYYY-MM-DD"))}`);
     } else if (t.time) {
       lines.push(`DTSTART:${toICSDateTime(t.date, t.time)}`);
       const end = t.endTime ?? t.time;
