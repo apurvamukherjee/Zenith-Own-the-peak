@@ -10,6 +10,9 @@ import { initStatusBar } from "./lib/nativeShell";
 import { inject } from "@vercel/analytics";
 inject();
 initStatusBar();
+// Without this, IndexedDB is "best effort" and the OS may clear it under storage
+// pressure — the one way data disappears without an uninstall.
+void navigator.storage?.persist?.();
 if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js");
 
 const root = convexClient ? (
