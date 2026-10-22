@@ -811,3 +811,41 @@ gives `/planner` + `/workout` a full visual redesign.
   the old plain `Segmented`/list, and bolder exercise/day card treatment. All
   underlying write logic (`useGym.ts`) is unchanged — this was a visual/layout
   pass, not a data-flow rewrite.
+
+## Phase 12 — Train tab revamp: fast logging, rest dock, live supersets (2026-10)
+
+Rebuild of `/workout` (`SessionLogger.tsx`) for speed. No schema change — every
+write goes through the existing `useGym.ts` functions plus two small additions.
+
+- **Set table** (`features/gym/SetRow.tsx`): SET / KG / REPS / PREV / ✓ grid. The
+  first pending set is highlighted; tapping its ✓ logs the pre-filled values
+  (autofill order unchanged: last set this session → usage history → ghost →
+  plan). Tapping KG/REPS opens **`SetSheet.tsx`** — big typed numbers, ±step
+  chips (5 kg for `LEG_MUSCLES`, else 2.5), rep-range quick picks, "last time"
+  copy, and the single drop-stage editor. Logged sets: tap to edit, swipe left
+  to delete with a 6s Undo toast (`restoreSet()` re-adds the exact row).
+- **Full plan is the default view**; Focus (`GymFocusMode`) is opt-in via the
+  Full plan / Focus toggle and no longer auto-opens on the first set.
+- **`RestDock.tsx`** pins the rest countdown above the bottom nav on `/workout`
+  (±15s via `addRest()` in `lib/restTimerStore.ts`, pause, skip, "Next · …"
+  from `findNextSet()`). The old per-card `components/RestTimer.tsx` is deleted;
+  `GlobalRestChip` still covers every other route.
+- **Finished blocks fold** to one line (`useDoneFold`) and the list scrolls to
+  the next block. Hero shows sets / kg moved / time; session time is derived
+  from the first and last logged set's `createdAt`, so it survives reloads.
+- **Rest/scroll triggers are freshness-gated** (`justLogged`, 5s): blocks mount
+  before `useSessionSets` resolves, so a reload bumps counts 0 → N and would
+  otherwise restart rest and auto-scroll. Rest now also fires after an
+  exercise's last set (you rest before the next one) — only the day's final
+  set skips it.
+- **Mid-workout supersets** (`SupersetPicker.tsx`): chain button on any block →
+  pick a partner → `linkSuperset()` links it and moves it next to the anchor's
+  group in one transaction (`placeAfterGroup()` in `groupExercises.ts`, covered
+  by `groupExercises.test.ts` — `node --test src/features/gym/*.test.ts`). It's
+  permanent (edits the live plan). Unlinking keeps the new order. Inside a
+  superset only the partner returned by `findNextInGroup()` (moved from
+  `GymFocusMode` into `groupExercises.ts`) has a live row, so the highlight hops
+  A → B → rest.
+- **Look**: hard 1px borders, tabular numerals, uppercase micro-labels, red only
+  as signal (next set, rest, ticks). No gradients/glows on cards — keep it that
+  way; styles live in `features/gym/train.css`.
