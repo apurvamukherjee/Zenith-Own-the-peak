@@ -68,3 +68,31 @@ export function placeAfterGroup(day: DayExerciseDto[], anchor: DayExerciseDto, p
   while (anchor.supersetGroupId != null && rest[at + 1]?.supersetGroupId === anchor.supersetGroupId) at++;
   return [...rest.slice(0, at + 1), partner, ...rest.slice(at + 1)];
 }
+
+// Stable identity for a block: its first exercise's row id.
+export const itemKey = (item: Item): number => (item.type === "single" ? item.ex.id : item.exs[0].id) ?? -1;
+
+// Applies today's skip list and custom order. Ordered keys come first in that
+// order; anything not in it (e.g. added mid-session) keeps plan order after.
+export function arrangeForToday(items: Item[], order?: number[], skipped?: number[]): { active: Item[]; skipped: Item[] } {
+  const skip = new Set(skipped ?? []);
+  const rank = (i: Item) => {
+    const r = order?.indexOf(itemKey(i)) ?? -1;
+    return r === -1 ? Number.MAX_SAFE_INTEGER : r;
+  };
+  const active = items.filter((i) => !skip.has(itemKey(i)))
+    .map((item, planIdx) => ({ item, planIdx }))
+    .sort((a, b) => rank(a.item) - rank(b.item) || a.planIdx - b.planIdx)
+    .map((x) => x.item);
+  return { active, skipped: items.filter((i) => skip.has(itemKey(i))) };
+}
+
+// "Do this next": `key` moves to just before the first unfinished block.
+export function doNextOrder(keys: number[], key: number, firstPendingKey: number | undefined): number[] {
+  if (firstPendingKey === undefined || firstPendingKey === key) return keys;
+  const rest = keys.filter((k) => k !== key);
+  const at = rest.indexOf(firstPendingKey);
+  return [...rest.slice(0, at), key, ...rest.slice(at)];
+}
+
+export const flattenItems = (items: Item[]): DayExerciseDto[] => items.flatMap((i) => (i.type === "single" ? [i.ex] : i.exs));
