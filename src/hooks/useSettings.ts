@@ -20,6 +20,7 @@ export const DEFAULTS = {
   // Cloud
   autoBackup: 0,           // 1 = push to cloud on change
   backupCount: 0,          // lifetime successful cloud backups (for achievements)
+  lastBackupAt: 0,         // epoch ms of the last file export, or the restored backup's date
   shareCode: "",           // cached ZN-XXXX leaderboard code, mirrors Convex profiles.shareCode
   onboarded: 0,            // 1 = onboarding completed
   firstSeenAt: 0,          // epoch ms of first launch — drives 7-day review nudge

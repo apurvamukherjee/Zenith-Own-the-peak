@@ -216,6 +216,22 @@ export async function importAll(json: string): Promise<void> {
   }
 }
 
+export interface BackupSummary { exportedAt: string; records: number }
+
+/** Validates a backup without touching the database, so restore can show what it's about to load. */
+export function peekBackup(json: string): BackupSummary | null {
+  let d: unknown;
+  try { d = JSON.parse(json); } catch { return null; }
+  if (!isBackup(d)) return null;
+  const records = Object.values(d).reduce<number>((n, v) => n + (Array.isArray(v) ? v.length : 0), 0);
+  return { exportedAt: d.exportedAt as string, records };
+}
+
+export async function countRecords(): Promise<number> {
+  const counts = await Promise.all(db.tables.map((t) => t.count()));
+  return counts.reduce((a, b) => a + b, 0);
+}
+
 function isBackup(d: unknown): d is Record<string, unknown> {
   if (typeof d !== "object" || d === null) return false;
   const o = d as Record<string, unknown>;
