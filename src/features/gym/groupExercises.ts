@@ -1,4 +1,4 @@
-import type { DayExerciseDto } from "../../db/types";
+import type { DayExerciseDto, WorkoutSetDto } from "../../db/types";
 
 export type Item = { type: "single"; ex: DayExerciseDto } | { type: "group"; exs: DayExerciseDto[] };
 
@@ -29,4 +29,33 @@ export function buildItems(exercises: DayExerciseDto[]): Item[] {
     i = j;
   }
   return items;
+}
+
+// Within a group, the next set to log is whichever partner has the FEWEST
+// sets logged so far (ties broken by group order). Since every completed set
+// increments that partner's count by exactly one, this greedy rule reproduces
+// the real A1 → B1 → A2 → B2 alternation without needing an explicit "round"
+// counter, and degrades gracefully if partners have different set targets.
+export function findNextInGroup(group: DayExerciseDto[], sets: WorkoutSetDto[]): { ex: DayExerciseDto; setIndex: number } | null {
+  let best: { ex: DayExerciseDto; setIndex: number; done: number } | null = null;
+  for (const g of group) {
+    const done = sets.filter((s) => s.exerciseId === g.exerciseId).length;
+    if (done >= g.sets) continue;
+    if (!best || done < best.done) best = { ex: g, setIndex: done + 1, done };
+  }
+  return best ? { ex: best.ex, setIndex: best.setIndex } : null;
+}
+
+// First unfinished set across the whole day, walking items in plan order.
+export function findNextSet(items: Item[], sets: WorkoutSetDto[]): { ex: DayExerciseDto; setIndex: number } | null {
+  for (const item of items) {
+    if (item.type === "group") {
+      const next = findNextInGroup(item.exs, sets);
+      if (next) return next;
+      continue;
+    }
+    const done = sets.filter((s) => s.exerciseId === item.ex.exerciseId).length;
+    if (done < item.ex.sets) return { ex: item.ex, setIndex: done + 1 };
+  }
+  return null;
 }

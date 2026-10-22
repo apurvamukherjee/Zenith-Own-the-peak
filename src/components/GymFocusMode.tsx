@@ -11,7 +11,7 @@ import { hapticLight, hapticMedium } from "../lib/haptics";
 import { unlockAudio, playTick } from "../lib/audio";
 import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "../db/types";
 import { useExercise, useExerciseLibrary, useGhostSets, logSet, deleteSet } from "../features/gym/useGym";
-import { buildItems } from "../features/gym/groupExercises";
+import { buildItems, findNextInGroup } from "../features/gym/groupExercises";
 import { pressable } from "../lib/a11y";
 
 // Fullscreen "one set at a time" view for /workout. Sits ON TOP of
@@ -101,21 +101,6 @@ interface NextSet {
   // Present when this set belongs to a superset group — drives the badge and
   // "round r/n" label, matching SupersetBlock's own display in SessionLogger.
   superset?: { round: number; target: number; partnerNames: string[] };
-}
-
-// Within a group, the next set to log is whichever partner has the FEWEST
-// sets logged so far (ties broken by group order). Since every completed set
-// increments that partner's count by exactly one, this greedy rule reproduces
-// the real A1 → B1 → A2 → B2 alternation without needing an explicit "round"
-// counter, and degrades gracefully if partners have different set targets.
-function findNextInGroup(group: DayExerciseDto[], sets: WorkoutSetDto[]): { ex: DayExerciseDto; setIndex: number } | null {
-  let best: { ex: DayExerciseDto; setIndex: number; done: number } | null = null;
-  for (const g of group) {
-    const done = sets.filter((s) => s.exerciseId === g.exerciseId).length;
-    if (done >= g.sets) continue;
-    if (!best || done < best.done) best = { ex: g, setIndex: done + 1, done };
-  }
-  return best ? { ex: best.ex, setIndex: best.setIndex } : null;
 }
 
 function findNext(
