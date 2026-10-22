@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { App, Button, Popconfirm } from "antd";
+import { App, Button, Dropdown, Popconfirm } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbChecks, TbChevronUp, TbMoon, TbQuote, TbArrowsRightLeft, TbFocus2, TbList, TbLink, TbUnlink, TbPlus } from "react-icons/tb";
+import { TbCheck, TbChecks, TbChevronUp, TbMoon, TbQuote, TbArrowsRightLeft, TbFocus2, TbList, TbLink, TbUnlink, TbPlus, TbDots, TbPlayerTrackNext, TbPlayerSkipForward, TbArrowBackUp } from "react-icons/tb";
 import { RestDock } from "./RestDock";
 import { GymFocusMode } from "../../components/GymFocusMode";
 import { PageTransition } from "../../components/PageTransition";
@@ -18,15 +18,18 @@ import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
   useSessionSets, useGhostSets, useExercise, useExerciseLibrary, ensureSession,
   completeRemainingSets, completeAllRemainingForDay, toggleSupersetLink,
+  updateSessionArrangement, useLastSessionVolume,
 } from "./useGym";
+import { AddExerciseSheet } from "./AddExerciseSheet";
+import { SessionSummary } from "./SessionSummary";
 import { SupersetPicker } from "./SupersetPicker";
 import { SetRow, SetHeader } from "./SetRow";
 import { LEG_MUSCLES } from "./useOverloadSuggestions";
 import { useActivePlan } from "./usePlans";
-import { buildItems, findNextSet, findNextInGroup } from "./groupExercises";
+import { buildItems, findNextSet, findNextInGroup, arrangeForToday, doNextOrder, flattenItems, itemKey } from "./groupExercises";
 import { prettyDate, todayKey } from "../../lib/date.utils";
 import { db } from "../../db/db";
-import { startRest } from "../../lib/restTimerStore";
+import { skipRest, startRest } from "../../lib/restTimerStore";
 import { CoachMark } from "../../components/CoachMark";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
@@ -92,6 +95,22 @@ function FinishAll({ plan, done, getSessionId }: { plan: DayExerciseDto; done: W
   );
 }
 
+// Per-block actions. `onDoNext` is omitted when the block is already up next.
+interface BlockActions { onLink: () => void; onDoNext?: () => void; onSkip: () => void; }
+
+type MenuEntry = { key: string; label: string; icon: ReactNode; run: () => void; danger?: boolean };
+function BlockMenu({ entries, label }: { entries: MenuEntry[]; label: string }) {
+  return (
+    <Dropdown trigger={["click"]} placement="bottomRight"
+      menu={{
+        items: entries.map(({ key, label: l, icon, danger }) => ({ key, label: l, icon, danger })),
+        onClick: ({ key }) => entries.find((e) => e.key === key)?.run(),
+      }}>
+      <button type="button" className="xb-icon" aria-label={label}><TbDots size={18} /></button>
+    </Dropdown>
+  );
+}
+
 // Finished blocks fold to one line so the full plan stays scannable, and
 // finishing one glides the list on to the next block.
 function useDoneFold(allDone: boolean, fresh: boolean) {
@@ -101,7 +120,8 @@ function useDoneFold(allDone: boolean, fresh: boolean) {
   const wasDone = useRef(allDone);
   useEffect(() => {
     if (allDone && !wasDone.current && fresh) {
-      ref.current?.nextElementSibling?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      // Blocks sit in a keyed .tr-slot wrapper; the next slot is the target.
+      ref.current?.parentElement?.nextElementSibling?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
     }
     wasDone.current = allDone;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -136,9 +156,9 @@ const justLogged = (done: WorkoutSetDto[]) => done.some((s) => Date.now() - s.cr
 const topSet = (done: WorkoutSetDto[]) => done.reduce<WorkoutSetDto | undefined>((b, s) => (!b || s.e1rm > b.e1rm ? s : b), undefined);
 
 // ---- Single-exercise block (default rendering) ----
-function ExerciseBlock({ plan, order, dayId, sets, getSessionId, onLink, dayDone }: {
+function ExerciseBlock({ plan, order, dayId, sets, getSessionId, actions, dayDone }: {
   plan: DayExerciseDto; order: number; dayId: number; sets: WorkoutSetDto[]; getSessionId: () => Promise<number>;
-  onLink: () => void; dayDone: boolean;
+  actions: BlockActions; dayDone: boolean;
 }) {
   const ex = useExercise(plan.exerciseId);
   const t = useTokens();
@@ -183,13 +203,14 @@ function ExerciseBlock({ plan, order, dayId, sets, getSessionId, onLink, dayDone
             {plan.sets} × {plan.repLow}–{plan.repHigh} · {plan.restSec}s rest
           </div>
         </div>
-        {!allDone && (
-          <button type="button" className="xb-icon" onClick={onLink} aria-label={`Superset ${ex.name} with another exercise`} title="Superset with…">
-            <TbLink size={16} />
-          </button>
+        {allDone ? <Refold onFold={() => setExpanded(false)} /> : (
+          <BlockMenu label={`${ex.name} options`} entries={[
+            ...(actions.onDoNext ? [{ key: "next", label: "Do this next", icon: <TbPlayerTrackNext />, run: actions.onDoNext }] : []),
+            { key: "link", label: "Superset with…", icon: <TbLink />, run: actions.onLink },
+            { key: "all", label: "Complete all sets", icon: <TbChecks />, run: () => void getSessionId().then((sid) => completeRemainingSets(sid, plan, done.map((s) => s.setIndex))) },
+            { key: "skip", label: "Skip today", icon: <TbPlayerSkipForward />, run: actions.onSkip, danger: true },
+          ]} />
         )}
-        <FinishAll plan={plan} done={done} getSessionId={getSessionId} />
-        {allDone && <Refold onFold={() => setExpanded(false)} />}
       </header>
       <Ticks done={doneCount} total={plan.sets} />
       {ex.cues && !allDone && <div className="xb-cue">{ex.cues}</div>}
@@ -199,9 +220,9 @@ function ExerciseBlock({ plan, order, dayId, sets, getSessionId, onLink, dayDone
 }
 
 // ---- Superset block — two or more exercises alternating in one card ----
-function SupersetBlock({ group, order, dayId, sets, getSessionId, onLink, dayDone }: {
+function SupersetBlock({ group, order, dayId, sets, getSessionId, actions, dayDone }: {
   group: DayExerciseDto[]; order: number; dayId: number; sets: WorkoutSetDto[]; getSessionId: () => Promise<number>;
-  onLink: (anchor: DayExerciseDto) => void; dayDone: boolean;
+  actions: BlockActions; dayDone: boolean;
 }) {
   const t = useTokens();
   const { message } = App.useApp();
@@ -254,14 +275,12 @@ function SupersetBlock({ group, order, dayId, sets, getSessionId, onLink, dayDon
         <TbArrowsRightLeft size={13} /> Superset
         <span className="xb-ss-round">{allDone ? "Done" : `Round ${roundsCompleted + 1}/${targetSets}`}</span>
         {allDone ? <Refold onFold={() => setExpanded(false)} /> : (
-          <>
-            <button type="button" className="xb-icon" onClick={() => onLink(group[group.length - 1])} aria-label="Add another exercise to this superset" title="Add exercise">
-              <TbPlus size={15} />
-            </button>
-            <button type="button" className="xb-icon" onClick={() => void unlink()} aria-label="Unlink superset" title="Unlink">
-              <TbUnlink size={15} />
-            </button>
-          </>
+          <BlockMenu label="Superset options" entries={[
+            ...(actions.onDoNext ? [{ key: "next", label: "Do this next", icon: <TbPlayerTrackNext />, run: actions.onDoNext }] : []),
+            { key: "add", label: "Add exercise to superset", icon: <TbPlus />, run: actions.onLink },
+            { key: "unlink", label: "Unlink", icon: <TbUnlink />, run: () => void unlink() },
+            { key: "skip", label: "Skip today", icon: <TbPlayerSkipForward />, run: actions.onSkip, danger: true },
+          ]} />
         )}
       </div>
       {group.map((plan, gIdx) => (
@@ -331,13 +350,24 @@ export function SessionLogger() {
   const sessionIdRef = useRef<number | undefined>(session?.id);
   useEffect(() => { sessionIdRef.current = session?.id; }, [session?.id]);
 
-  const items = useMemo(() => buildItems(exercises), [exercises]);
+  // Today's arrangement (skips + "do next" order) sits on the session row and
+  // never touches the plan. Everything below works off `todayExercises`.
+  const { active: items, skipped: skippedItems } = useMemo(
+    () => arrangeForToday(buildItems(exercises), session?.todayOrder, session?.skipped),
+    [exercises, session?.todayOrder, session?.skipped],
+  );
+  const todayExercises = useMemo(() => flattenItems(items), [items]);
+  const activeIds = new Set(todayExercises.map((e) => e.exerciseId));
 
-  const totalSets = exercises.reduce((s, e) => s + e.sets, 0);
-  const doneSets = sets.length;
+  const totalSets = todayExercises.reduce((s, e) => s + e.sets, 0);
+  const doneSets = sets.filter((x) => activeIds.has(x.exerciseId)).length;
   const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
   const volume = sets.reduce((s, x) => s + x.weightKg * x.reps, 0);
   const focusOn = Number(useSetting("gymFocusMode")) === 1;
+  // Nothing left to rest for. Also catches "Complete full day", whose
+  // one-by-one writes pass through not-yet-done renders that start a rest.
+  const dayDone = totalSets > 0 && pct >= 100;
+  useEffect(() => { if (dayDone) skipRest(); }, [dayDone]);
 
   // Session clock is derived from the logged sets themselves, so it survives
   // reloads and navigation: first set → now while training, first → last set
@@ -363,8 +393,39 @@ export function SessionLogger() {
   const library = useExerciseLibrary();
   const names = useMemo(() => new Map(library.map((e) => [e.id ?? -1, e.name])), [library]);
   const [linkAnchor, setLinkAnchor] = useState<DayExerciseDto | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const prevVolume = useLastSessionVolume(dayId);
   const next = findNextSet(items, sets);
   const upNext = next ? `${names.get(next.ex.exerciseId) ?? "…"} · set ${next.setIndex}` : undefined;
+  const nextKey = next ? itemKey(items.find((i) => (i.type === "single" ? [i.ex] : i.exs).includes(next.ex))!) : undefined;
+  const reduced = useReducedMotion();
+  const { message } = App.useApp();
+  const itemName = (i: ReturnType<typeof buildItems>[number]) =>
+    (i.type === "single" ? [i.ex] : i.exs).map((e) => names.get(e.exerciseId) ?? "…").join(" + ");
+
+  async function skipToday(key: number) {
+    const sid = await getSessionId();
+    await updateSessionArrangement(sid, { skipped: [...(session?.skipped ?? []), key] });
+  }
+  async function restore(key: number) {
+    const sid = await getSessionId();
+    await updateSessionArrangement(sid, { skipped: (session?.skipped ?? []).filter((k) => k !== key) });
+  }
+  async function doNext(key: number) {
+    const sid = await getSessionId();
+    await updateSessionArrangement(sid, { todayOrder: doNextOrder(items.map(itemKey), key, nextKey) });
+    message.success("Moved up next");
+    // Wait a frame for the live query to re-render the new order, then jump to it.
+    window.setTimeout(() => document.querySelector(`[data-key="${key}"]`)?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" }), 120);
+  }
+  const actionsFor = (item: ReturnType<typeof buildItems>[number]): BlockActions => {
+    const key = itemKey(item);
+    return {
+      onLink: () => setLinkAnchor(item.type === "single" ? item.ex : item.exs[item.exs.length - 1]),
+      onDoNext: key === nextKey ? undefined : () => void doNext(key),
+      onSkip: () => void skipToday(key),
+    };
+  };
 
   async function getSessionId(): Promise<number> {
     if (sessionIdRef.current) return sessionIdRef.current;
@@ -376,7 +437,7 @@ export function SessionLogger() {
 
   async function completeWholeDay() {
     const sid = await getSessionId();
-    await completeAllRemainingForDay(sid, exercises, sets);
+    await completeAllRemainingForDay(sid, todayExercises, sets);
   }
 
   const isRest = !dayId || dayId === 0;
@@ -385,7 +446,7 @@ export function SessionLogger() {
 
   const COACH_STEPS = [
     { title: "Log a set", body: "Tap the check to log the set as shown. Tap the weight or reps to adjust them — or tap PREV to copy last session. Rest starts automatically." },
-    { title: "Supersets", body: "Tap the chain on any exercise to pair it with another — right here, mid-workout. They alternate with one shared rest, and the link stays in your plan." },
+    { title: "Shape today", body: "The ⋯ on any exercise: superset it with another, do it next, or skip it today. Skips and reordering only affect today — your plan stays as it is." },
     { title: "Fix a mistake", body: "Tap a logged set to edit it, or swipe it left to delete." },
   ];
 
@@ -490,25 +551,50 @@ export function SessionLogger() {
         ) : (
           <>
             {items.map((item, idx) => (
-              item.type === "single" ? (
-                <ExerciseBlock key={`s-${item.ex.id ?? idx}`} order={idx + 1} plan={item.ex} dayId={dayId!} sets={sets} getSessionId={getSessionId} onLink={() => setLinkAnchor(item.ex)} dayDone={pct >= 100} />
-              ) : (
-                <SupersetBlock key={`g-${item.exs[0].supersetGroupId}-${idx}`} order={idx + 1} group={item.exs} dayId={dayId!} sets={sets} getSessionId={getSessionId} onLink={setLinkAnchor} dayDone={pct >= 100} />
-              )
+              <div key={itemKey(item)} data-key={itemKey(item)} className="tr-slot">
+                {item.type === "single" ? (
+                  <ExerciseBlock order={idx + 1} plan={item.ex} dayId={dayId!} sets={sets} getSessionId={getSessionId}
+                    actions={actionsFor(item)} dayDone={dayDone} />
+                ) : (
+                  <SupersetBlock order={idx + 1} group={item.exs} dayId={dayId!} sets={sets} getSessionId={getSessionId}
+                    actions={actionsFor(item)} dayDone={dayDone} />
+                )}
+              </div>
             ))}
 
-            {pct >= 100 && <div className="tr-done">Day complete. {Math.round(volume).toLocaleString()} kg in {elapsedMin} min.</div>}
+            {skippedItems.length > 0 && (
+              <div className="tr-skipped" aria-label="Skipped today">
+                <div className="tr-skipped__label">Skipped today</div>
+                {skippedItems.map((item) => (
+                  <div key={itemKey(item)} className="tr-skipped__row">
+                    <span>{itemName(item)}</span>
+                    <button type="button" onClick={() => void restore(itemKey(item))}><TbArrowBackUp size={14} /> Restore</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button type="button" className="tr-add" onClick={() => setAddOpen(true)}><TbPlus size={16} /> Add exercise</button>
+
+            {dayDone && (
+              <SessionSummary dayName={dayPlan?.name ?? "Session"} sets={sets} volume={volume}
+                elapsedMin={elapsedMin} prevVolume={prevVolume} />
+            )}
             <div className="tr-dock-space" aria-hidden />
           </>
         )}
       </PageTransition>
       {!focusOn && <RestDock upNext={upNext} />}
       <SupersetPicker anchor={linkAnchor} day={exercises} names={names} onClose={() => setLinkAnchor(null)} />
+      {dayId ? (
+        <AddExerciseSheet open={addOpen} onClose={() => setAddOpen(false)} dayId={dayId}
+          dayMuscles={dayPlan?.muscles ?? []} day={exercises} />
+      ) : null}
       {focusOn && !isRest && dayId && (
         <GymFocusMode
           dayId={dayId}
           dayName={dayPlan?.name ?? "Session"}
-          exercises={exercises}
+          exercises={todayExercises}
           sets={sets}
           getSessionId={getSessionId}
           doneSets={doneSets}

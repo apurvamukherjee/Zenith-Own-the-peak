@@ -110,7 +110,7 @@
 .tr-stats span { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.7; }
 
 /* ---- Folded (finished) blocks ---- */
-.xb { scroll-margin-top: 72px; }
+.tr-slot, .tr-skipped, .tr-add, .sm { scroll-margin-top: 72px; }
 .xb--folded { padding: 0; }
 .xb--folded::before { display: none; }
 .xb-fold { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 12px; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
@@ -119,7 +119,6 @@
 .xb-fold__detail { flex-shrink: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .xb-fold__ok { flex-shrink: 0; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
 .xb-refold { flex-shrink: 0; width: 32px; height: 32px; margin: -4px -4px 0 auto; display: grid; place-items: center; border: 0; background: none; color: var(--ink-soft); cursor: pointer; }
-.tr-done { margin: 16px 0 0; padding: 14px; border: 1px solid var(--border); border-radius: 12px; text-align: center; font-weight: 800; letter-spacing: 0.02em; color: var(--ink); }
 .tr-dock-space { height: 96px; }
 
 /* ---- Rest dock ---- */
