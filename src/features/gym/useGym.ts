@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import type { DayExerciseDto, WorkoutSetDto, Effort, DropStageDto, MuscleGroup } from "../../db/types";
+import type { DayExerciseDto, WorkoutSetDto, WorkoutSessionDto, Effort, DropStageDto, MuscleGroup } from "../../db/types";
 import { estimate1RM, bestE1RM } from "../../lib/workout.utils";
 import { todayKey, weekKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
@@ -193,6 +193,13 @@ export async function linkSuperset(anchorId: number, partnerId: number): Promise
       order, ...(e.id === anchorId || e.id === partnerId ? { supersetGroupId: groupId } : {}),
     })));
   });
+}
+
+// Today-only arrangement (skip / do-next) lives on the session row.
+export async function updateSessionArrangement(
+  sessionId: number, patch: Pick<WorkoutSessionDto, "todayOrder" | "skipped">,
+): Promise<void> {
+  await db.workoutSessions.update(sessionId, patch);
 }
 
 export async function setWeekday(weekday: number, dayId: number) {

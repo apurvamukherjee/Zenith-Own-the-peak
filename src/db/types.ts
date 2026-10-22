@@ -67,6 +67,10 @@ export interface WorkoutSessionDto {
   id?: number; date: string; weekKey: string; dayId: number; notes?: string; createdAt: number;
   // Phase 4B: auto-timed duration in minutes, set when session ends / user navigates away.
   durationMin?: number;
+  // Phase 12: today-only arrangement, never written back to the plan. Both hold
+  // item keys (the first dayExercise id of a single or superset block).
+  todayOrder?: number[];
+  skipped?: number[];
 }
 // A drop set: one logged set (weightKg/reps above = the top/primary stage)
 // followed by one or more weight-drop stages performed back-to-back with no
