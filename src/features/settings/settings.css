@@ -156,6 +156,23 @@
 .zs-inline-stepper { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft); }
 .zs-inline-stepper b { min-width: 34px; text-align: center; color: var(--ink); font-variant-numeric: tabular-nums; }
 
+/* ---------- Backup ---------------------------------------------------- */
+.zs-backup__head { display: flex; align-items: center; gap: 12px; }
+.zs-backup__title { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 19px; font-weight: 800; line-height: 1.2; }
+.zs-backup__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.zs-backup__stats > div {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.zs-backup__stats b { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.zs-backup__stats span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); }
+.zs-backup__cta { min-height: 48px; margin-top: 14px; font-size: 15px; }
+.zs-backup + .zs-storage { margin-top: 12px; }
+.zs-restore__row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.zs-restore__row span { color: var(--ink-soft); }
+.zs-restore__row b { font-variant-numeric: tabular-nums; }
+.zs-restore p { margin: 10px 0 0; font-size: 13px; color: var(--ink-soft); }
+
 @media (max-width: 360px) {
   .zs-dial__hint { display: none; }
   .zs-dial__value { font-size: 24px; }
