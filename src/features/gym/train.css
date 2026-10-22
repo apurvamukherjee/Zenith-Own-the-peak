@@ -88,3 +88,13 @@
 .rd-ctrls button { height: 30px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; }
 .rd-ctrls .rd-skip { border-color: var(--accent); background: var(--accent); color: #fff; }
 @media (min-width: 420px) { .rd-ctrls { grid-template-columns: repeat(4, 38px); } .rd-ctrls button { height: 38px; } }
+
+/* ---- Superset picker ---- */
+.sp-hint { margin: 4px 0 12px; font-size: 13px; color: var(--ink-soft); }
+.sp-empty { margin: 8px 0; font-size: 13px; color: var(--ink-soft); }
+.sp-list { display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; }
+.sp-row { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.sp-row:active { border-color: var(--accent); }
+.sp-row__name { flex: 1; min-width: 0; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-row__meta { flex-shrink: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.sp-row svg { flex-shrink: 0; color: var(--accent); }
