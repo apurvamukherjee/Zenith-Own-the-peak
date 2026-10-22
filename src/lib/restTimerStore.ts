@@ -137,3 +137,16 @@ function subscribeRest(l: Listener): () => void {
 export function useRestTimer(): RestTimerState {
   return useSyncExternalStore(subscribeRest, getRestState, getRestState);
 }
+
+// ±N seconds on a running rest. Clamped at 0 (which ends it like a skip).
+export function addRest(deltaSec: number): void {
+  if (!state.active) return;
+  const rem = Math.max(0, computeRemaining() + deltaSec);
+  if (rem === 0) { skipRest(); return; }
+  if (state.paused) pausedRemaining = rem;
+  else endsAt = Date.now() + rem * 1000;
+  state = { ...state, remaining: rem, totalSec: Math.max(state.totalSec + deltaSec, rem) };
+  disarmNative();
+  if (!state.paused) armNative();
+  publish();
+}
