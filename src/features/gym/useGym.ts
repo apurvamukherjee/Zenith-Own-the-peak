@@ -305,3 +305,10 @@ export async function backfillSession(date: string, dayId: number): Promise<numb
   }
   return session;
 }
+
+// Undo for a swipe-delete: re-adds the exact row (same setIndex/e1rm/isPR),
+// so nothing is recomputed — it's as if the delete never happened.
+export async function restoreSet(set: WorkoutSetDto) {
+  const { id: _id, ...row } = set;
+  await db.workoutSets.add(row);
+}

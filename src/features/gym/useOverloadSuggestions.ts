@@ -9,7 +9,7 @@ import type { DayExerciseDto } from "../../db/types";
 // After 2 consecutive declines (stored in settings as overloadDeclined.<exId>),
 // suppress the suggestion for 14 days.
 
-const LEG_MUSCLES = new Set(["quads", "hamstrings", "glutes", "calves"]);
+export const LEG_MUSCLES = new Set(["quads", "hamstrings", "glutes", "calves"]);
 
 interface OverloadSuggestion {
   exerciseId: number;
