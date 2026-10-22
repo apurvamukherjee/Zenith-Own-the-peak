@@ -1,553 +1,321 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GlowBar } from "../../components/GlowBar";
 import { Link } from "react-router-dom";
-import { Button, Tag, Popconfirm, Switch } from "antd";
+import { App, Button, Popconfirm } from "antd";
 import { motion } from "framer-motion";
-import { TbCheck, TbChecks, TbMinus, TbPlus, TbTrophy, TbFlame, TbMoon, TbQuote, TbArrowsRightLeft, TbArrowBarDown, TbX, TbFocus2, TbTrendingDown, TbPencil, TbTrash } from "react-icons/tb";
-import { RestTimer } from "../../components/RestTimer";
+import { TbCheck, TbChecks, TbChevronUp, TbMoon, TbQuote, TbArrowsRightLeft, TbFocus2, TbList, TbLink, TbUnlink, TbPlus } from "react-icons/tb";
+import { RestDock } from "./RestDock";
 import { GymFocusMode } from "../../components/GymFocusMode";
 import { PageTransition } from "../../components/PageTransition";
 import { Hero } from "../../components/ui/Hero";
 import { Rings } from "../../components/ui/Rings";
-import { ListRow } from "../../components/ui/List";
 import { TrainingHeroBg } from "../dashboard/TrainingHeroArt";
 import "./train.css";
 import { useTokens } from "../../hooks/useTokens";
 import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
 import { MuscleIcon } from "../../components/MuscleIcon";
-import type { DayExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types";
+import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types";
 import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
-  useSessionSets, useGhostSets, useExercise, ensureSession, logSet,
-  completeRemainingSets, completeAllRemainingForDay, updateSet, deleteSet,
+  useSessionSets, useGhostSets, useExercise, useExerciseLibrary, ensureSession,
+  completeRemainingSets, completeAllRemainingForDay, toggleSupersetLink,
 } from "./useGym";
+import { SupersetPicker } from "./SupersetPicker";
+import { SetRow, SetHeader } from "./SetRow";
+import { LEG_MUSCLES } from "./useOverloadSuggestions";
 import { useActivePlan } from "./usePlans";
-import { buildItems } from "./groupExercises";
+import { buildItems, findNextSet, findNextInGroup } from "./groupExercises";
 import { prettyDate, todayKey } from "../../lib/date.utils";
 import { db } from "../../db/db";
 import { startRest } from "../../lib/restTimerStore";
-import { celebrate } from "../../lib/celebrate";
-import { unlockAudio } from "../../lib/audio";
-import { hapticLight } from "../../lib/haptics";
-import { useUsageValue, recordUsage } from "../../hooks/useUsageHistory";
 import { CoachMark } from "../../components/CoachMark";
 import { useSetting, setSetting } from "../../hooks/useSettings";
-import { pressable } from "../../lib/a11y";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 // -----------------------------------------------------------------------------
 // SessionLogger — the "execute today's workout" surface.
 //
 // Phase-3 changes:
-//   • Rest timer now lives in the global store (lib/restTimerStore.ts). This
-//     component just calls `startRest()` when a set completes; the shared
-//     RestTimer view renders wherever the user goes.
+//   • Rest timer lives in the global store (lib/restTimerStore.ts). Blocks
+//     call `startRest()` when a set completes; RestDock (pinned above the nav)
+//     renders it here, GlobalRestChip everywhere else.
 //   • PR moments fire the `celebrate` emitter, painting a gold overlay via
 //     the mounted <PRCelebration/> in AppShell.
 //   • Supersets: exercises sharing `supersetGroupId` render as ONE card with
-//     both headers. Rest fires only after the LAST partner completes its set
-//     (real-world "A → B → rest" pattern).
+//     both headers. Only the partner that's up next has a live row, so the
+//     highlight hops A → B → rest. Rest fires only after the LAST partner
+//     completes its set. Supersets can be linked mid-workout (SupersetPicker).
 // -----------------------------------------------------------------------------
 
-// ---- Row for a single set (unchanged UI, PR firing lifted into `complete`) ----
-function SetRow({
-  plan, exerciseName, exerciseId, setIndex, logged, ghost, lastCompleted, getSessionId, onSetCompleted,
-}: {
-  plan: DayExerciseDto; exerciseName: string; exerciseId: number; setIndex: number;
-  logged?: WorkoutSetDto; ghost?: WorkoutSetDto;
-  lastCompleted?: WorkoutSetDto;  // most recent completed set in THIS session (predictive)
-  getSessionId: () => Promise<number>;
-  onSetCompleted: (exerciseId: number) => void;
+// Shared set table — header + one row per planned set.
+function SetTable({ plan, ex, dayId, done, getSessionId, activeSet }: {
+  plan: DayExerciseDto; ex: ExerciseDto; dayId: number; done: WorkoutSetDto[]; getSessionId: () => Promise<number>;
+  activeSet?: number | null;  // override for supersets; default = first pending set
 }) {
-  const t = useTokens();
-  // Autofill priority: (1) already-logged row, (2) last completed set in this
-  // session for this exercise (predictive — the user just dialed it in),
-  // (3) usageHistory (last-ever value for this exercise), (4) ghost from
-  // previous session, (5) planned baseline. Falls through cleanly if any tier
-  // is missing.
-  const usageW = useUsageValue(`weight:${exerciseId}`);
-  const usageR = useUsageValue(`reps:${exerciseId}`);
-  const baseW =
-    logged?.weightKg
-    ?? lastCompleted?.weightKg
-    ?? usageW
-    ?? ghost?.weightKg
-    ?? plan.weightKg;
-  const baseR =
-    logged?.reps
-    ?? lastCompleted?.reps
-    ?? usageR
-    ?? ghost?.reps
-    ?? plan.repLow;
-  const [w, setW] = useState(baseW);
-  const [r, setR] = useState(baseR);
-  useEffect(() => { if (!logged) { setW(baseW); setR(baseR); } }, [baseW, baseR, logged]);
-
-  // Drop set: optional extra weight-drop stages performed right after the
-  // primary w/r above, no rest between. Logged as ONE WorkoutSetDto row.
-  const [dropMode, setDropMode] = useState(false);
-  const [stages, setStages] = useState<{ weightKg: number; reps: number }[]>([]);
-  function toggleDropMode() {
-    setDropMode((v) => {
-      const next = !v;
-      if (next && stages.length === 0) {
-        setStages([{ weightKg: Math.max(0, w - 10), reps: r }]);
-      }
-      return next;
-    });
-  }
-  function addStage() {
-    const last = stages[stages.length - 1] ?? { weightKg: w, reps: r };
-    setStages((s) => [...s, { weightKg: Math.max(0, last.weightKg - 10), reps: last.reps }]);
-  }
-  function updateStage(i: number, patch: Partial<{ weightKg: number; reps: number }>) {
-    setStages((s) => s.map((stage, idx) => (idx === i ? { ...stage, ...patch } : stage)));
-  }
-  function removeStage(i: number) {
-    setStages((s) => s.filter((_, idx) => idx !== i));
-  }
-
-  // Editing an already-logged set — corrects a mis-entered weight/reps (and
-  // any drop stages) without deleting and redoing the set (which would lose
-  // its position/PR history). Separate from `w`/`r`/`stages` above, which
-  // drive the not-yet-logged row.
-  const [editingLogged, setEditingLogged] = useState(false);
-  const [ew, setEw] = useState(0);
-  const [er, setEr] = useState(0);
-  const [eStages, setEStages] = useState<{ weightKg: number; reps: number }[]>([]);
-
-  function addEStage() {
-    const last = eStages[eStages.length - 1] ?? { weightKg: ew, reps: er };
-    setEStages((s) => [...s, { weightKg: Math.max(0, last.weightKg - 10), reps: last.reps }]);
-  }
-  function updateEStage(i: number, patch: Partial<{ weightKg: number; reps: number }>) {
-    setEStages((s) => s.map((stage, idx) => (idx === i ? { ...stage, ...patch } : stage)));
-  }
-  function removeEStage(i: number) {
-    setEStages((s) => s.filter((_, idx) => idx !== i));
-  }
-
-  async function saveLoggedEdit() {
-    if (!logged?.id || ew <= 0 || er <= 0) return;
-    const validStages = eStages.filter((s) => s.weightKg > 0 && s.reps > 0);
-    await updateSet(logged.id, {
-      weightKg: ew, reps: er,
-      dropStages: validStages.length > 0 ? validStages : undefined,
-    });
-    void hapticLight();
-    setEditingLogged(false);
-  }
-
-  async function removeLogged() {
-    if (!logged?.id) return;
-    await deleteSet(logged.id);
-    void hapticLight();
-    setEditingLogged(false);
-  }
-
-  if (logged) {
-    const drops = logged.dropStages ?? [];
-
-    if (editingLogged) {
-      return (
-        <div style={{ padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 10, marginBottom: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-              <Button size="small" type="text" aria-label="Decrease weight" icon={<TbMinus />} onClick={() => setEw(Math.max(0, ew - 2.5))} />
-              <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{ew}<span style={{ fontSize: 12 }}>kg</span></span>
-              <Button size="small" type="text" aria-label="Increase weight" icon={<TbPlus />} onClick={() => setEw(ew + 2.5)} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Button size="small" type="text" aria-label="Decrease reps" icon={<TbMinus />} onClick={() => setEr(Math.max(1, er - 1))} />
-              <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center" }}>{er}</span>
-              <Button size="small" type="text" aria-label="Increase reps" icon={<TbPlus />} onClick={() => setEr(er + 1)} />
-            </div>
-            <Popconfirm title="Delete this set?" okText="Delete" cancelText="Cancel"
-              okButtonProps={{ danger: true }} onConfirm={removeLogged}>
-              <Button size="small" type="text" danger icon={<TbTrash />} aria-label="Delete set" />
-            </Popconfirm>
-            <Button size="small" type="text" icon={<TbX />} aria-label="Cancel edit" onClick={() => setEditingLogged(false)} />
-            <Button type="primary" size="small" icon={<TbCheck />} aria-label="Save set" onClick={saveLoggedEdit} style={{ borderRadius: 10 }} />
-          </div>
-          <div style={{ marginLeft: 28, marginTop: 4, paddingLeft: 8, borderLeft: "2px dashed var(--accent)" }}>
-            {eStages.map((stage, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                <span style={{ fontSize: 12, color: "var(--ink-soft)", width: 14 }}>↓{i + 1}</span>
-                <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-                  <Button size="small" type="text" aria-label="Decrease drop weight" icon={<TbMinus />}
-                    onClick={() => updateEStage(i, { weightKg: Math.max(0, stage.weightKg - 2.5) })} />
-                  <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center", fontSize: 12 }}>{stage.weightKg}<span style={{ fontSize: 12 }}>kg</span></span>
-                  <Button size="small" type="text" aria-label="Increase drop weight" icon={<TbPlus />}
-                    onClick={() => updateEStage(i, { weightKg: stage.weightKg + 2.5 })} />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Button size="small" type="text" aria-label="Decrease drop reps" icon={<TbMinus />}
-                    onClick={() => updateEStage(i, { reps: Math.max(1, stage.reps - 1) })} />
-                  <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center", fontSize: 12 }}>{stage.reps}</span>
-                  <Button size="small" type="text" aria-label="Increase drop reps" icon={<TbPlus />}
-                    onClick={() => updateEStage(i, { reps: stage.reps + 1 })} />
-                </div>
-                <Button size="small" type="text" danger icon={<TbX />} aria-label="Remove drop stage" onClick={() => removeEStage(i)} />
-              </div>
-            ))}
-            <Button size="small" type="dashed" icon={<TbPlus />} onClick={addEStage} style={{ borderRadius: 8, fontSize: 12 }}>
-              Add drop
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    // Every set is a challenge against your own history, not just a log
-    // entry — if this set's e1RM came in under what you did at this exact
-    // set index last session (the same `ghost` value already used for
-    // autofill), call it out instead of showing the same neutral pill a
-    // stronger set would get. PRs take priority display-wise; a set can't
-    // be both a PR and "weaker than last time".
-    const isWeaker = !logged.isPR && !!ghost && logged.e1rm < ghost.e1rm;
-    return (
-      <motion.div initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }}
-        {...pressable(() => { setEw(logged.weightKg); setEr(logged.reps); setEStages(logged.dropStages ?? []); setEditingLogged(true); })}
-        aria-label={`Edit set ${setIndex}: ${logged.weightKg}kg × ${logged.reps}`}
-        style={{ padding: "6px 10px", cursor: "pointer",
-          background: logged.isPR ? "rgba(255,176,32,0.12)" : isWeaker ? "rgba(255,39,64,0.12)" : "rgba(18,179,161,0.10)",
-          borderRadius: 10, marginBottom: 4 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
-          <span style={{ flex: 1, fontWeight: 700 }}>{logged.weightKg}kg × {logged.reps}</span>
-          {drops.length > 0 && (
-            <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.5, color: "var(--accent)",
-              background: "rgba(255,39,64,0.12)", borderRadius: 999, padding: "1px 6px" }}>DROP</span>
-          )}
-          {isWeaker && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 800,
-              letterSpacing: 0.5, color: "var(--accent)", background: "rgba(255,39,64,0.14)",
-              borderRadius: 999, padding: "1px 6px" }}>
-              <TbTrendingDown size={11} /> WEAKER THAN LAST TIME
-            </span>
-          )}
-          {logged.isPR && <TbTrophy style={{ color: t.gold }} />}
-          <TbPencil size={13} style={{ color: "var(--ink-soft)", flexShrink: 0 }} />
-        </div>
-        {drops.length > 0 && (
-          <div style={{ marginLeft: 30, marginTop: 2 }}>
-            {drops.map((stage, i) => (
-              <div key={i} style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
-                ↓ {stage.weightKg}kg × {stage.reps}
-              </div>
-            ))}
-          </div>
-        )}
-      </motion.div>
-    );
-  }
-
-  async function complete() {
-    if (w <= 0 || r <= 0) return;
-    // Warm the WebAudio context on the first user gesture. Chrome/Safari
-    // block AudioContext until a user interaction, so before this line, the
-    // rest-timer completion beep would be silent on the first ring.
-    unlockAudio();
-    const sid = await getSessionId();
-    const validStages = dropMode ? stages.filter((s) => s.weightKg > 0 && s.reps > 0) : [];
-    try {
-      const { isPR, e1rm } = await logSet({
-        sessionId: sid, exerciseId, exerciseName, setIndex, weightKg: w, reps: r,
-        dropStages: validStages.length > 0 ? validStages : undefined,
-      });
-      // Record for predictive autofill next time this exercise is picked.
-      void recordUsage(`weight:${exerciseId}`, w);
-      void recordUsage(`reps:${exerciseId}`, r);
-      if (isPR) {
-        celebrate({
-          kind: "pr",
-          title: "New PR",
-          subtitle: `${exerciseName} · ${w}kg × ${r} · e1RM ${Math.round(e1rm)}`,
-        });
-      } else {
-        void hapticLight();
-      }
-      onSetCompleted(exerciseId);
-    } catch (err) {
-      console.warn("[SessionLogger] logSet failed:", err);
-      // Surface via toast — retryable by tapping the set again.
-    }
-  }
-
+  const ghosts = useGhostSets(dayId, plan.exerciseId);
+  const step = LEG_MUSCLES.has(ex.primaryMuscle) ? 5 : 2.5;
+  const indices = Array.from({ length: plan.sets }, (_, i) => i + 1);
+  const firstPending = activeSet !== undefined ? activeSet : indices.find((si) => !done.some((s) => s.setIndex === si));
   return (
-    <div style={{ marginBottom: 4 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ width: 22, fontWeight: 700, color: "var(--ink-soft)", fontSize: 12 }}>{setIndex}</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-          <Button size="small" type="text" aria-label="Decrease weight" icon={<TbMinus />} onClick={() => setW(Math.max(0, w - 2.5))} />
-          <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center" }}>{w}<span style={{ fontSize: 12 }}>kg</span></span>
-          <Button size="small" type="text" aria-label="Increase weight" icon={<TbPlus />} onClick={() => setW(w + 2.5)} />
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Button size="small" type="text" aria-label="Decrease reps" icon={<TbMinus />} onClick={() => setR(Math.max(1, r - 1))} />
-          <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center" }}>{r}</span>
-          <Button size="small" type="text" aria-label="Increase reps" icon={<TbPlus />} onClick={() => setR(r + 1)} />
-        </div>
-        <Button
-          size="small" type={dropMode ? "primary" : "text"} danger={dropMode}
-          icon={<TbArrowBarDown />} aria-label="Toggle drop set" onClick={toggleDropMode}
-          style={{ borderRadius: 10 }}
+    <div className="st">
+      <SetHeader />
+      {indices.map((si) => (
+        <SetRow
+          key={si} plan={plan} exerciseName={ex.name} exerciseId={plan.exerciseId} setIndex={si}
+          logged={done.find((s) => s.setIndex === si)}
+          ghost={ghosts.find((g) => g.setIndex === si)}
+          lastCompleted={done.filter((s) => s.setIndex < si).sort((a, b) => b.setIndex - a.setIndex)[0]}
+          active={si === firstPending} step={step} getSessionId={getSessionId}
         />
-        <Button type="primary" size="small" icon={<TbCheck />} aria-label="Complete set" onClick={complete} style={{ borderRadius: 10 }} />
-      </div>
-      {dropMode && (
-        <div style={{ marginLeft: 28, marginTop: 4, paddingLeft: 8, borderLeft: "2px dashed var(--accent)" }}>
-          {stages.map((stage, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: "var(--ink-soft)", width: 14 }}>↓{i + 1}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-                <Button size="small" type="text" aria-label="Decrease drop weight" icon={<TbMinus />}
-                  onClick={() => updateStage(i, { weightKg: Math.max(0, stage.weightKg - 2.5) })} />
-                <span style={{ fontWeight: 700, minWidth: 42, textAlign: "center", fontSize: 12 }}>{stage.weightKg}<span style={{ fontSize: 12 }}>kg</span></span>
-                <Button size="small" type="text" aria-label="Increase drop weight" icon={<TbPlus />}
-                  onClick={() => updateStage(i, { weightKg: stage.weightKg + 2.5 })} />
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Button size="small" type="text" aria-label="Decrease drop reps" icon={<TbMinus />}
-                  onClick={() => updateStage(i, { reps: Math.max(1, stage.reps - 1) })} />
-                <span style={{ fontWeight: 700, minWidth: 24, textAlign: "center", fontSize: 12 }}>{stage.reps}</span>
-                <Button size="small" type="text" aria-label="Increase drop reps" icon={<TbPlus />}
-                  onClick={() => updateStage(i, { reps: stage.reps + 1 })} />
-              </div>
-              <Button size="small" type="text" danger icon={<TbX />} aria-label="Remove drop stage" onClick={() => removeStage(i)} />
-            </div>
-          ))}
-          <Button size="small" type="dashed" icon={<TbPlus />} onClick={addStage} style={{ borderRadius: 8, fontSize: 12 }}>
-            Add drop
-          </Button>
-        </div>
-      )}
+      ))}
     </div>
   );
 }
 
+// Segmented progress — one tick per planned set.
+function Ticks({ done, total }: { done: number; total: number }) {
+  return (
+    <div className="xb-ticks" role="img" aria-label={`${done} of ${total} sets done`}>
+      {Array.from({ length: total }, (_, i) => <span key={i} className={i < done ? "is-on" : ""} />)}
+    </div>
+  );
+}
+
+function FinishAll({ plan, done, getSessionId }: { plan: DayExerciseDto; done: WorkoutSetDto[]; getSessionId: () => Promise<number> }) {
+  if (done.length >= plan.sets) return null;
+  return (
+    <Button size="small" type="text" icon={<TbChecks size={16} />} className="xb-all"
+      aria-label="Complete all sets for this exercise" title="Complete all sets"
+      onClick={async () => {
+        const sid = await getSessionId();
+        await completeRemainingSets(sid, plan, done.map((s) => s.setIndex));
+      }} />
+  );
+}
+
+// Finished blocks fold to one line so the full plan stays scannable, and
+// finishing one glides the list on to the next block.
+function useDoneFold(allDone: boolean, fresh: boolean) {
+  const ref = useRef<HTMLElement>(null);
+  const reduced = useReducedMotion();
+  const [expanded, setExpanded] = useState(false);
+  const wasDone = useRef(allDone);
+  useEffect(() => {
+    if (allDone && !wasDone.current && fresh) {
+      ref.current?.nextElementSibling?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    }
+    wasDone.current = allDone;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDone, reduced]);
+  return { ref, folded: allDone && !expanded, setExpanded };
+}
+
+function FoldedBlock({ order, name, detail, onOpen }: { order: number; name: string; detail: string; onOpen: () => void }) {
+  return (
+    <button type="button" className="xb-fold" onClick={onOpen} aria-expanded={false} aria-label={`${name}, done. Show sets`}>
+      <span className="xb-no">{String(order).padStart(2, "0")}</span>
+      <span className="xb-fold__name">{name}</span>
+      <span className="xb-fold__detail">{detail}</span>
+      <span className="xb-fold__ok"><TbCheck size={14} /></span>
+    </button>
+  );
+}
+
+function Refold({ onFold }: { onFold: () => void }) {
+  return (
+    <button type="button" className="xb-refold" onClick={onFold} aria-label="Collapse" aria-expanded>
+      <TbChevronUp size={16} />
+    </button>
+  );
+}
+
+// A count bump only means "just logged" if the newest set is fresh — the live
+// query lands after first render, so a reload mid-session also bumps 0 → N.
+const JUST_LOGGED_MS = 5_000;
+const justLogged = (done: WorkoutSetDto[]) => done.some((s) => Date.now() - s.createdAt < JUST_LOGGED_MS);
+
+const topSet = (done: WorkoutSetDto[]) => done.reduce<WorkoutSetDto | undefined>((b, s) => (!b || s.e1rm > b.e1rm ? s : b), undefined);
+
 // ---- Single-exercise block (default rendering) ----
-function ExerciseBlock({ plan, dayId, sets, getSessionId }: {
-  plan: DayExerciseDto; dayId: number; sets: WorkoutSetDto[]; getSessionId: () => Promise<number>;
+function ExerciseBlock({ plan, order, dayId, sets, getSessionId, onLink, dayDone }: {
+  plan: DayExerciseDto; order: number; dayId: number; sets: WorkoutSetDto[]; getSessionId: () => Promise<number>;
+  onLink: () => void; dayDone: boolean;
 }) {
   const ex = useExercise(plan.exerciseId);
-  const ghosts = useGhostSets(dayId, plan.exerciseId);
   const t = useTokens();
   const doneCountRef = useRef(0);
 
   const done = sets.filter((s) => s.exerciseId === plan.exerciseId);
-  const totalSets = plan.sets;
   const doneCount = done.length;
-  const allDone = doneCount >= totalSets;
-  const rows = Array.from({ length: totalSets }, (_, i) => i + 1);
+  const allDone = doneCount >= plan.sets;
 
-  // Whenever a NEW set is completed here (doneCount increased), start rest —
-  // unless the exercise is now fully done. Store is idempotent-safe.
+  // A freshly logged set starts rest — including the last set of an exercise
+  // (you rest before the next one too), but not the last set of the day.
   useEffect(() => {
-    if (doneCount > doneCountRef.current && !allDone && ex) {
+    if (doneCount > doneCountRef.current && !dayDone && ex && justLogged(done)) {
       startRest(plan.restSec, t.accent, ex.name);
     }
     doneCountRef.current = doneCount;
-  }, [doneCount, allDone, plan.restSec, t.accent, ex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneCount, dayDone, plan.restSec, t.accent, ex]);
+  const { ref, folded, setExpanded } = useDoneFold(allDone, justLogged(done));
 
   if (!ex) return null;
 
+  if (folded) {
+    const best = topSet(done);
+    return (
+      <motion.section ref={ref} className="xb xb--folded" aria-label={ex.name}>
+        <FoldedBlock order={order} name={ex.name} onOpen={() => setExpanded(true)}
+          detail={best ? `${doneCount} sets · top ${best.weightKg}×${best.reps}` : `${doneCount} sets`} />
+      </motion.section>
+    );
+  }
+
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      style={{ background: "var(--surface)", borderRadius: 18, padding: "14px 14px 10px", marginBottom: 10,
-        borderLeft: allDone ? "3px solid var(--teal)" : "3px solid var(--accent)",
-        border: allDone ? `1px solid var(--teal)` : "1px solid var(--border)",
-        borderLeftWidth: 3,
-        opacity: allDone ? 0.75 : 1 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={20} color="var(--accent)" />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div title={ex.name} style={{
-            fontWeight: 800, fontSize: 15,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>{ex.name}</div>
-          {ex.cues && <div style={{ fontSize: 12, color: "var(--ink-soft)",
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ex.cues}</div>}
+    <motion.section ref={ref} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      className={`xb${allDone ? " is-done" : ""}`} aria-label={ex.name}>
+      <header className="xb-head">
+        <span className="xb-no">{String(order).padStart(2, "0")}</span>
+        <div className="xb-title">
+          <h3 title={ex.name}>{ex.name}</h3>
+          <div className="xb-meta">
+            <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={13} color="currentColor" />
+            {plan.sets} × {plan.repLow}–{plan.repHigh} · {plan.restSec}s rest
+          </div>
         </div>
-        <Tag style={{
-          borderRadius: 999, margin: 0, flexShrink: 0, fontWeight: 800, border: "none",
-          background: allDone ? "var(--teal)" : "rgba(255,39,64,0.12)",
-          color: allDone ? "#fff" : "var(--accent)",
-        }}>
-          {doneCount}/{totalSets}
-        </Tag>
         {!allDone && (
-          <Button
-            size="small" type="text" icon={<TbChecks size={16} />}
-            aria-label="Complete all sets for this exercise" title="Complete all sets"
-            style={{ flexShrink: 0, padding: "0 4px" }}
-            onClick={async () => {
-              const sid = await getSessionId();
-              await completeRemainingSets(sid, plan, done.map((s) => s.setIndex));
-            }}
-          />
+          <button type="button" className="xb-icon" onClick={onLink} aria-label={`Superset ${ex.name} with another exercise`} title="Superset with…">
+            <TbLink size={16} />
+          </button>
         )}
-      </div>
-      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 6 }}>
-        {plan.sets}×{plan.repLow}–{plan.repHigh} · rest {plan.restSec}s · {plan.weightKg}kg planned
-      </div>
-      <RestTimer matchLabel={ex.name} />
-      {rows.map((si) => {
-        // "Last completed" = the most recently logged set for THIS exercise
-        // in the current session, strictly before this set-index.
-        const last = done
-          .filter((s) => s.setIndex < si)
-          .sort((a, b) => b.setIndex - a.setIndex)[0];
-        return (
-          <SetRow
-            key={si} plan={plan} exerciseName={ex.name} exerciseId={plan.exerciseId}
-            setIndex={si}
-            logged={done.find((s) => s.setIndex === si)}
-            ghost={ghosts?.find((g: WorkoutSetDto) => g.setIndex === si)}
-            lastCompleted={last}
-            getSessionId={getSessionId}
-            onSetCompleted={() => { /* rest firing is driven by doneCount effect above */ }}
-          />
-        );
-      })}
-    </motion.div>
+        <FinishAll plan={plan} done={done} getSessionId={getSessionId} />
+        {allDone && <Refold onFold={() => setExpanded(false)} />}
+      </header>
+      <Ticks done={doneCount} total={plan.sets} />
+      {ex.cues && !allDone && <div className="xb-cue">{ex.cues}</div>}
+      <SetTable plan={plan} ex={ex} dayId={dayId} done={done} getSessionId={getSessionId} />
+    </motion.section>
   );
 }
 
 // ---- Superset block — two or more exercises alternating in one card ----
-function SupersetBlock({ group, dayId, sets, getSessionId }: {
-  group: DayExerciseDto[]; dayId: number; sets: WorkoutSetDto[]; getSessionId: () => Promise<number>;
+function SupersetBlock({ group, order, dayId, sets, getSessionId, onLink, dayDone }: {
+  group: DayExerciseDto[]; order: number; dayId: number; sets: WorkoutSetDto[]; getSessionId: () => Promise<number>;
+  onLink: (anchor: DayExerciseDto) => void; dayDone: boolean;
 }) {
   const t = useTokens();
+  const { message } = App.useApp();
   const doneCountsRef = useRef<number[]>(group.map(() => 0));
 
-  // Compute done-per-partner. The group's "rounds done" is the min across
-  // partners (a full round = one set of each). Rest fires only when the last
-  // partner in the group completes a set for the current round.
+  // A full round = one set of each partner. Rest fires only when the last
+  // partner completes its set for the current round (A → B → rest).
   const perExerciseDone = group.map((g) => sets.filter((s) => s.exerciseId === g.exerciseId).length);
   const targetSets = Math.max(...group.map((g) => g.sets));
   const roundsCompleted = Math.min(...perExerciseDone);
   const allDone = roundsCompleted >= targetSets;
-
-  // Rest color from the LAST partner in the group (its planned restSec).
   const restSec = group[group.length - 1].restSec;
 
   useEffect(() => {
-    // Detect: a new set was added to the LAST partner AND now all partners
-    // are level (i.e. a round just closed). Only then start rest.
     const prev = doneCountsRef.current;
-    let lastPartnerAdvanced = false;
-    for (let i = 0; i < group.length; i++) {
-      if (perExerciseDone[i] > prev[i]) {
-        if (i === group.length - 1) lastPartnerAdvanced = true;
-      }
-    }
-    if (lastPartnerAdvanced && !allDone) {
+    const last = group.length - 1;
+    const lastSets = sets.filter((s) => s.exerciseId === group[last].exerciseId);
+    if (perExerciseDone[last] > prev[last] && !dayDone && justLogged(lastSets)) {
       startRest(restSec, t.accent, "Superset");
     }
     doneCountsRef.current = perExerciseDone.slice();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [perExerciseDone.join(",")]);
+  const groupSets = sets.filter((s) => group.some((g) => g.exerciseId === s.exerciseId));
+  const fresh = justLogged(groupSets);
+  const { ref, folded, setExpanded } = useDoneFold(allDone, fresh);
+  const library = useExerciseLibrary();
+  const names = group.map((g) => library.find((e) => e.id === g.exerciseId)?.name ?? "…");
+  const next = findNextInGroup(group, sets);
+
+  async function unlink() {
+    if (!group[0].id || !group[1].id) return;
+    await toggleSupersetLink(group[0].id, group[1].id);
+    message.info("Superset unlinked");
+  }
+
+  if (folded) {
+    return (
+      <motion.section ref={ref} className="xb xb--folded" aria-label="Superset">
+        <FoldedBlock order={order} name={names.join(" + ")} detail={`Superset · ${targetSets} rounds`} onOpen={() => setExpanded(true)} />
+      </motion.section>
+    );
+  }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      style={{
-        background: "var(--surface)", borderRadius: 16, padding: "12px 14px 10px", marginBottom: 10,
-        border: allDone ? `1px solid var(--teal)` : "1px solid var(--accent)",
-        opacity: allDone ? 0.75 : 1,
-      }}>
-      <div style={{
-        display: "inline-flex", alignItems: "center", gap: 6,
-        background: "rgba(255,39,64,0.12)", color: "var(--accent)",
-        borderRadius: 999, padding: "2px 10px", fontSize: 12, fontWeight: 800,
-        letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 8,
-      }}>
-        <TbArrowsRightLeft size={12} /> Superset · round {Math.min(roundsCompleted + 1, targetSets)}/{targetSets}
+    <motion.section ref={ref} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      className={`xb xb--ss${allDone ? " is-done" : ""}`} aria-label="Superset">
+      <div className="xb-ss-tag">
+        <span className="xb-no">{String(order).padStart(2, "0")}</span>
+        <TbArrowsRightLeft size={13} /> Superset
+        <span className="xb-ss-round">{allDone ? "Done" : `Round ${roundsCompleted + 1}/${targetSets}`}</span>
+        {allDone ? <Refold onFold={() => setExpanded(false)} /> : (
+          <>
+            <button type="button" className="xb-icon" onClick={() => onLink(group[group.length - 1])} aria-label="Add another exercise to this superset" title="Add exercise">
+              <TbPlus size={15} />
+            </button>
+            <button type="button" className="xb-icon" onClick={() => void unlink()} aria-label="Unlink superset" title="Unlink">
+              <TbUnlink size={15} />
+            </button>
+          </>
+        )}
       </div>
-      <RestTimer matchLabel="Superset" />
       {group.map((plan, gIdx) => (
-        <SupersetPartner
-          key={plan.id}
-          plan={plan}
-          dayId={dayId}
-          sets={sets}
-          isLastInGroup={gIdx === group.length - 1}
-          getSessionId={getSessionId}
-        />
+        <SupersetPartner key={plan.id} plan={plan} letter={String.fromCharCode(65 + gIdx)}
+          dayId={dayId} sets={sets} isLastInGroup={gIdx === group.length - 1} getSessionId={getSessionId}
+          nextSetIndex={next && next.ex.id === plan.id ? next.setIndex : null} fresh={fresh} />
       ))}
-    </motion.div>
+    </motion.section>
   );
 }
 
 // Partner inside a superset. Same as ExerciseBlock but WITHOUT its own
 // auto-rest effect — the wrapping SupersetBlock owns rest triggering.
-function SupersetPartner({
-  plan, dayId, sets, getSessionId, isLastInGroup,
-}: {
-  plan: DayExerciseDto; dayId: number; sets: WorkoutSetDto[];
+function SupersetPartner({ plan, letter, dayId, sets, getSessionId, isLastInGroup, nextSetIndex, fresh }: {
+  plan: DayExerciseDto; letter: string; dayId: number; sets: WorkoutSetDto[];
   getSessionId: () => Promise<number>; isLastInGroup: boolean;
+  nextSetIndex: number | null;  // set to do now if this partner is up, else null
+  fresh: boolean;               // a set in this superset was just logged
 }) {
   const ex = useExercise(plan.exerciseId);
-  const ghosts = useGhostSets(dayId, plan.exerciseId);
   const done = sets.filter((s) => s.exerciseId === plan.exerciseId);
-  const totalSets = plan.sets;
-  const rows = Array.from({ length: totalSets }, (_, i) => i + 1);
-
+  const isNext = nextSetIndex != null;
+  const ref = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+  const wasNext = useRef(isNext);
+  // Logging A hands the turn to B — bring B on screen if the card is tall.
+  useEffect(() => {
+    if (isNext && !wasNext.current && fresh) ref.current?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "nearest" });
+    wasNext.current = isNext;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNext, reduced]);
   if (!ex) return null;
 
   return (
-    <div style={{
-      padding: "8px 0",
-      borderTop: "1px dashed var(--border)",
-      marginTop: 4,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={18} color="var(--accent)" />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div title={ex.name} style={{
-            fontWeight: 700, fontSize: 13,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>{ex.name}</div>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-            {plan.sets}×{plan.repLow}–{plan.repHigh} · {plan.weightKg}kg
-            {isLastInGroup ? ` · rest ${plan.restSec}s after round` : " · then →"}
+    <div ref={ref} className={`xb-partner${isNext ? " is-next" : ""}`}>
+      <header className="xb-head">
+        <span className="xb-letter">{letter}</span>
+        <div className="xb-title">
+          <h3 title={ex.name}>{ex.name}</h3>
+          <div className="xb-meta">
+            {plan.sets} × {plan.repLow}–{plan.repHigh}{isLastInGroup ? ` · ${plan.restSec}s rest after round` : " · straight into next"}
           </div>
         </div>
-        <Tag style={{ borderRadius: 8, margin: 0, flexShrink: 0 }}>{done.length}/{totalSets}</Tag>
-        {done.length < totalSets && (
-          <Button
-            size="small" type="text" icon={<TbChecks size={15} />}
-            aria-label="Complete all sets for this exercise" title="Complete all sets"
-            style={{ flexShrink: 0, padding: "0 4px" }}
-            onClick={async () => {
-              const sid = await getSessionId();
-              await completeRemainingSets(sid, plan, done.map((s) => s.setIndex));
-            }}
-          />
-        )}
-      </div>
-      {rows.map((si) => {
-        const last = done
-          .filter((s) => s.setIndex < si)
-          .sort((a, b) => b.setIndex - a.setIndex)[0];
-        return (
-          <SetRow
-            key={si} plan={plan} exerciseName={ex.name} exerciseId={plan.exerciseId}
-            setIndex={si}
-            logged={done.find((s) => s.setIndex === si)}
-            ghost={ghosts?.find((g: WorkoutSetDto) => g.setIndex === si)}
-            lastCompleted={last}
-            getSessionId={getSessionId}
-            onSetCompleted={() => { /* rest firing owned by parent SupersetBlock */ }}
-          />
-        );
-      })}
+        <FinishAll plan={plan} done={done} getSessionId={getSessionId} />
+      </header>
+      {isNext && <div className="xb-now">Now · set {nextSetIndex}</div>}
+      <Ticks done={done.length} total={plan.sets} />
+      <SetTable plan={plan} ex={ex} dayId={dayId} done={done} getSessionId={getSessionId} activeSet={nextSetIndex} />
     </div>
   );
 }
 
+
 export function SessionLogger() {
-  const t = useTokens();
   const plan = useActivePlan();
   const days = useWorkoutDays();
   const todayDayId = useTodayDayId();
@@ -571,42 +339,32 @@ export function SessionLogger() {
   const volume = sets.reduce((s, x) => s + x.weightKg * x.reps, 0);
   const focusOn = Number(useSetting("gymFocusMode")) === 1;
 
-  // Auto-duration timer — starts silently on the first set logged, writes back
-  // durationMin when the user leaves or the component unmounts. Zero user effort.
-  const sessionStartRef = useRef<number | null>(null);
+  // Session clock is derived from the logged sets themselves, so it survives
+  // reloads and navigation: first set → now while training, first → last set
+  // once the day is done (leaving the tab open afterwards doesn't inflate it).
+  const firstAt = sets.length ? Math.min(...sets.map((x) => x.createdAt)) : null;
+  const lastAt = sets.length ? Math.max(...sets.map((x) => x.createdAt)) : null;
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (doneSets === 1 && sessionStartRef.current === null) {
-      // first set just appeared — mark the session start, and auto-enter
-      // focus mode so the user doesn't have to reach for the toggle mid-lift.
-      sessionStartRef.current = Date.now();
-      if (!focusOn) void setSetting("gymFocusMode", 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doneSets]);
-  useEffect(() => {
-    return () => {
-      if (sessionStartRef.current && sessionIdRef.current) {
-        const mins = Math.round((Date.now() - sessionStartRef.current) / 60_000);
-        if (mins > 0 && mins < 300) { // sanity: ignore if >5h (left the tab open)
-          void db.workoutSessions.update(sessionIdRef.current, { durationMin: mins });
-        }
-      }
-    };
-  }, []);
-
-  // Live elapsed clock — updates every minute once session has started.
-  // Shows in the footer stat bar alongside sets and volume.
-  const [elapsedMin, setElapsedMin] = useState(0);
-  useEffect(() => {
-    const tick = () => {
-      if (sessionStartRef.current) {
-        setElapsedMin(Math.round((Date.now() - sessionStartRef.current) / 60_000));
-      }
-    };
-    tick();
-    const id = window.setInterval(tick, 15_000); // 15s for live feel
+    const id = window.setInterval(() => setNow(Date.now()), 15_000);
     return () => window.clearInterval(id);
   }, []);
+  const elapsedMin = firstAt ? Math.max(0, Math.round(((pct >= 100 ? lastAt! : now) - firstAt) / 60_000)) : 0;
+
+  const spanRef = useRef<{ first: number; last: number } | null>(null);
+  useEffect(() => { spanRef.current = firstAt && lastAt ? { first: firstAt, last: lastAt } : null; }, [firstAt, lastAt]);
+  useEffect(() => () => {
+    const span = spanRef.current;
+    if (!span || !sessionIdRef.current) return;
+    const mins = Math.round((span.last - span.first) / 60_000);
+    if (mins > 0 && mins < 300) void db.workoutSessions.update(sessionIdRef.current, { durationMin: mins });
+  }, []);
+
+  const library = useExerciseLibrary();
+  const names = useMemo(() => new Map(library.map((e) => [e.id ?? -1, e.name])), [library]);
+  const [linkAnchor, setLinkAnchor] = useState<DayExerciseDto | null>(null);
+  const next = findNextSet(items, sets);
+  const upNext = next ? `${names.get(next.ex.exerciseId) ?? "…"} · set ${next.setIndex}` : undefined;
 
   async function getSessionId(): Promise<number> {
     if (sessionIdRef.current) return sessionIdRef.current;
@@ -626,9 +384,9 @@ export function SessionLogger() {
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
 
   const COACH_STEPS = [
-    { title: "Log a set", body: "Dial in your weight and reps, then tap the check button to complete the set. Rest timer starts automatically." },
-    { title: "Supersets", body: "In the Planner, tap the chain icon to link two exercises. They'll alternate here with one shared rest." },
-    { title: "Your best is shown", body: "Greyed values are your ghost from last week. Beat them." },
+    { title: "Log a set", body: "Tap the check to log the set as shown. Tap the weight or reps to adjust them — or tap PREV to copy last session. Rest starts automatically." },
+    { title: "Supersets", body: "Tap the chain on any exercise to pair it with another — right here, mid-workout. They alternate with one shared rest, and the link stays in your plan." },
+    { title: "Fix a mistake", body: "Tap a logged set to edit it, or swipe it left to delete." },
   ];
 
   return (
@@ -667,7 +425,11 @@ export function SessionLogger() {
             </div>
             {!isRest && totalSets > 0 && (
               <div className="tr-hero__bar">
-                <div style={{ flex: 1 }}><GlowBar percent={pct} onHero height={10} label="Session progress" /></div>
+                <div className="tr-stats">
+                  <div><b>{doneSets}<small>/{totalSets}</small></b><span>Sets</span></div>
+                  <div><b>{Math.round(volume).toLocaleString()}</b><span>Kg moved</span></div>
+                  <div><b>{elapsedMin}<small>m</small></b><span>Time</span></div>
+                </div>
                 {pct < 100 && (
                   <Popconfirm title="Complete the full day?" description="Logs every remaining set at planned weight/reps."
                     okText="Complete" cancelText="Cancel" onConfirm={completeWholeDay}>
@@ -682,10 +444,11 @@ export function SessionLogger() {
         </Hero>
 
         {!isRest && totalSets > 0 && (
-          <div className="z-list" style={{ marginTop: 12, marginBottom: 14 }}>
-            <ListRow icon={<TbFocus2 size={16} />} color={focusOn ? "var(--accent)" : "var(--ink-soft)"} label="Focus mode"
-              hint="Fullscreen, one set at a time — starts on your first set"
-              right={<Switch checked={focusOn} onChange={(v) => setSetting("gymFocusMode", v ? 1 : 0)} aria-label="Toggle focus mode" />} />
+          <div className="tr-mode" role="radiogroup" aria-label="Workout view">
+            <button type="button" role="radio" aria-checked={!focusOn} className={!focusOn ? "is-on" : ""}
+              onClick={() => setSetting("gymFocusMode", 0)}><TbList size={15} /> Full plan</button>
+            <button type="button" role="radio" aria-checked={focusOn} className={focusOn ? "is-on" : ""}
+              onClick={() => setSetting("gymFocusMode", 1)}><TbFocus2 size={15} /> Focus</button>
           </div>
         )}
 
@@ -728,40 +491,19 @@ export function SessionLogger() {
           <>
             {items.map((item, idx) => (
               item.type === "single" ? (
-                <ExerciseBlock key={`s-${item.ex.id ?? idx}`} plan={item.ex} dayId={dayId!} sets={sets} getSessionId={getSessionId} />
+                <ExerciseBlock key={`s-${item.ex.id ?? idx}`} order={idx + 1} plan={item.ex} dayId={dayId!} sets={sets} getSessionId={getSessionId} onLink={() => setLinkAnchor(item.ex)} dayDone={pct >= 100} />
               ) : (
-                <SupersetBlock key={`g-${item.exs[0].supersetGroupId}-${idx}`} group={item.exs} dayId={dayId!} sets={sets} getSessionId={getSessionId} />
+                <SupersetBlock key={`g-${item.exs[0].supersetGroupId}-${idx}`} order={idx + 1} group={item.exs} dayId={dayId!} sets={sets} getSessionId={getSessionId} onLink={setLinkAnchor} dayDone={pct >= 100} />
               )
             ))}
 
-            <div style={{ background: "var(--surface)", borderRadius: 14,
-              padding: "12px 16px", border: "1px solid var(--border)", marginTop: 18 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)",
-                letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 10 }}>
-                Session summary
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 4 }}>
-                <div style={{ textAlign: "center", flex: 1 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--accent)" }}>{doneSets}/{totalSets}</div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>sets</div>
-                </div>
-                <div style={{ textAlign: "center", flex: 1 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800 }}>{Math.round(volume).toLocaleString()}</div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>kg vol</div>
-                </div>
-                <div style={{ textAlign: "center", flex: 1 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: t.gold }}><TbFlame style={{ verticalAlign: "-2px" }} /> {pct}%</div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>done</div>
-                </div>
-                <div style={{ textAlign: "center", flex: 1 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink-soft)" }}>{elapsedMin > 0 ? `${elapsedMin}m` : "–"}</div>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>elapsed</div>
-                </div>
-              </div>
-            </div>
+            {pct >= 100 && <div className="tr-done">Day complete. {Math.round(volume).toLocaleString()} kg in {elapsedMin} min.</div>}
+            <div className="tr-dock-space" aria-hidden />
           </>
         )}
       </PageTransition>
+      {!focusOn && <RestDock upNext={upNext} />}
+      <SupersetPicker anchor={linkAnchor} day={exercises} names={names} onClose={() => setLinkAnchor(null)} />
       {focusOn && !isRest && dayId && (
         <GymFocusMode
           dayId={dayId}
