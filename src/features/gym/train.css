@@ -13,3 +13,37 @@
 
 .pl-hero__row { display: flex; align-items: center; gap: 12px; }
 .pl-hero__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+/* ---- Set sheet ---- */
+.ss-title { display: flex; align-items: baseline; gap: 10px; min-width: 0; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-weight: 800; }
+.ss-title__set { flex-shrink: 0; font-size: 11px; font-weight: 900; letter-spacing: 0.14em; color: var(--accent); }
+.ss { display: flex; flex-direction: column; gap: 14px; padding-top: 6px; }
+.ss-ghost { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
+.ss-ghost b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.ss-ghost span { margin-left: auto; font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.ss-field__label { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+.ss-field__value { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+.ss-num { width: 100% !important; max-width: 220px; background: transparent !important; }
+.ss-num input { height: 72px !important; padding: 0 !important; text-align: center !important; font-family: "Plus Jakarta Sans", Inter, sans-serif !important; font-size: 60px !important; font-weight: 800 !important; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; color: var(--ink) !important; }
+.ss-unit { font-size: 16px; font-weight: 800; color: var(--ink-soft); }
+.ss-steps { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+.ss-step { min-height: 46px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; }
+.ss-step--up { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); color: var(--accent); }
+.ss-step:active, .ss-quick__btn:active { transform: scale(0.96); }
+.ss-quick { display: flex; gap: 6px; margin-top: -6px; }
+.ss-quick__btn { flex: 1; min-height: 40px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--ink-soft); font: inherit; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; }
+.ss-quick__btn.is-on { border-color: var(--ink); background: var(--ink); color: var(--surface); }
+.ss-drops:empty { display: none; }
+.ss-drops { display: flex; flex-direction: column; gap: 6px; padding-left: 10px; border-left: 2px solid var(--accent); }
+.ss-drop { display: flex; align-items: center; gap: 4px; }
+.ss-drop__tag { width: 24px; font-size: 12px; font-weight: 900; color: var(--accent); }
+.ss-drop__val { min-width: 44px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ss-drop__val small { font-size: 10px; color: var(--ink-soft); }
+.ss-x { color: var(--ink-soft); font-weight: 700; }
+.ss-mini { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--ink); font: inherit; font-weight: 800; cursor: pointer; }
+.ss-mini--del { margin-left: auto; border-color: transparent; background: none; color: var(--ink-soft); }
+.ss-adddrop { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border: 1px dashed var(--border); border-radius: 10px; background: none; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+.ss-actions { display: flex; gap: 8px; margin-top: 4px; }
+.ss-del { width: 54px; min-height: 54px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 12px; background: none; color: var(--accent); cursor: pointer; }
+.ss-go { flex: 1; min-height: 54px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-size: 15px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+.ss-go:disabled { opacity: 0.4; cursor: default; }
