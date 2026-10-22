@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 
-// Shared countdown ring for the two rest-timer surfaces (in-card RestTimer and
-// the floating GlobalRestChip). Sized by `size`; the geometry derives from it,
-// so the two callers stay pixel-identical to their hand-rolled originals.
+// Countdown ring for the floating GlobalRestChip. Sized by `size`; the
+// geometry derives from it.
 export function RestRing({ size, pct, color, children }: {
   size: number; pct: number; color: string; children: React.ReactNode;
 }) {

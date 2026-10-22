@@ -8,7 +8,7 @@ import { pressable } from "../lib/a11y";
 
 // Floating rest chip. Renders only when:
 //   • The global rest store is active, AND
-//   • The user is NOT on /workout (which shows the in-card RestTimer already).
+//   • The user is NOT on /workout (which pins its own RestDock).
 // One tap on the chip jumps back to /workout so the user can keep logging.
 export function GlobalRestChip() {
   const rest = useRestTimer();
