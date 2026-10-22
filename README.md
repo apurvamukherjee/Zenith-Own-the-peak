@@ -141,11 +141,16 @@ Import the repo on **Vercel**, framework preset **Vite**, deploy. Fully static �
 
 ## 📲 Native app
 
+This repo is the only source for the Android and iOS apps. Capacitor bundles
+`dist/` into the native projects in `android/` and `ios/`, so the app works offline.
+
 ```bash
-npm i @capacitor/core @capacitor/cli
-npx cap init Zenith com.apurva.zenith --web-dir=dist
-npx cap add ios && npm run build && npx cap sync
+npm run apk   # signed release APK → android/app/build/outputs/apk/release/
+npm run ios   # build, sync and open Xcode
 ```
+
+Before a release, bump `versionCode` and `versionName` in `android/app/build.gradle`.
+APKs are published under this repo's GitHub Releases.
 
 ## 🧱 Architecture
 
