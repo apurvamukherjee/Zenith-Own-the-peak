@@ -74,3 +74,17 @@
 .ss-del { width: 54px; min-height: 54px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 12px; background: none; color: var(--accent); cursor: pointer; }
 .ss-go { flex: 1; min-height: 54px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-size: 15px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
 .ss-go:disabled { opacity: 0.4; cursor: default; }
+
+/* ---- Rest dock ---- */
+.rd { position: fixed; z-index: 46; bottom: calc(var(--nav-offset) + 8px); left: max(16px, calc(50vw - var(--col-half) + 16px)); right: max(84px, calc(50vw - var(--col-half) + 84px)); overflow: hidden; padding: 10px 10px 10px 14px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+.rd-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--accent); transform-origin: left; transition: transform 0.25s linear; }
+.rd-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.rd-time { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 30px; line-height: 1; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--ink); }
+.rd.is-urgent .rd-time { color: var(--accent); }
+.rd-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rd-label { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+.rd-next { font-size: 11px; font-weight: 700; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rd-ctrls { flex-shrink: 0; display: grid; grid-template-columns: repeat(2, 36px); gap: 4px; }
+.rd-ctrls button { height: 30px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; }
+.rd-ctrls .rd-skip { border-color: var(--accent); background: var(--accent); color: #fff; }
+@media (min-width: 420px) { .rd-ctrls { grid-template-columns: repeat(4, 38px); } .rd-ctrls button { height: 38px; } }
