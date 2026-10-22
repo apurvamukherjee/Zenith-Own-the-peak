@@ -202,6 +202,19 @@ export async function updateSessionArrangement(
   await db.workoutSessions.update(sessionId, patch);
 }
 
+// Volume of the most recent earlier session of this day — the "vs last time"
+// baseline on the end-of-workout card.
+export function useLastSessionVolume(dayId: number | null) {
+  const date = todayKey();
+  return useLiveQuery(async () => {
+    if (!dayId) return null;
+    const past = await db.workoutSessions.where("dayId").equals(dayId).and((s) => s.date < date).reverse().sortBy("date");
+    if (!past[0]?.id) return null;
+    const sets = await db.workoutSets.where({ sessionId: past[0].id }).toArray();
+    return sets.reduce((v, x) => v + x.weightKg * x.reps, 0);
+  }, [dayId, date]) ?? null;
+}
+
 export async function setWeekday(weekday: number, dayId: number) {
   const existing = await db.weekSchedule.where({ weekday }).first();
   if (existing?.id) await db.weekSchedule.update(existing.id, { dayId });
