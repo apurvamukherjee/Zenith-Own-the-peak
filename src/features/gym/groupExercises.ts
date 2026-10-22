@@ -59,3 +59,12 @@ export function findNextSet(items: Item[], sets: WorkoutSetDto[]): { ex: DayExer
   }
   return null;
 }
+
+// Day order with `partner` moved to sit right after `anchor`'s superset group
+// (or right after `anchor` if it isn't grouped yet).
+export function placeAfterGroup(day: DayExerciseDto[], anchor: DayExerciseDto, partner: DayExerciseDto): DayExerciseDto[] {
+  const rest = day.filter((e) => e.id !== partner.id);
+  let at = rest.findIndex((e) => e.id === anchor.id);
+  while (anchor.supersetGroupId != null && rest[at + 1]?.supersetGroupId === anchor.supersetGroupId) at++;
+  return [...rest.slice(0, at + 1), partner, ...rest.slice(at + 1)];
+}

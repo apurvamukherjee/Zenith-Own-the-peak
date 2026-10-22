@@ -4,6 +4,7 @@ import type { DayExerciseDto, WorkoutSetDto, Effort, DropStageDto, MuscleGroup }
 import { estimate1RM, bestE1RM } from "../../lib/workout.utils";
 import { todayKey, weekKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
+import { placeAfterGroup } from "./groupExercises";
 
 // ---- Read hooks ----
 export function useWorkoutDays() {
@@ -177,6 +178,21 @@ export async function toggleSupersetLink(aId: number, bId: number): Promise<void
     db.dayExercises.update(aId, { supersetGroupId: groupId }),
     db.dayExercises.update(bId, { supersetGroupId: groupId }),
   ]);
+}
+
+// Mid-workout linking: `partnerId` may sit anywhere in the day, so it's moved
+// to directly after the anchor's group (grouping only folds consecutive rows)
+// and the day's `order` is renumbered. Permanent — it edits the live plan.
+export async function linkSuperset(anchorId: number, partnerId: number): Promise<void> {
+  await db.transaction("rw", db.dayExercises, async () => {
+    const [anchor, partner] = await Promise.all([db.dayExercises.get(anchorId), db.dayExercises.get(partnerId)]);
+    if (!anchor || !partner || anchor.dayId !== partner.dayId || partner.supersetGroupId != null) return;
+    const groupId = anchor.supersetGroupId ?? Date.now();
+    const day = placeAfterGroup(await db.dayExercises.where({ dayId: anchor.dayId }).sortBy("order"), anchor, partner);
+    await Promise.all(day.map((e, order) => db.dayExercises.update(e.id!, {
+      order, ...(e.id === anchorId || e.id === partnerId ? { supersetGroupId: groupId } : {}),
+    })));
+  });
 }
 
 export async function setWeekday(weekday: number, dayId: number) {
