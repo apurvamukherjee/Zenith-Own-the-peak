@@ -846,6 +846,21 @@ write goes through the existing `useGym.ts` functions plus two small additions.
   superset only the partner returned by `findNextInGroup()` (moved from
   `GymFocusMode` into `groupExercises.ts`) has a live row, so the highlight hops
   A → B → rest.
+- **Today-only arrangement**: each block's ⋯ menu (Do this next / Superset
+  with… / Complete all sets / Skip today). Skips and the custom order live on
+  today's `workoutSessions` row as `skipped`/`todayOrder` (item keys = first
+  `dayExercise` id of a block; optional, unindexed, no version bump) and never
+  touch the plan. `arrangeForToday()`/`doNextOrder()` in `groupExercises.ts`
+  apply them (tested); everything downstream — totals, next set, "Complete
+  full day", Focus mode — runs off the arranged `todayExercises`. Skipped
+  blocks list at the bottom with Restore.
+- **Add exercise mid-session** (`AddExerciseSheet.tsx`): adds to the day's plan
+  with the Planner's defaults (3 × 8–12, 0 kg, 90s), today's muscles first.
+- **End-of-workout card** (`SessionSummary.tsx`): time, volume with % vs the
+  previous session of that day (`useLastSessionVolume`), sets, PRs, and a
+  share (Web Share, clipboard fallback). Reaching 100% also ends any running
+  rest — "Complete full day" writes one set at a time, and its in-between
+  renders would otherwise start one.
 - **Look**: hard 1px borders, tabular numerals, uppercase micro-labels, red only
   as signal (next set, rest, ticks). No gradients/glows on cards — keep it that
   way; styles live in `features/gym/train.css`.
