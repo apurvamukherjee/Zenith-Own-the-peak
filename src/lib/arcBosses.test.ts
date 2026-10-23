@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BOSSES, bossFor } from "./arcBosses.ts";
+import { BOSSES, bossFor, trialOpen } from "./arcBosses.ts";
 
 test("one boss per chapter except Trials week and the deload", () => {
   assert.equal(bossFor("2026-11-03"), undefined);
@@ -10,4 +10,11 @@ test("one boss per chapter except Trials week and the deload", () => {
   assert.equal(bossFor("2026-12-31")?.id, "big-3");
   assert.equal(new Set(BOSSES.map((b) => b.chapter)).size, BOSSES.length);
   for (const b of BOSSES) if (b.rematchOf && !b.rematchOf.startsWith("trial:")) assert.ok(BOSSES.some((x) => x.id === b.rematchOf));
+});
+
+test("trials open on Day 1, Day 31 and Dec 30", () => {
+  assert.equal(trialOpen("2026-11-01")?.n, 1);
+  assert.equal(trialOpen("2026-11-08"), undefined);
+  assert.equal(trialOpen("2026-12-05")?.n, 2);
+  assert.equal(trialOpen("2026-12-31")?.n, 3);
 });
