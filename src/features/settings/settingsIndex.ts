@@ -32,6 +32,7 @@ export const SEARCH_INDEX: SearchEntry[] = [
   { pane: "reminders", key: "bedtime", label: "Bedtime wind-down", terms: "sleep night notification" },
   { pane: "reminders", key: "supps", label: "Supplement & med times", terms: "medicine pills creatine notification" },
   { pane: "reminders", key: "events", label: "Event reminders", terms: "calendar remind me notification" },
+  { pane: "reminders", key: "arc", label: "Winter Arc drill pushes", terms: "winter arc drill rude roast savage tone profanity notification" },
   { pane: "connections", key: "cloud", label: "Cloud sync", terms: "backup account email sign in leaderboard restore" },
   { pane: "connections", key: "google", label: "Google Calendar", terms: "gcal sync two-way calendar" },
   { pane: "backup", key: "storage", label: "Storage & protection", terms: "space persist eviction quota" },
