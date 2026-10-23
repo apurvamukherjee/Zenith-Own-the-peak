@@ -9,6 +9,7 @@
  */
 
 import type * as ResendOTP from "../ResendOTP.js";
+import type * as arc from "../arc.js";
 import type * as auth from "../auth.js";
 import type * as backups from "../backups.js";
 import type * as googleCalendarSync from "../googleCalendarSync.js";
@@ -26,6 +27,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   ResendOTP: typeof ResendOTP;
+  arc: typeof arc;
   auth: typeof auth;
   backups: typeof backups;
   googleCalendarSync: typeof googleCalendarSync;
