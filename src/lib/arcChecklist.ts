@@ -77,3 +77,15 @@ export function toggleTick(raw: string, date: string, id: string): string {
   return JSON.stringify(all);
 }
 
+export interface Vow { goal: string; when: string; where: string; ifThen: string; signedAt: number }
+export function parseVow(raw: string): Vow | null {
+  try {
+    const v = JSON.parse(raw || "null") as Partial<Vow> | null;
+    return v && typeof v.goal === "string" && typeof v.signedAt === "number"
+      ? { goal: v.goal, when: v.when ?? "", where: v.where ?? "", ifThen: v.ifThen ?? "", signedAt: v.signedAt }
+      : null;
+  } catch (e) {
+    if (e instanceof SyntaxError) return null;
+    throw e;
+  }
+}
