@@ -1,4 +1,5 @@
 import { ARC_START, dayIndex, inArc, shiftDate, MAX_DEBT_DAYS } from "./winterArc.ts";
+import { themeFor } from "./arcCalendar.ts";
 
 // Tiers escalate *within* a day as the midnight deadline nears, then reset to
 // a comeback line the next morning. Harshest-after-a-lapse is exactly when
@@ -78,6 +79,7 @@ export interface VoiceInput {
   ceiling: 0 | 1 | 2 | 3;  // "dial it down"
   profanity: boolean;
   horizonDays?: number;
+  examUntil?: string;      // Exam Mode: 3 pushes a day, never past Nag
 }
 export interface ArcPush { id: number; title: string; body: string; at: Date; channelId?: string }
 
@@ -87,6 +89,7 @@ export const ARC_PRIVATE_CHANNEL = "arc-private";
 
 export const ARC_PUSH_ID_BASE = 1_000_000;
 const SLOT_FRACTIONS = [0, 0.4, 0.65, 0.85, 1]; // 5 pushes/day max
+const EXAM_SLOTS = new Set([0, 2, 4]);
 
 const atLocal = (date: string, minutes: number) => {
   const [y, m, d] = date.split("-").map(Number);
@@ -123,14 +126,17 @@ export function planArcPushes(i: VoiceInput): ArcPush[] {
     if (date === i.today && (i.todayCovered || i.quietToday)) continue;
     const day = dayIndex(date);
     const missed = missedOn(date, i, from);
+    const exam = !!i.examUntil && date <= i.examUntil;
+    const theme = themeFor(date);
     const action = date === i.today && i.drill
       ? `${i.drill.name} · ${i.drill.amount}`
       : "Open Zenith and clear today's drill.";
 
     SLOT_FRACTIONS.forEach((f, slot) => {
       const at = atLocal(date, Math.round(start + (last - start) * f));
-      if (at.getTime() <= i.now) return;
-      const tier = (slot === 4 && i.profanity ? 4 : Math.min(slot, i.ceiling)) as Tier;
+      if (at.getTime() <= i.now || (exam && !EXAM_SLOTS.has(slot))) return;
+      const ceiling = exam ? Math.min(i.ceiling, 1) : i.ceiling;
+      const tier = (slot === 4 && i.profanity && !exam ? 4 : Math.min(slot, ceiling)) as Tier;
       let line: string;
       if (slot === 0 && missed > 0) {
         const debt = Math.min(missed, MAX_DEBT_DAYS);
@@ -140,9 +146,10 @@ export function planArcPushes(i: VoiceInput): ArcPush[] {
         line = pool[(day + slot) % pool.length];
       }
       if (slot === 0 && i.plan?.date === date) line += ` Your plan: “${i.plan.text}”`;
+      if (slot === 0 && theme?.indoor) line += " Indoors today — the air's bad.";
       const tail = slot >= 2 && i.drill && date === i.today ? ` Minimum counts: ${i.drill.minimum}.` : "";
       out.push({
-        id: ARC_PUSH_ID_BASE + day * 10 + slot, title: `Winter Arc · Day ${day + 1}`, body: `${line} ${action}${tail}`, at,
+        id: ARC_PUSH_ID_BASE + day * 10 + slot, title: `Winter Arc · Day ${day + 1}${theme ? ` · ${theme.title}` : ""}`, body: `${line} ${action}${tail}`, at,
         ...(tier === 4 && { channelId: ARC_PRIVATE_CHANNEL }),
       });
     });
