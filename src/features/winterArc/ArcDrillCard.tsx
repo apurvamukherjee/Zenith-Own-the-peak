@@ -5,7 +5,7 @@ import type { MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
 import { hapticSuccess } from "../../lib/haptics";
 import { todayKey } from "../../lib/date.utils";
-import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as amount, shouldShowGate, type Drill, type Readiness } from "../../lib/winterArc";
+import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as amount, ARC_RESERVES, shouldShowGate, type Drill, type Readiness } from "../../lib/winterArc";
 import { useArcToday, completeDrill, pauseDay, setReadiness, type ArcToday } from "./useWinterArc";
 import { ArcGate } from "./ArcGate";
 import "./arc.css";
@@ -15,10 +15,13 @@ const READINESS: { r: Readiness; label: string }[] = [{ r: "fine", label: "Fine"
 
 export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | undefined }) {
   const joined = useSetting("arcJoined");
+  const reserves = useSetting("arcReserves");
   const arc = useArcToday(trainedToday);
   const date = todayKey();
   if (date > ARC_END) return null;
 
+  const blackIce = Number(reserves) === 0;
+  const join = async (r: number) => { await setSetting("arcReserves", r); await setSetting("arcJoined", date); };
   const until = daysUntilArc(date);
   if (until > 0 || !joined) {
     return (
@@ -26,10 +29,24 @@ export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | u
         <div className="arc-card__eyebrow"><TbSnowflake size={14} /> Winter Arc · the final 61</div>
         <div className="arc-card__title display">{until > 0 ? `${until} day${until === 1 ? "" : "s"} out` : "It's already started"}</div>
         <p className="arc-card__copy">Nov 1 → Dec 31. One random drill a day. Miss one and you owe it. 3 reserves, no excuses.</p>
-        {joined
-          ? <div className="arc-card__done"><TbCheck size={16} /> You're in. Lock in.</div>
-          : <motion.button type="button" className="arc-card__cta" whileTap={{ scale: 0.92 }}
-              onClick={() => void setSetting("arcJoined", date)}>Join the arc</motion.button>}
+        {joined ? (
+          <div className="arc-card__done">
+            <TbCheck size={16} /> You're in{blackIce ? " — Black Ice" : ""}. Lock in.
+            {until > 0 && (
+              <button type="button" className="arc-card__link" onClick={() => void setSetting("arcReserves", blackIce ? ARC_RESERVES : 0)}>
+                {blackIce ? "Take the 3 reserves" : "Go Black Ice"}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="arc-card__actions">
+            <motion.button type="button" className="arc-card__cta" whileTap={{ scale: 0.92 }}
+              onClick={() => void join(ARC_RESERVES)}>Join the arc</motion.button>
+            <button type="button" className="arc-card__ghost" onClick={() => void join(0)}>
+              Black Ice · 0 reserves
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -44,6 +61,7 @@ function ArcDay({ arc }: { arc: ArcToday }) {
   const { message } = App.useApp();
   const later = String(useSetting("arcGateLater"));
   const skipped = String(useSetting("arcSkipped"));
+  const blackIce = Number(useSetting("arcReserves")) === 0;
   const finish = (d: Drill) => {
     void completeDrill(arc, d).then((comeback) => {
       hapticSuccess();
@@ -92,7 +110,7 @@ function ArcDay({ arc }: { arc: ArcToday }) {
         </>
       )}
       <div className="arc-card__foot">
-        <span><TbShieldHalf size={13} /> {arc.reservesLeft} reserve{arc.reservesLeft === 1 ? "" : "s"}</span>
+        <span><TbShieldHalf size={13} /> {blackIce ? "Black Ice" : `${arc.reservesLeft} reserve${arc.reservesLeft === 1 ? "" : "s"}`}</span>
         <span>{arc.kept} kept</span>
         {arc.scars > 0 && <span>{arc.scars} scar{arc.scars === 1 ? "" : "s"}</span>}
         {!row && (
