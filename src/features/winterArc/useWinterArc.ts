@@ -3,7 +3,7 @@ import { db } from "../../db/db";
 import type { ArcDayDto, MuscleGroup } from "../../db/types";
 import { useSetting } from "../../hooks/useSettings";
 import { todayKey } from "../../lib/date.utils";
-import { type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, shiftDate, dayIndex, phaseOf, LEG_MUSCLES, ARC_START } from "../../lib/winterArc";
+import { type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf, LEG_MUSCLES, ARC_START } from "../../lib/winterArc";
 
 export interface ArcToday {
   date: string; day: number; phase: ArcPhase; drill: Drill; readiness: Readiness;
@@ -53,4 +53,14 @@ export function useArcToday(trainedToday: MuscleGroup[] | undefined): ArcToday |
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, joined, reserves, readinessRaw, avoidKey]);
+}
+
+// Clearing a debt drill pays back the missed days it carried, so they count
+// as kept — repair beats punishment for staying in (Silverman & Barasch 2023).
+export async function completeDrill(arc: ArcToday, drill: Drill): Promise<void> {
+  const at = Date.now();
+  await db.arcDays.bulkPut([
+    { date: arc.date, kind: "done", at, exercise: drill.name, unit: drill.unit, target: drill.target, drillKind: drill.kind },
+    ...settle(arc.date, arc.missed, drill.debtDays, arc.reservesLeft).map((s) => ({ ...s, at })),
+  ]);
 }
