@@ -2,6 +2,7 @@ import { db } from "../db/db";
 import { computeScoresForMonth } from "./dayScore";
 import { computeUnifiedStreak } from "./streak.utils";
 import type { GlyphName } from "../components/ColdIcon";
+import { arcBadgeFacts, type ArcBadgeFacts } from "./arcCalendar";
 
 // ---- Tiers ---------------------------------------------------------------
 export type Tier = "bronze" | "silver" | "gold" | "platinum" | "mythic";
@@ -17,11 +18,11 @@ export const TIER_META: Record<Tier, { label: string; grad: string; ring: string
 
 export type AchGroup =
   | "streak" | "iron" | "discipline" | "water" | "sleep" | "mind"
-  | "road" | "table" | "body" | "mystery";
+  | "road" | "table" | "body" | "winter" | "mystery";
 export const GROUP_LABEL: Record<AchGroup, string> = {
   streak: "The Streak", iron: "Iron", discipline: "Discipline", water: "Water",
   sleep: "Sleep", mind: "The Mind", road: "The Road", table: "The Table",
-  body: "The Body", mystery: "Mystery",
+  body: "The Body", winter: "Winter Arc", mystery: "Mystery",
 };
 
 // ---- Context -------------------------------------------------------------
@@ -68,6 +69,7 @@ export interface AchievementContext {
   bestWaterStreak: number;        // longest consecutive days hitting water goal
   hasSpeedSession: boolean;       // any session: all planned sets done in <30min with ≥12 sets
   reflectiveYears: number;        // count of distinct palindrome years collected
+  arc: ArcBadgeFacts;
 }
 
 // Longest consecutive-day run in a set of YYYY-MM-DD dates.
@@ -104,6 +106,9 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
       db.settings.get("eggReflective"),
     ]);
   const items = await db.studyItems.toArray();
+  const [arcRows, arcJoined, arcReserves] = await Promise.all([
+    db.arcDays.toArray(), db.settings.get("arcJoined"), db.settings.get("arcReserves"),
+  ]);
 
   // Union of all active dates → best overall streak + distinct active days.
   const active = new Set<string>();
@@ -224,6 +229,7 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
     bestWaterStreak,
     hasSpeedSession,
     reflectiveYears,
+    arc: arcBadgeFacts(arcRows, String(arcJoined?.value ?? ""), Number(arcReserves?.value ?? 3)),
   };
 }
 
