@@ -1,4 +1,4 @@
-import { useId, type CSSProperties, type SVGProps } from "react";
+import { useId, useState, type CSSProperties, type SVGProps } from "react";
 import type { MuscleGroup } from "../db/types";
 import { MUSCLE_LABELS } from "../config/exerciseLibrary";
 import "./bodymap.css";
@@ -173,3 +173,29 @@ export function heatOf(targets: MuscleGroup[], assists: MuscleGroup[] = [], assi
 }
 
 export const ALL_MUSCLES = Object.keys(MUSCLE_LABELS) as MuscleGroup[];
+
+// Bumps a per-muscle counter on every tap so the tapped muscle re-flashes.
+function useTapFlash() {
+  const [flash, setFlash] = useState<Flash>({});
+  return [flash, (m: MuscleGroup) => setFlash((f) => ({ ...f, [m]: (f[m] ?? 0) + 1 }))] as const;
+}
+
+export function MusclePicker({ value, onChange, hint }: { value: MuscleGroup[]; onChange: (next: MuscleGroup[]) => void; hint?: string }) {
+  const [flash, bump] = useTapFlash();
+  const toggle = (m: MuscleGroup) => {
+    bump(m);
+    onChange(value.includes(m) ? value.filter((x) => x !== m) : [...value, m]);
+  };
+  return (
+    <div className="bm-pick">
+      <BodyMap heat={heatOf(value)} flash={flash} onPick={toggle} />
+      <div className="bm-hint">{hint ?? "Tap the body or a chip"} · {value.length ? `${value.length} selected` : "none selected"}</div>
+      <div className="bm-chips">
+        {ALL_MUSCLES.map((m) => (
+          <button key={m} type="button" aria-pressed={value.includes(m)} className={`bm-chip${value.includes(m) ? " is-on" : ""}`}
+            onClick={() => toggle(m)}>{MUSCLE_LABELS[m]}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
