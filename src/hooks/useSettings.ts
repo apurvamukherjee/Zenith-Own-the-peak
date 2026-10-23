@@ -58,6 +58,7 @@ export const DEFAULTS = {
   equippedAccent: "gothic-red", // accent theme id from lib/rewardVault.ts — always unlocked
   equippedFrame: "",            // avatar frame id, "" = no ring
   equippedTitle: "",            // level name, "" = derive from current level
+  arcJoined: "",          // YYYY-MM-DD you joined the Winter Arc, "" = not in
 };
 export type SettingKey = keyof typeof DEFAULTS;
 
