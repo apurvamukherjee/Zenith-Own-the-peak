@@ -19,6 +19,7 @@ import { isDevilsHour, isZenithHour, isPalindromeDate, isHardcoreActive, isSabba
 import { SummitCard, type Pillar } from "./SummitCard";
 import { NextMoveDeck } from "./NextMoveDeck";
 import { TrainingCard } from "./TrainingCard";
+import { ArcDrillCard } from "../winterArc/ArcDrillCard";
 import { WaterTile, MacrosTile, SleepTile, StudyTile, HabitsTile } from "./BentoTiles";
 import { TodayAgenda } from "./TodayAgenda";
 import { Rings } from "../../components/ui/Rings";
@@ -199,6 +200,9 @@ export function DashboardPage() {
         <motion.div {...rise(1)}>
           <SummitCard score={score.score} pillars={pillars} streak={streak} freezeAvailable={freezeAvailable}
             week={week} urgent={urgent} critical={critical} reduced={reduced} />
+        </motion.div>
+        <motion.div {...rise(2)}>
+          <ArcDrillCard trainedToday={training?.muscles} />
         </motion.div>
         <motion.div {...rise(2)}>
           {scoreQuery && training
