@@ -7,6 +7,7 @@ import { computeUnifiedStreak } from "../lib/streak.utils";
 import { computeTodayScore } from "../lib/todayScore";
 import { inArc } from "../lib/winterArc";
 import { loadArcChecklist } from "../features/winterArc/useArcChecklist";
+import { settleArcWager } from "../features/winterArc/useArcBosses";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // XP ENGINE — mounted once in AppShell (next to achievement engine).
@@ -67,6 +68,7 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
         if (!granted("arc_drill") && (await db.arcDays.get(today))?.kind === "done") await grantXP("arc_drill");
         if (!granted("arc_checklist") && (await loadArcChecklist(today)).score >= 100) await grantXP("arc_checklist");
       }
+      await settleArcWager(today);
 
       // ── Level-up check ────────────────────────────────────────────────────
       const totalXP = await getTotalXP();
