@@ -1,3 +1,5 @@
+import { ARC_START, dayIndex, inArc, shiftDate, MAX_DEBT_DAYS } from "./winterArc.ts";
+
 // Tiers escalate *within* a day as the midnight deadline nears, then reset to
 // a comeback line the next morning. Harshest-after-a-lapse is exactly when
 // self-blame tips into quitting, so the morning never roasts. Every line hits
@@ -61,3 +63,79 @@ export const COMEBACK: string[] = [
   "The arc forgives repaid debt. Today's the day to pay.",
 ];
 
+export interface VoiceInput {
+  today: string;
+  now: number;
+  joined: string;          // "" = not in the arc → no pushes
+  todayCovered: boolean;   // done or paused — never push once done
+  missed: number;          // open missed streak before today
+  drill?: { name: string; amount: string; minimum: string };
+  wakeHour: number;
+  bedtime: string;         // HH:mm — quiet hours start 30 min before
+  ceiling: 0 | 1 | 2 | 3;  // "dial it down"
+  profanity: boolean;
+  horizonDays?: number;
+}
+export interface ArcPush { id: number; title: string; body: string; at: Date }
+
+export const ARC_PUSH_ID_BASE = 1_000_000;
+const SLOT_FRACTIONS = [0, 0.4, 0.65, 0.85, 1]; // 5 pushes/day max
+
+const atLocal = (date: string, minutes: number) => {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(y, m - 1, d, 0, minutes);
+};
+
+// Future days are pre-scheduled on the assumption you never open the app
+// again — any open re-plans from real data, and completing a drill always
+// happens with the app open.
+function missedOn(date: string, i: VoiceInput, from: string): number {
+  let m = i.missed;
+  for (let x = i.today; x < date; x = shiftDate(x, 1)) {
+    if (x < from) continue;
+    m = x === i.today && i.todayCovered ? 0 : m + 1;
+  }
+  return m;
+}
+
+export function planArcPushes(i: VoiceInput): ArcPush[] {
+  if (!i.joined) return [];
+  const from = i.joined > ARC_START ? i.joined : ARC_START;
+  const [bh, bm] = i.bedtime.split(":").map(Number);
+  let bedMin = bh * 60 + bm;
+  if (bedMin < i.wakeHour * 60) bedMin += 24 * 60;
+  const first = (i.wakeHour + 1) * 60;
+  const last = Math.min(bedMin - 30, 23 * 60 + 30);
+  if (last <= first) return [];
+
+  const out: ArcPush[] = [];
+  for (let k = 0; k < (i.horizonDays ?? 7); k++) {
+    const date = shiftDate(i.today, k);
+    if (!inArc(date) || date < from) continue;
+    if (date === i.today && i.todayCovered) continue;
+    const day = dayIndex(date);
+    const missed = missedOn(date, i, from);
+    const action = date === i.today && i.drill
+      ? `${i.drill.name} · ${i.drill.amount}`
+      : "Open Zenith and clear today's drill.";
+
+    SLOT_FRACTIONS.forEach((f, slot) => {
+      const at = atLocal(date, Math.round(first + (last - first) * f));
+      if (at.getTime() <= i.now) return;
+      const tier = (slot === 4 && i.profanity ? 4 : Math.min(slot, i.ceiling)) as Tier;
+      let line: string;
+      if (slot === 0 && missed > 0) {
+        const debt = Math.min(missed, MAX_DEBT_DAYS);
+        line = `${COMEBACK[day % COMEBACK.length]} Debt: ${debt} day${debt === 1 ? "" : "s"}.`;
+      } else {
+        const pool = LINES[tier];
+        line = pool[(day + slot) % pool.length];
+      }
+      const tail = slot >= 2 && i.drill && date === i.today ? ` Minimum counts: ${i.drill.minimum}.` : "";
+      out.push({
+        id: ARC_PUSH_ID_BASE + day * 10 + slot, title: `Winter Arc · Day ${day + 1}`, body: `${line} ${action}${tail}`, at,
+      });
+    });
+  }
+  return out;
+}
