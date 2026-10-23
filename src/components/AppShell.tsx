@@ -25,6 +25,7 @@ import { convexConfigured } from "../lib/convexClient";
 import { GoogleCalendarSyncEngine } from "../features/googleCalendar/useGoogleCalendarSync";
 import { CloudSyncEngine } from "../features/sync/useSync";
 import { useArcVoice } from "../features/winterArc/useArcVoice";
+import { ArcSocialSync } from "../features/winterArc/ArcSocial";
 
 const DebugPanel = lazy(() => import("./DebugPanel").then((m) => ({ default: m.DebugPanel })));
 
@@ -90,6 +91,7 @@ export function AppShell() {
           ConvexAuthProvider when configured. */}
       {convexConfigured && <GoogleCalendarSyncEngine />}
       {convexConfigured && <CloudSyncEngine />}
+      {convexConfigured && <ArcSocialSync />}
       <PRCelebration />
       <PeakFlash triggerKey={eggs.peakFlash} />
       <BirthdayConfetti />
