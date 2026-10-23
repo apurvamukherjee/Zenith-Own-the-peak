@@ -50,3 +50,22 @@
 .arc-gate__skip label { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: rgba(255, 255, 255, 0.78); }
 .arc-gate__skip b { color: #fff; }
 .arc-card__ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Checklist — themed (light/dark), unlike the always-dark hero card. */
+.arc-card + .arc-list { margin-top: 14px; }
+.arc-list { padding: 14px; border-radius: 22px; background: var(--surface); border: 1px solid var(--border); }
+.arc-list__head { display: flex; align-items: center; gap: 8px; }
+.arc-list__xp { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--ink-soft); }
+.arc-list__score { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+.arc-list__bar { height: 6px; margin: 10px 0 6px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.arc-list__bar i { display: block; height: 100%; border-radius: inherit; background: var(--info); transition: width 0.4s cubic-bezier(.22, 1, .36, 1); }
+.arc-list ul { margin: 0; padding: 0; list-style: none; }
+.arc-list li { border-top: 1px solid var(--border); }
+.arc-list li:first-child { border-top: 0; }
+.arc-list__item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+span.arc-list__item { cursor: default; }
+.arc-list__item svg { flex-shrink: 0; color: var(--ink-soft); }
+.arc-list li.is-done .arc-list__item svg { color: var(--info); }
+.arc-list li.is-done .arc-list__item { color: var(--ink-soft); }
+.arc-list__item em { margin-left: auto; font-style: normal; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+.arc-list__note { margin: -4px 0 8px 26px; font-size: 11.5px; line-height: 1.4; color: var(--warn); }
