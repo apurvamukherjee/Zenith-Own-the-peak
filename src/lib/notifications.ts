@@ -6,6 +6,7 @@
 // registerPlugin proxy, so the web bundle cost is negligible.
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications as LN } from "@capacitor/local-notifications";
+import { ARC_PUSH_ID_BASE } from "./arcVoice";
 
 export interface ReminderConfig {
   water: boolean; waterEveryH: number;
@@ -78,7 +79,11 @@ export async function requestNotificationPermission(): Promise<boolean> {
 // reminders (ids TASK_REMINDER_ID_BASE+) both live in the same native pending
 // queue, so each scheduler only ever cancels/rewrites notifications in its own
 // id range — otherwise re-syncing one would wipe out the other.
+// Winter Arc pushes (ARC_PUSH_ID_BASE+) sit above every task id, so task
+// re-syncs must stop short of them.
 export const TASK_REMINDER_ID_BASE = 20000;
+const TASK_RANGE: [number, number] = [TASK_REMINDER_ID_BASE, ARC_PUSH_ID_BASE];
+export const ARC_RANGE: [number, number] = [ARC_PUSH_ID_BASE, ARC_PUSH_ID_BASE * 2];
 const DAILY_REMINDER_ID_BASE = 1000;
 // Below both ranges so neither re-sync cancels a running rest timer.
 const REST_TIMER_ID = 1;
@@ -126,11 +131,11 @@ export interface OneOffReminder { id: number; title: string; body: string; at: D
 // Schedule one-off (non-repeating) native notifications for specific dated
 // calendar events with a "remind me" time set — distinct from the repeating
 // time-of-day reminders above.
-export async function applyOneOffReminders(reminders: OneOffReminder[]): Promise<boolean> {
+export async function applyOneOffReminders(reminders: OneOffReminder[], [lo, hi] = TASK_RANGE): Promise<boolean> {
   try {
     const exact = await canExact();
     const pending = await LN.getPending();
-    const ours = pending.notifications.filter((n) => n.id >= TASK_REMINDER_ID_BASE);
+    const ours = pending.notifications.filter((n) => n.id >= lo && n.id < hi);
     if (ours.length) await LN.cancel({ notifications: ours.map((n) => ({ id: n.id })) });
     if (reminders.length) {
       await LN.schedule({
