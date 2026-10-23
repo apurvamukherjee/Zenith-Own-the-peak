@@ -10,6 +10,7 @@ import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as a
 import { useArcToday, completeDrill, pauseDay, setReadiness, type ArcToday } from "./useWinterArc";
 import { ArcGate } from "./ArcGate";
 import { ArcChecklist } from "./ArcChecklist";
+import { GAUNTLET } from "../../lib/arcCalendar";
 import { VowSheet } from "./VowSheet";
 import { parseVow } from "../../lib/arcChecklist";
 import "./arc.css";
@@ -90,6 +91,9 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
       <div className="arc-card__eyebrow">
         <TbSnowflake size={14} /> Winter Arc · Day {arc.day}/{ARC_DAYS} · {PHASE_LABEL[arc.phase]}
       </div>
+      {arc.gauntlet !== null && (
+        <div className="arc-card__theme"><b>Festival Gauntlet</b> {arc.gauntlet}/{GAUNTLET.need} kept · Nov 8–19 · survive, don't thrive</div>
+      )}
       {arc.theme && (
         <div className={`arc-card__theme${arc.theme.indoor ? " is-indoor" : ""}`}>
           <b>{arc.theme.indoor && <TbHome size={12} />} {arc.theme.title}</b> {arc.theme.copy}
