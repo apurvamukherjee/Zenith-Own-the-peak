@@ -24,6 +24,7 @@ export function useArcVoice(): void {
   const skipped = String(useSetting("arcSkipped"));
   const ifThen = String(useSetting("arcIfThen"));
   const vowWhen = parseVow(String(useSetting("arcVow")))?.when;
+  const examUntil = String(useSetting("arcExamUntil"));
   const training = useTrainingToday();
   const arc = useArcToday(training?.muscles);
 
@@ -32,7 +33,7 @@ export function useArcVoice(): void {
     quietToday: skipped === arc.date,
     plan: skipped && ifThen ? { date: shiftDate(skipped, 1), text: ifThen } : undefined,
     drill: { name: arc.drill.name, amount: drillAmount(arc.drill), minimum: drillAmount(minimumOf(arc.drill)) },
-    wakeHour, bedtime, anchorMin: vowWhen ? Number(vowWhen.slice(0, 2)) * 60 + Number(vowWhen.slice(3, 5)) : undefined, ceiling: Math.max(0, Math.min(3, tone)) as 0 | 1 | 2 | 3, profanity, horizonDays: HORIZON_DAYS,
+    wakeHour, bedtime, anchorMin: vowWhen ? Number(vowWhen.slice(0, 2)) * 60 + Number(vowWhen.slice(3, 5)) : undefined, ceiling: Math.max(0, Math.min(3, tone)) as 0 | 1 | 2 | 3, profanity, horizonDays: HORIZON_DAYS, examUntil,
   }) : [];
 
   const key = pushes.map((p) => `${p.id}:${p.at.getTime()}:${p.body}`).join("|");
