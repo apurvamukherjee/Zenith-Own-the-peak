@@ -6,7 +6,7 @@
 // registerPlugin proxy, so the web bundle cost is negligible.
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications as LN } from "@capacitor/local-notifications";
-import { ARC_PUSH_ID_BASE } from "./arcVoice";
+import { ARC_PUSH_ID_BASE, ARC_PRIVATE_CHANNEL } from "./arcVoice";
 
 export interface ReminderConfig {
   water: boolean; waterEveryH: number;
@@ -124,6 +124,11 @@ export async function scheduleRestNotification(title: string, body: string, at: 
 }
 export async function cancelRestNotification(): Promise<void> {
   await LN.cancel({ notifications: [{ id: REST_TIMER_ID }] });
+}
+
+export async function ensureArcPrivateChannel(): Promise<void> {
+  if (Capacitor.getPlatform() !== "android") return;
+  await LN.createChannel({ id: ARC_PRIVATE_CHANNEL, name: "Winter Arc · unhinged", importance: 4, visibility: 0 });
 }
 
 export interface OneOffReminder { id: number; title: string; body: string; at: Date; channelId?: string }
