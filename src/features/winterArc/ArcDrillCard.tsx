@@ -5,8 +5,9 @@ import type { MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
 import { hapticSuccess } from "../../lib/haptics";
 import { todayKey } from "../../lib/date.utils";
-import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as amount, type Drill, type Readiness } from "../../lib/winterArc";
+import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as amount, shouldShowGate, type Drill, type Readiness } from "../../lib/winterArc";
 import { useArcToday, completeDrill, pauseDay, setReadiness, type ArcToday } from "./useWinterArc";
+import { ArcGate } from "./ArcGate";
 import "./arc.css";
 
 const PHASE_LABEL = { calibration: "Calibration", build: "Build", deload: "Deload", taper: "Taper", finale: "Finale" } as const;
@@ -40,10 +41,13 @@ export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | u
 function ArcDay({ arc }: { arc: ArcToday }) {
   const { drill, row } = arc;
   const done = row?.kind === "done";
+  const later = String(useSetting("arcGateLater"));
+  const skipped = String(useSetting("arcSkipped"));
   const finish = (d: Drill) => { void completeDrill(arc, d).then(hapticSuccess); };
 
   return (
     <div className={`arc-card${done ? " is-done" : ""}${row?.kind === "exempt" ? " is-exempt" : ""}`}>
+      {shouldShowGate(arc.date, !!row, later, skipped, new Date().getHours()) && <ArcGate arc={arc} onFinish={finish} />}
       <div className="arc-card__eyebrow">
         <TbSnowflake size={14} /> Winter Arc · Day {arc.day}/{ARC_DAYS} · {PHASE_LABEL[arc.phase]}
       </div>
