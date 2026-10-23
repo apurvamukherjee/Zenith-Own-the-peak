@@ -4,7 +4,7 @@ import { useSetting } from "../../hooks/useSettings";
 import { useTrainingToday } from "../dashboard/useHomeData";
 import { isNativeNotifications, applyOneOffReminders, startTaskReminderWebLoop, ensureArcPrivateChannel, ARC_RANGE } from "../../lib/notifications";
 import { planArcPushes } from "../../lib/arcVoice";
-import { drillAmount, minimumOf } from "../../lib/winterArc";
+import { drillAmount, minimumOf, shiftDate } from "../../lib/winterArc";
 import { useArcToday } from "./useWinterArc";
 
 // Re-plans the arc's pushes from real data on every relevant change: finishing
@@ -20,11 +20,15 @@ export function useArcVoice(): void {
   const profanity = Number(useSetting("arcProfanity")) === 1;
   const wakeHour = Number(useSetting("wakeHour"));
   const bedtime = String(useSetting("remBedtimeAt"));
+  const skipped = String(useSetting("arcSkipped"));
+  const ifThen = String(useSetting("arcIfThen"));
   const training = useTrainingToday();
   const arc = useArcToday(training?.muscles);
 
   const pushes = on && arc ? planArcPushes({
     today: arc.date, now: Date.now(), joined, todayCovered: !!arc.row, missed: arc.missed,
+    quietToday: skipped === arc.date,
+    plan: skipped && ifThen ? { date: shiftDate(skipped, 1), text: ifThen } : undefined,
     drill: { name: arc.drill.name, amount: drillAmount(arc.drill), minimum: drillAmount(minimumOf(arc.drill)) },
     wakeHour, bedtime, ceiling: Math.max(0, Math.min(3, tone)) as 0 | 1 | 2 | 3, profanity, horizonDays: HORIZON_DAYS,
   }) : [];
