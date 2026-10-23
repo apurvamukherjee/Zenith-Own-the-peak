@@ -66,16 +66,20 @@ const WEAK_WORDS = new Set(["barbell", "dumbbell", "cable", "machine", "bodyweig
 const words = (s: string) => s.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 3);
 
 // Closest library exercise by shared (or prefix-matching) words, so a new
-// custom "Paused bench" can borrow Bench Press's muscles. Ties go to the
-// shorter, more generic name.
+// custom "Paused bench" can borrow Bench Press's muscles. Ties are settled by
+// majority muscle (most "bench" lifts are chest, not Bench Dip's triceps),
+// then by the shortest, most generic name.
 export function guessExercise(name: string, library: ExerciseDto[]): ExerciseDto | undefined {
   const want = words(name);
-  let best: ExerciseDto | undefined;
-  let bestScore = 0;
-  for (const ex of library) {
+  const scored = library.map((ex) => {
     const have = words(ex.name);
-    const score = want.reduce((s, w) => s + (have.some((h) => h.startsWith(w) || w.startsWith(h)) ? (WEAK_WORDS.has(w) ? 0.25 : 1) : 0), 0);
-    if (score > bestScore || (score === bestScore && best && ex.name.length < best.name.length)) { best = ex; bestScore = score; }
-  }
-  return bestScore >= 1 ? best : undefined;
+    return { ex, score: want.reduce((s, w) => s + (have.some((h) => h.startsWith(w) || w.startsWith(h)) ? (WEAK_WORDS.has(w) ? 0.25 : 1) : 0), 0) };
+  });
+  const top = Math.max(0, ...scored.map((s) => s.score));
+  if (top < 1) return undefined;
+  const tied = scored.filter((s) => s.score === top).map((s) => s.ex);
+  const votes = new Map<MuscleGroup, number>();
+  tied.forEach((e) => votes.set(e.primaryMuscle, (votes.get(e.primaryMuscle) ?? 0) + 1));
+  const muscle = [...votes].sort((a, b) => b[1] - a[1])[0][0];
+  return tied.filter((e) => e.primaryMuscle === muscle).sort((a, b) => a.name.length - b.name.length)[0];
 }

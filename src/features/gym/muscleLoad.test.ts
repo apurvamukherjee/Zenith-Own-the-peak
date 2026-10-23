@@ -39,7 +39,8 @@ test("volume status bands", () => {
 test("guessExercise borrows muscles from the closest library name", () => {
   const named = (id: number, name: string, primaryMuscle: ExerciseDto["primaryMuscle"]): ExerciseDto =>
     ({ id, name, primaryMuscle, secondaryMuscles: [], equipment: "", isCustom: 0 });
-  const library = [named(1, "Flat Barbell Bench Press", "chest"), named(2, "Leg Press", "quads"), named(3, "Barbell Curl", "biceps"), named(4, "Lat Pulldown", "back")];
+  const library = [named(1, "Flat Barbell Bench Press", "chest"), named(2, "Leg Press", "quads"), named(3, "Barbell Curl", "biceps"), named(4, "Lat Pulldown", "back"),
+    named(5, "Bench Dip", "triceps"), named(6, "Incline Barbell Bench Press", "chest")];
   assert.equal(guessExercise("Paused bench", library)?.id, 1);
   assert.equal(guessExercise("single leg press", library)?.id, 2);
   assert.equal(guessExercise("hammer curls", library)?.id, 3);
