@@ -126,7 +126,7 @@ export async function cancelRestNotification(): Promise<void> {
   await LN.cancel({ notifications: [{ id: REST_TIMER_ID }] });
 }
 
-export interface OneOffReminder { id: number; title: string; body: string; at: Date }
+export interface OneOffReminder { id: number; title: string; body: string; at: Date; channelId?: string }
 
 // Schedule one-off (non-repeating) native notifications for specific dated
 // calendar events with a "remind me" time set — distinct from the repeating
@@ -141,6 +141,7 @@ export async function applyOneOffReminders(reminders: OneOffReminder[], [lo, hi]
       await LN.schedule({
         notifications: reminders.map((r) => ({
           id: r.id, title: r.title, body: r.body, schedule: { at: r.at, allowWhileIdle: true }, isExactNotification: exact,
+          channelId: r.channelId,
         })),
       });
     }
