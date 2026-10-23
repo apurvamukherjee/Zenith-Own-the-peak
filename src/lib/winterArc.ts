@@ -98,3 +98,6 @@ export function drillFor(date: string, missedBefore = 0, avoid: MuscleGroup[] = 
 
 export const drillAmount = (d: Drill) => d.unit === "sec" ? `${d.target}s hold` : d.unit === "min" ? `${d.target} min` : `${d.target} reps`;
 
+/** The 5-minute floor: half of today's base, keeps the chain, repays nothing. */
+export const minimumOf = (d: Drill): Drill => ({ ...d, target: roundTo(d.base / 2, d.unit), debtDays: 0, kind: "minimum" });
+
