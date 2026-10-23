@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { App, Popconfirm } from "antd";
-import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit, TbHome } from "react-icons/tb";
+import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit, TbSchool, TbHome } from "react-icons/tb";
 import type { MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
 import { hapticSuccess } from "../../lib/haptics";
@@ -149,6 +149,10 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
         <span>{arc.kept} kept</span>
         {arc.scars > 0 && <span>{arc.scars} scar{arc.scars === 1 ? "" : "s"}</span>}
         <button type="button" className="arc-card__link" onClick={onVow}>{signed ? "Vow" : "Sign your vow"}</button>
+        <button type="button" className="arc-card__link" aria-pressed={arc.exam}
+          onClick={() => void setSetting("arcExamUntil", arc.exam ? "" : shiftDate(arc.date, 6))}>
+          <TbSchool size={13} /> {arc.exam ? "Exam Mode on · end it" : "Exam Mode"}
+        </button>
         {!row && (
           <Popconfirm title="Sick or injured today?" description="No miss, no debt." okText="Pause today" cancelText="Cancel"
             onConfirm={() => void pauseDay(arc.date)}>
