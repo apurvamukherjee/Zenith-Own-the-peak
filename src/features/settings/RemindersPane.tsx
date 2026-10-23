@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
-import { App, Switch } from "antd";
+import { App, Segmented, Switch } from "antd";
 import { AnimatePresence, motion } from "framer-motion";
-import { TbBellRinging, TbBellOff, TbDroplet, TbBarbell, TbMoonStars, TbPill, TbCalendarEvent, TbMinus, TbPlus } from "react-icons/tb";
+import { TbBellRinging, TbBellOff, TbDroplet, TbBarbell, TbMoonStars, TbPill, TbCalendarEvent, TbMinus, TbPlus, TbSnowflake } from "react-icons/tb";
 import { TimeSelect } from "../../components/TimeSelect";
 import { ListGroup, ListRow } from "../../components/ui/List";
 import { useSetting, setSetting, type SettingKey } from "../../hooks/useSettings";
@@ -38,6 +38,8 @@ export function RemindersPane() {
   const every = Number(useSetting("remWaterEveryH"));
   const sessionAt = String(useSetting("remSessionAt"));
   const bedAt = String(useSetting("remBedtimeAt"));
+  const arcTone = Number(useSetting("arcTone"));
+  const arcProfanity = Number(useSetting("arcProfanity")) === 1;
   const granted = native || perm === "granted";
 
   async function enable() {
@@ -89,6 +91,20 @@ export function RemindersPane() {
       <ListGroup title="From your plans" footer="Event reminders fire for anything scheduled with “Remind me” on the calendar.">
         <ToggleRow k="remSupps" row="supps" icon={<TbPill size={16} />} color="var(--teal)" label="Supplement & med times" hint="From your Nutrition schedule" />
         <ToggleRow k="remEvents" row="events" icon={<TbCalendarEvent size={16} />} color="var(--info)" label="Event reminders" hint="Per-event alerts from the calendar" />
+      </ListGroup>
+
+      <ListGroup title="Winter Arc" footer="Up to 5 a day until the drill's done, getting harsher toward midnight. Mornings after a miss are a comeback, never a roast. Quiet from 30 min before bedtime.">
+        <ToggleRow k="remArc" row="arc" icon={<TbSnowflake size={16} />} color="var(--info)" label="Drill pushes" hint="Stops the moment today's drill is done">
+          <div className="zs-arc-tone">
+            <span>How harsh can it get</span>
+            <Segmented size="small" value={arcTone} onChange={(v) => setSetting("arcTone", Number(v))}
+              options={[{ label: "Coach", value: 0 }, { label: "Nag", value: 1 }, { label: "Roast", value: 2 }, { label: "Savage", value: 3 }]} />
+            <label className="zs-arc-tone__swear">
+              <Switch size="small" checked={arcProfanity} onChange={(v) => setSetting("arcProfanity", v ? 1 : 0)} aria-label="Unhinged last push" />
+              <span>Unhinged last push <em>(swearing)</em></span>
+            </label>
+          </div>
+        </ToggleRow>
       </ListGroup>
     </>
   );
