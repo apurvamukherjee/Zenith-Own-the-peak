@@ -68,6 +68,7 @@ export interface VoiceInput {
   now: number;
   joined: string;          // "" = not in the arc → no pushes
   todayCovered: boolean;   // done or paused — never push once done
+  quietToday?: boolean;    // skipped via the gate: still a miss, but no more nagging today
   missed: number;          // open missed streak before today
   drill?: { name: string; amount: string; minimum: string };
   wakeHour: number;
@@ -116,7 +117,7 @@ export function planArcPushes(i: VoiceInput): ArcPush[] {
   for (let k = 0; k < (i.horizonDays ?? 7); k++) {
     const date = shiftDate(i.today, k);
     if (!inArc(date) || date < from) continue;
-    if (date === i.today && i.todayCovered) continue;
+    if (date === i.today && (i.todayCovered || i.quietToday)) continue;
     const day = dayIndex(date);
     const missed = missedOn(date, i, from);
     const action = date === i.today && i.drill
