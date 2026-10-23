@@ -3,7 +3,10 @@ import { db } from "../../db/db";
 import { DEFAULTS, setSetting, useSetting, type SettingKey } from "../../hooks/useSettings";
 import { grantXP } from "../../lib/xp";
 import { shiftDate, ARC_END, LEG_MUSCLES } from "../../lib/winterArc";
-import { type BossDef, type TrialScore, type Wager, type MurphTier, bossFor, trialOpen, wraithHp, canWager, parseJson, PLANK_CAP_SEC } from "../../lib/arcBosses";
+import {
+  type BossDef, type TrialScore, type Wager, type MurphTier, bossFor, trialOpen, wraithHp, canWager, settleWager, parseJson,
+  PLANK_CAP_SEC, WAGER_STAKE,
+} from "../../lib/arcBosses";
 import { arcDayStates } from "../../lib/arcCalendar";
 
 async function raw(key: SettingKey): Promise<string> {
@@ -77,3 +80,23 @@ export async function finishMurph(tier: MurphTier): Promise<void> {
   await setSetting("arcMurph", tier);
   if (first) await grantXP("arc_boss");
 }
+
+export async function placeWager(chapter: number, date: string): Promise<void> {
+  await setSetting("arcWager", JSON.stringify({ chapter, placedOn: date } satisfies Wager));
+  await grantXP("arc_wager_stake");
+}
+
+/** Called from the XP engine: pays out (or not) once the wagered chapter is over. */
+export async function settleArcWager(today: string): Promise<void> {
+  const wager = parseJson<Wager | null>(await raw("arcWager"), null);
+  if (!wager) return;
+  const covered = new Set((await db.arcDays.toArray()).filter((r) => r.kind !== "reserve").map((r) => r.date));
+  const won = settleWager(wager, today, covered);
+  if (won === null) return;
+  await setSetting("arcWager", "");
+  const log = await raw("arcWagerLog");
+  await setSetting("arcWagerLog", [log, `${wager.chapter}:${won ? "won" : "lost"}`].filter(Boolean).join(","));
+  if (won) await grantXP("arc_wager_win");
+}
+
+export { WAGER_STAKE };
