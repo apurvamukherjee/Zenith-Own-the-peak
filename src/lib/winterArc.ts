@@ -96,3 +96,5 @@ export function drillFor(date: string, missedBefore = 0, avoid: MuscleGroup[] = 
   return { name: def.name, unit: def.unit, base, target, debtDays, kind: "full" };
 }
 
+export const drillAmount = (d: Drill) => d.unit === "sec" ? `${d.target}s hold` : d.unit === "min" ? `${d.target} min` : `${d.target} reps`;
+
