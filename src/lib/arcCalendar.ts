@@ -53,3 +53,6 @@ export function chapterOf(date: string): { n: number; start: string; end: string
 export const SECOND_WIND = "2026-12-01";
 export const halfStart = (date: string) => date >= SECOND_WIND ? SECOND_WIND : ARC_START;
 
+// Early milestones are weighted heavier: 2→3 days is +50%, 200→201 is noise.
+export const MILESTONES = [3, 7, 14, 21, 30, 45, 61];
+
