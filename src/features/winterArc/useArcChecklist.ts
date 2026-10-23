@@ -2,6 +2,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { DEFAULTS, setSetting, type SettingKey } from "../../hooks/useSettings";
 import { type ArcFacts, checklist, parseList, parseTicks, toggleTick } from "../../lib/arcChecklist";
+import { inExam } from "../../lib/arcCalendar";
 
 async function setting(key: SettingKey): Promise<string> {
   return String((await db.settings.get(key))?.value ?? DEFAULTS[key]);
@@ -34,8 +35,8 @@ export async function loadArcFacts(date: string): Promise<ArcFacts> {
 }
 
 export async function loadArcChecklist(date: string) {
-  const [facts, rules, ticks] = await Promise.all([loadArcFacts(date), setting("arcRules"), setting("arcTicks")]);
-  return checklist(date, facts, parseList(rules), parseTicks(ticks)[date] ?? []);
+  const [facts, rules, ticks, examUntil] = await Promise.all([loadArcFacts(date), setting("arcRules"), setting("arcTicks"), setting("arcExamUntil")]);
+  return checklist(date, facts, parseList(rules), parseTicks(ticks)[date] ?? [], inExam(date, examUntil));
 }
 
 export function useArcChecklist(date: string) {
