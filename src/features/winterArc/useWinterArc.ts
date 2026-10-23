@@ -64,3 +64,9 @@ export async function completeDrill(arc: ArcToday, drill: Drill): Promise<void> 
     ...settle(arc.date, arc.missed, drill.debtDays, arc.reservesLeft).map((s) => ({ ...s, at })),
   ]);
 }
+
+/** Sick/injury pause — today or, at most, yesterday. */
+export async function pauseDay(date: string): Promise<void> {
+  if (await db.arcDays.get(date)) return;
+  await db.arcDays.put({ date, kind: "exempt", at: Date.now() });
+}
