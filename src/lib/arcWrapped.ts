@@ -1,4 +1,5 @@
 import type { ArcBadgeFacts } from "./arcCalendar.ts";
+import type { TrialScore } from "./arcBosses.ts";
 
 // Wrapped leads with a persona, not a rank: Duolingo's top 10% made over half
 // of all Year-in-Review shares until persona cards gave everyone a card worth
@@ -12,4 +13,14 @@ export function personaFor(f: ArcBadgeFacts, repaired: number, novKept: number, 
   if (decKept >= novKept + 5) return { id: "late-bloomer", title: "Late Bloomer", line: "December you would scare November you." };
   if (f.comebacks >= 5) return { id: "comeback", title: "The Comeback", line: "Knocked down five times. Got back up five times." };
   return { id: "winter-walker", title: "Winter Walker", line: "You walked through the whole winter. Most people stop in week two." };
+}
+
+export interface TrialDelta { label: string; first: number; last: number; delta: number; unit: string }
+/** Day 1 vs the latest Trials logged after it (Dec 30 if there, else Day 31). */
+export function trialDeltas(trials: Record<string, TrialScore>): TrialDelta[] {
+  const first = trials["1"];
+  const last = trials["3"] ?? trials["2"];
+  if (!first || !last) return [];
+  const row = (label: string, k: keyof TrialScore, unit: string) => ({ label, first: first[k], last: last[k], delta: last[k] - first[k], unit });
+  return [row("Max push-ups", "pushups", ""), row("Plank", "plank", "s"), row("Death by push-ups", "deathBy", " min")];
 }
