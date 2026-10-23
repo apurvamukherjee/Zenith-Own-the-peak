@@ -76,7 +76,11 @@ export interface VoiceInput {
   profanity: boolean;
   horizonDays?: number;
 }
-export interface ArcPush { id: number; title: string; body: string; at: Date }
+export interface ArcPush { id: number; title: string; body: string; at: Date; channelId?: string }
+
+// Android channel with private lock-screen visibility, so the swearing push
+// shows only "Zenith" until unlocked. iOS has no per-notification equivalent.
+export const ARC_PRIVATE_CHANNEL = "arc-private";
 
 export const ARC_PUSH_ID_BASE = 1_000_000;
 const SLOT_FRACTIONS = [0, 0.4, 0.65, 0.85, 1]; // 5 pushes/day max
@@ -134,6 +138,7 @@ export function planArcPushes(i: VoiceInput): ArcPush[] {
       const tail = slot >= 2 && i.drill && date === i.today ? ` Minimum counts: ${i.drill.minimum}.` : "";
       out.push({
         id: ARC_PUSH_ID_BASE + day * 10 + slot, title: `Winter Arc · Day ${day + 1}`, body: `${line} ${action}${tail}`, at,
+        ...(tier === 4 && { channelId: ARC_PRIVATE_CHANNEL }),
       });
     });
   }
