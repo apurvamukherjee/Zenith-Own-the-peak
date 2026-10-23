@@ -22,6 +22,10 @@ const XP = {
   arc_drill:     8,   // 5 × 1.5 — today's drill done
   arc_checklist: 15,  // 10 × 1.5 — every arc checklist item done
   arc_comeback:  15,  // 10 × 1.5 — first drill after a miss; the return is what's rewarded
+  arc_boss:      15,  // 10 × 1.5 — a weekly boss or Murph logged
+  arc_trial:     15,  // 10 × 1.5 — a Trials battery logged
+  arc_wager_stake: -50, // staked on a perfect chapter…
+  arc_wager_win: 100,   // …and doubled back if every day was covered
   badge_bronze:  10,
   badge_silver:  20,
   badge_gold:    40,
