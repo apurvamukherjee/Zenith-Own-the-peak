@@ -9,12 +9,13 @@ import {
   type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf,
   LEG_MUSCLES,
 } from "../../lib/winterArc";
-import { halfStart, chapterOf, themeFor, inExam, type ArcDayTheme } from "../../lib/arcCalendar";
+import { halfStart, chapterOf, themeFor, inExam, GAUNTLET, type ArcDayTheme } from "../../lib/arcCalendar";
 
 export interface ArcToday {
   date: string; day: number; phase: ArcPhase; drill: Drill; readiness: Readiness;
   row: ArcDayDto | undefined; missed: number; kept: number; scars: number; reservesLeft: number;
   chapter: { n: number; kept: number; days: number }; theme: ArcDayTheme | undefined; exam: boolean;
+  gauntlet: number | null; // kept so far during Nov 8–19, null outside it
 }
 
 function parseReadiness(raw: string, date: string): Readiness {
@@ -67,6 +68,8 @@ export function useArcToday(trainedToday: MuscleGroup[] | undefined): ArcToday |
         kept: rows.filter((r) => isKept(r) && r.date >= ch.start && r.date <= ch.end).length,
       },
       theme: themeFor(date), exam: inExam(date, examUntil),
+      gauntlet: date >= GAUNTLET.start && date <= GAUNTLET.end
+        ? rows.filter((r) => isKept(r) && r.date >= GAUNTLET.start && r.date <= GAUNTLET.end).length : null,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, joined, reserves, readinessRaw, avoidKey, examUntil]);
