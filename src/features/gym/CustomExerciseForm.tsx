@@ -10,8 +10,8 @@ const EQUIPMENT = ["barbell", "dumbbell", "cable", "machine", "bodyweight", "ket
 
 type Muscles = { primary?: MuscleGroup; secondary: MuscleGroup[] };
 
-// New library exercise. Until the body map is touched, muscles (and
-// equipment) follow the closest existing exercise by name.
+// New library exercise. Muscles follow the closest existing exercise by name
+// until the body map is touched; equipment until an equipment chip is.
 export function CustomExerciseForm({ initialName, onCancel, onCreated, onUseExisting }: {
   initialName: string; onCancel: () => void;
   onCreated: (id: number, name: string) => void; onUseExisting: (ex: ExerciseDto) => void;
@@ -24,7 +24,7 @@ export function CustomExerciseForm({ initialName, onCancel, onCreated, onUseExis
   const [saving, setSaving] = useState(false);
 
   const trimmed = name.trim();
-  const guess = picked ? undefined : guessExercise(trimmed, library);
+  const guess = guessExercise(trimmed, library);
   const muscles: Muscles = picked ?? (guess ? { primary: guess.primaryMuscle, secondary: guess.secondaryMuscles } : { secondary: [] });
   const eq = equipment ?? guess?.equipment ?? "other";
   const existing = library.find((e) => e.name.trim().toLowerCase() === trimmed.toLowerCase());
@@ -59,7 +59,7 @@ export function CustomExerciseForm({ initialName, onCancel, onCreated, onUseExis
       <div className="cx-field">
         <div className="cx-row">
           <span className="ss-field__label">Muscles</span>
-          {guess && <span className="cx-auto"><TbSparkles size={12} /> From {guess.name}</span>}
+          {guess && !picked && <span className="cx-auto"><TbSparkles size={12} /> From {guess.name}</span>}
         </div>
         <ExerciseMusclePicker primary={muscles.primary} secondary={muscles.secondary} onChange={setPicked} />
       </div>
