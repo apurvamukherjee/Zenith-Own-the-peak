@@ -1,3 +1,4 @@
+import { ARC_START, ARC_END, dayIndex, shiftDate } from "./winterArc.ts";
 
 // Kolkata 2026 dates from panchang aggregators — can differ by a day from a
 // Bengali panjika. Bhoot Chaturdashi (Nov 7) and UGC NET (Dec 14–19) are the
@@ -38,4 +39,12 @@ export const ARC_THEMES: ArcDayTheme[] = [
   { date: "2026-12-31", title: "Close the Arc", copy: "Finish it before you go out tonight." },
 ];
 export const themeFor = (date: string) => ARC_THEMES.find((t) => t.date === date);
+
+// Nine Sunday-start chapters (Nov 1 2026 is a Sunday); the ninth runs 5 days.
+export function chapterOf(date: string): { n: number; start: string; end: string } {
+  const n = Math.floor(dayIndex(date) / 7) + 1;
+  const start = shiftDate(ARC_START, (n - 1) * 7);
+  const end = shiftDate(start, 6) > ARC_END ? ARC_END : shiftDate(start, 6);
+  return { n, start, end };
+}
 
