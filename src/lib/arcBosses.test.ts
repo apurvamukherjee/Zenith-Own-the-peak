@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BOSSES, bossFor, trialOpen, murphPlan } from "./arcBosses.ts";
+import { BOSSES, bossFor, trialOpen, murphPlan, wraithHp, WRAITH_HP } from "./arcBosses.ts";
 
 test("one boss per chapter except Trials week and the deload", () => {
   assert.equal(bossFor("2026-11-03"), undefined);
@@ -22,4 +22,11 @@ test("trials open on Day 1, Day 31 and Dec 30", () => {
 test("hostel Murph scales by tier and swaps squats after leg day", () => {
   assert.deepEqual(murphPlan("half", false).map((m) => m.amount), ["50", "100", "25"]);
   assert.equal(murphPlan("full", true)[1].move, "Plank (any split)");
+});
+
+test("the Wraith: kept days and bosses hit it, scars heal it", () => {
+  assert.equal(wraithHp(0, 0, 0), WRAITH_HP);
+  assert.equal(wraithHp(55, 6, 0), 0);
+  assert.equal(wraithHp(10, 1, 3), 53);
+  assert.equal(wraithHp(0, 0, 5), WRAITH_HP + 5);
 });
