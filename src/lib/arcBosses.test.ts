@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BOSSES, bossFor, trialOpen, murphPlan, wraithHp, WRAITH_HP, canWager, settleWager } from "./arcBosses.ts";
+import { BOSSES, bossFor, trialOpen, murphPlan, wraithHp, WRAITH_HP, canWager, settleWager, deck } from "./arcBosses.ts";
 import { shiftDate } from "./winterArc.ts";
 
 test("one boss per chapter except Trials week and the deload", () => {
@@ -42,4 +42,13 @@ test("wager only on a chapter's first day; settles once the chapter ends", () =>
   assert.equal(settleWager(w, "2026-11-15", all), true);
   all.delete("2026-11-11");
   assert.equal(settleWager(w, "2026-11-15", all), false);
+});
+
+test("deck: 52 cards, seeded, heart squats swap after leg day", () => {
+  const d = deck("2026-11-08");
+  assert.equal(d.length, 52);
+  assert.deepEqual(d, deck("2026-11-08"));
+  assert.notDeepEqual(d, deck("2026-11-09"));
+  assert.equal(d.reduce((n, c) => n + c.reps, 0), 4 * (11 + 54 + 30));
+  assert.ok(deck("x", true).every((c) => c.move !== "squats"));
 });
