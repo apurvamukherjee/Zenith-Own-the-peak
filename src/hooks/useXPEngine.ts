@@ -5,6 +5,8 @@ import { db } from "../db/db";
 import { todayKey } from "../lib/date.utils";
 import { computeUnifiedStreak } from "../lib/streak.utils";
 import { computeTodayScore } from "../lib/todayScore";
+import { inArc } from "../lib/winterArc";
+import { loadArcChecklist } from "../features/winterArc/useArcChecklist";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // XP ENGINE — mounted once in AppShell (next to achievement engine).
@@ -59,6 +61,12 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
       const { score } = await computeTodayScore(waterGoal, proteinTarget);
       if (score >= 100 && !granted("discipline_100")) await grantXP("discipline_100");
       else if (score >= 80 && !granted("discipline_80") && !granted("discipline_100")) await grantXP("discipline_80");
+
+      // ── Winter Arc: drill + full checklist, once per day each ─────────────
+      if (inArc(today) && (await db.settings.get("arcJoined"))?.value) {
+        if (!granted("arc_drill") && (await db.arcDays.get(today))?.kind === "done") await grantXP("arc_drill");
+        if (!granted("arc_checklist") && (await loadArcChecklist(today)).score >= 100) await grantXP("arc_checklist");
+      }
 
       // ── Level-up check ────────────────────────────────────────────────────
       const totalXP = await getTotalXP();
