@@ -3,6 +3,7 @@ import { computeScoresForMonth } from "./dayScore";
 import { computeUnifiedStreak } from "./streak.utils";
 import type { GlyphName } from "../components/ColdIcon";
 import { arcBadgeFacts, type ArcBadgeFacts } from "./arcCalendar";
+import { wraithHp, parseJson, type TrialScore } from "./arcBosses";
 
 // ---- Tiers ---------------------------------------------------------------
 export type Tier = "bronze" | "silver" | "gold" | "platinum" | "mythic";
@@ -70,6 +71,7 @@ export interface AchievementContext {
   hasSpeedSession: boolean;       // any session: all planned sets done in <30min with ≥12 sets
   reflectiveYears: number;        // count of distinct palindrome years collected
   arc: ArcBadgeFacts;
+  arcFights: { pushupBest: number; wraithSlain: boolean; murph: string };
 }
 
 // Longest consecutive-day run in a set of YYYY-MM-DD dates.
@@ -106,9 +108,14 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
       db.settings.get("eggReflective"),
     ]);
   const items = await db.studyItems.toArray();
-  const [arcRows, arcJoined, arcReserves] = await Promise.all([
+  const [arcRows, arcJoined, arcReserves, arcTrials, arcBosses, arcMurph] = await Promise.all([
     db.arcDays.toArray(), db.settings.get("arcJoined"), db.settings.get("arcReserves"),
+    db.settings.get("arcTrials"), db.settings.get("arcBossScores"), db.settings.get("arcMurph"),
   ]);
+  const arc = arcBadgeFacts(arcRows, String(arcJoined?.value ?? ""), Number(arcReserves?.value ?? 3));
+  const trialScores = Object.values(parseJson<Record<string, TrialScore>>(String(arcTrials?.value ?? ""), {}));
+  const bossScores = parseJson<Record<string, number>>(String(arcBosses?.value ?? ""), {});
+  const murph = String(arcMurph?.value ?? "");
 
   // Union of all active dates → best overall streak + distinct active days.
   const active = new Set<string>();
@@ -229,7 +236,12 @@ export async function buildContext(waterGoal: number, proteinTarget: number): Pr
     bestWaterStreak,
     hasSpeedSession,
     reflectiveYears,
-    arc: arcBadgeFacts(arcRows, String(arcJoined?.value ?? ""), Number(arcReserves?.value ?? 3)),
+    arc,
+    arcFights: {
+      pushupBest: Math.max(0, ...trialScores.map((t) => t.pushups), bossScores["pushup-max-2"] ?? 0),
+      wraithSlain: !!arcJoined?.value && wraithHp(arc.kept, Object.keys(bossScores).length + (murph ? 1 : 0), arc.scars) === 0,
+      murph,
+    },
   };
 }
 
