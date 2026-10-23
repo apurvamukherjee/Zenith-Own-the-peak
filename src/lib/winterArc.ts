@@ -53,4 +53,46 @@ export function phaseOf(date: string): ArcPhase {
   if (day === ARC_DAYS) return "finale";
   return "build";
 }
+const PHASE_SCALE: Record<ArcPhase, number> = { calibration: 1, build: 1, deload: 0.5, taper: 0.5, finale: 1 };
+
+// Seeded Fisher–Yates per cycle through the pool: random-looking, the same on
+// every device, and no repeats until every drill has come up once.
+function cycleOrder(cycle: number): DrillDef[] {
+  let s = cycle * 2654435761 >>> 0;
+  const rand = () => { s = (s + 0x6d2b79f5) >>> 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 2 ** 32; };
+  const out = [...DRILLS];
+  for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
+  return out;
+}
+
+export type Readiness = "fine" | "sore" | "wrecked";
+export type DrillKind = "full" | "minimum" | "recovery";
+export interface Drill { name: string; unit: DrillUnit; base: number; target: number; debtDays: number; kind: DrillKind }
+
+// Missed days carry over as +50% each, capped at 2 days, and the total never
+// passes 1.5× the movement's arc peak — so a bad week can't snowball into an
+// unsafe single-day volume.
+export const MAX_DEBT_DAYS = 2;
+
+export const RECOVERY: Drill = { name: "Recovery · McGill Big 3 + hips", unit: "min", base: 8, target: 8, debtDays: 0, kind: "recovery" };
+
+const roundTo = (n: number, unit: DrillUnit) => { const step = unit === "sec" ? 5 : 1; return Math.max(step, Math.round(n / step) * step); };
+
+/** `avoid`: muscles today's (and yesterday's leg) session hits — no push-up quota on chest day. */
+export function drillFor(date: string, missedBefore = 0, avoid: MuscleGroup[] = [], readiness: Readiness = "fine"): Drill {
+  if (readiness !== "fine") return RECOVERY;
+  const i = Math.max(0, Math.min(ARC_DAYS - 1, dayIndex(date)));
+  const n = DRILLS.length;
+  const order = cycleOrder(Math.floor(i / n) + 1);
+  let def = order[i % n];
+  for (let k = 0; k < n; k++) {
+    const d = order[(i + k) % n];
+    if (!avoid.includes(d.muscle)) { def = d; break; }
+  }
+  const ramp = def.from + (def.to - def.from) * i / (ARC_DAYS - 1);
+  const base = roundTo(ramp * PHASE_SCALE[phaseOf(date)], def.unit);
+  const debtDays = Math.min(missedBefore, MAX_DEBT_DAYS);
+  const target = Math.min(roundTo(base * (1 + 0.5 * debtDays), def.unit), roundTo(def.to * 1.5, def.unit));
+  return { name: def.name, unit: def.unit, base, target, debtDays, kind: "full" };
+}
 
