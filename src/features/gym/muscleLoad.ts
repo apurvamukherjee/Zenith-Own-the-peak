@@ -1,4 +1,4 @@
-import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types";
+import type { DayExerciseDto, ExerciseDto, MuscleGroup, WeekScheduleDto, WorkoutSetDto } from "../../db/types";
 
 export interface MuscleRow { muscle: MuscleGroup; total: number; done: number }
 
@@ -22,4 +22,31 @@ export function muscleLoad(
   }
   const hot = [...rows.keys()];
   return { hot, warm: [...warm].filter((m) => !rows.has(m)), rows: [...rows.values()] };
+}
+
+export type MuscleTally = Partial<Record<MuscleGroup, number>>;
+
+// Sets per muscle, the usual way volume is counted: a set is a full set for
+// its primary muscle and half a set for each assist.
+export function tallySets(entries: { exerciseId: number; sets: number }[], library: ExerciseDto[]): MuscleTally {
+  const byId = new Map(library.map((e) => [e.id, e]));
+  const tally: MuscleTally = {};
+  const add = (m: MuscleGroup, n: number) => { tally[m] = (tally[m] ?? 0) + n; };
+  for (const { exerciseId, sets } of entries) {
+    const ex = byId.get(exerciseId);
+    if (!ex) continue;
+    add(ex.primaryMuscle, sets);
+    ex.secondaryMuscles.forEach((m) => add(m, sets / 2));
+  }
+  return tally;
+}
+
+// Planned sets per muscle across one week of the schedule.
+export function weeklyPlanTally(schedule: WeekScheduleDto[], dayExercises: DayExerciseDto[], library: ExerciseDto[]): MuscleTally {
+  const entries = schedule.filter((s) => s.dayId).flatMap((s) => dayExercises.filter((d) => d.dayId === s.dayId));
+  return tallySets(entries, library);
+}
+
+export function loggedTally(sets: Pick<WorkoutSetDto, "exerciseId">[], library: ExerciseDto[]): MuscleTally {
+  return tallySets(sets.map((s) => ({ exerciseId: s.exerciseId, sets: 1 })), library);
 }

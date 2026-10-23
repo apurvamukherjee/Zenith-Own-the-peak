@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { muscleLoad } from "./muscleLoad.ts";
+import { muscleLoad, weeklyPlanTally, loggedTally } from "./muscleLoad.ts";
 import type { DayExerciseDto, ExerciseDto, WorkoutSetDto } from "../../db/types";
 
 const lib: ExerciseDto[] = [
@@ -20,4 +20,14 @@ test("day muscles lead, primaries are hot, secondaries only warm when not hot", 
 
 test("secondary muscles show warm", () => {
   assert.deepEqual(muscleLoad([], [plan(1, 3)], lib).warm, ["triceps", "shoulders"]);
+});
+
+test("tally counts primary sets fully and assists as half", () => {
+  const t = weeklyPlanTally(
+    [{ weekday: 1, dayId: 1 }, { weekday: 4, dayId: 1 }, { weekday: 0, dayId: 0 }],
+    [plan(1, 3), { ...plan(2, 2), dayId: 2 }],
+    lib,
+  );
+  assert.deepEqual(t, { chest: 6, triceps: 3, shoulders: 3 });
+  assert.deepEqual(loggedTally([set(2, 1), set(1, 1)], lib), { triceps: 1.5, chest: 1, shoulders: 0.5 });
 });
