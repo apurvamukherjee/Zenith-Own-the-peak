@@ -109,3 +109,20 @@ export function missedStreak(date: string, covered: ReadonlySet<string>, joined:
   return n;
 }
 
+export type SettledKind = "repaired" | "reserve";
+/**
+ * What finishing today's drill does to the open missed streak, newest first:
+ * debt repairs the nearest days, reserves then cover what debt can't, and
+ * anything left stays a scar (no row).
+ */
+export function settle(date: string, missed: number, repaid: number, reservesLeft: number): { date: string; kind: SettledKind }[] {
+  const out: { date: string; kind: SettledKind }[] = [];
+  for (let k = 1; k <= missed; k++) {
+    const d = shiftDate(date, -k);
+    if (k <= repaid) out.push({ date: d, kind: "repaired" });
+    else if (reservesLeft-- > 0) out.push({ date: d, kind: "reserve" });
+  }
+  return out;
+}
+
+export const ARC_RESERVES = 3;
