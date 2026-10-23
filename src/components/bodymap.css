@@ -30,6 +30,9 @@ html[data-motion="reduce"] .bm-outline path, html[data-motion="reduce"] .bm-heat
 html[data-motion="reduce"] .bm-flash { display: none; }
 
 .is-pick .bm-idle, .is-pick .bm-heat { cursor: pointer; }
+/* A tap has to answer now, not wait for the entrance stagger. */
+.is-pick .bm-heat { animation-delay: 0s; animation-duration: 0.25s; }
+.is-pick .bm-glow path { animation-delay: 0s, 0.6s; animation-duration: 0.25s, 2.8s; }
 /* Touch screens keep :hover on the last tapped part, which would read as lit. */
 @media (hover: hover) { .is-pick .bm-idle:hover { fill: color-mix(in srgb, var(--accent) 22%, var(--surface-2)); } }
 
