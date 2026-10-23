@@ -368,6 +368,22 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "time_symmetrist", name: "Time Symmetrist", desc: "Palindrome badges across 3 different years.", hint: "Hidden objective.", teaser: "Collect palindromes across the years.", mystery: true, tier: "platinum", group: "mystery", glyph: "prism", progress: thr((c) => c.reflectiveYears, 3, "years") },
   { id: "the_archivist", name: "The Archivist", desc: "10 cloud backups. Your data outlives your device.", hint: "Back up consistently.", mystery: false, tier: "silver", group: "road", glyph: "monolith", progress: thr((c) => c.backupCount, 10, "") },
 
+  // ---- Winter Arc 2026 (seasonal — outside the Completionist count) ----
+  { id: "arc_first_frost", name: "First Frost", desc: "First Winter Arc drill cleared.", hint: "Clear an arc drill.", tier: "bronze", group: "winter", glyph: "glacier", progress: thr((c) => c.arc.kept, 1) },
+  { id: "arc_got_back_up", name: "Got Back Up", desc: "Missed one. Came back the next time anyway.", hint: "Clear a drill after a miss.", tier: "bronze", group: "winter", glyph: "chain", progress: thr((c) => c.arc.comebacks, 1) },
+  { id: "arc_debt_collector", name: "Debt Collector", desc: "Paid back a two-day debt in one go.", hint: "Clear a drill carrying 2 days of debt.", tier: "silver", group: "winter", glyph: "anvil", progress: flag((c) => c.arc.clearedTwoDayDebt, "Clear a 2-day debt") },
+  { id: "arc_lights_out", name: "Lights Out", desc: "Kali Puja drill, done before the lamps.", hint: "Clear the Nov 8 drill before 6pm.", tier: "silver", group: "winter", glyph: "eclipse", progress: flag((c) => c.arc.lightsOut, "Nov 8, before 6pm") },
+  { id: "arc_gauntlet", name: "Gauntlet Survivor", desc: "Kept the arc through Kali Puja, Bhai Phonta and Jagaddhatri.", hint: "Keep 9 of the 12 days Nov 8–19.", tier: "gold", group: "winter", glyph: "gauntlet", progress: thr((c) => c.arc.gauntlet, 9, "d") },
+  { id: "arc_halfway", name: "Halfway Frozen", desc: "Thirty arc days kept.", hint: "Keep 30 arc days.", tier: "silver", group: "winter", glyph: "glacier", progress: thr((c) => c.arc.kept, 30, "d") },
+  { id: "arc_second_wind", name: "Second Wind", desc: "Opened Phase 2 on Dec 1 with a drill.", hint: "Clear the Dec 1 drill.", tier: "bronze", group: "winter", glyph: "wave", progress: flag((c) => c.arc.secondWind, "Dec 1") },
+  { id: "arc_park_street", name: "Park Street Pump", desc: "Christmas drill, done before going out.", hint: "Clear the Dec 25 drill.", tier: "silver", group: "winter", glyph: "flame", progress: flag((c) => c.arc.parkStreet, "Dec 25") },
+  { id: "arc_frostbite", name: "Frostbite", desc: "All of December — no misses.", hint: "Every December day done or paused.", tier: "gold", group: "winter", glyph: "crosshair", progress: flag((c) => c.arc.decemberClean, "All 31 Dec days") },
+  { id: "arc_close", name: "Close the Arc", desc: "Dec 31 drill done before the year ran out.", hint: "Clear the Dec 31 drill.", tier: "gold", group: "winter", glyph: "peak", progress: flag((c) => c.arc.closed, "Dec 31") },
+  { id: "arc_untouched", name: "Untouched Reserves", desc: "Finished the arc without spending a reserve.", hint: "Finish with all reserves.", tier: "gold", group: "winter", glyph: "diamond", progress: flag((c) => c.arc.closed && !c.arc.blackIce && c.arc.reservesUsed === 0, "Finish with 0 spent") },
+  { id: "arc_whole_winter", name: "Survived the Winter", desc: "All 61 days kept, repaired or paused.", hint: "Cover every day Nov 1 → Dec 31.", tier: "mythic", group: "winter", glyph: "monolith", progress: flag((c) => c.arc.wholeWinter, "61 / 61") },
+  { id: "arc_black_ice", name: "Black Ice", desc: "Finished the arc with zero reserves, by choice.", hint: "Hidden objective.", teaser: "Some people turn the safety off.", mystery: true, tier: "mythic", group: "winter", glyph: "prism", progress: flag((c) => c.arc.closed && c.arc.blackIce, "???") },
+  { id: "arc_untouchable", name: "Untouchable", desc: "Finished the arc without a single scar.", hint: "Hidden objective.", teaser: "Leave no marks.", mystery: true, tier: "platinum", group: "winter", glyph: "cracked-crown", progress: flag((c) => c.arc.closed && c.arc.scars === 0, "???") },
+
   { id: "completionist", name: "The Completionist", desc: "Every other badge, claimed.", hint: "Hidden objective.", teaser: "There's always one more.", mystery: true, tier: "mythic", group: "mystery", glyph: "prism", progress: flag(() => false, "???") },
 ];
 
