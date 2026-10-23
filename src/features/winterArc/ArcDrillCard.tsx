@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { App, Popconfirm } from "antd";
-import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit } from "react-icons/tb";
+import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit, TbHome } from "react-icons/tb";
 import type { MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
 import { hapticSuccess } from "../../lib/haptics";
@@ -90,6 +90,14 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
       <div className="arc-card__eyebrow">
         <TbSnowflake size={14} /> Winter Arc · Day {arc.day}/{ARC_DAYS} · {PHASE_LABEL[arc.phase]}
       </div>
+      {arc.theme && (
+        <div className={`arc-card__theme${arc.theme.indoor ? " is-indoor" : ""}`}>
+          <b>{arc.theme.indoor && <TbHome size={12} />} {arc.theme.title}</b> {arc.theme.copy}
+          {arc.theme.examPrompt && !arc.exam && (
+            <button type="button" className="arc-card__link" onClick={() => void setSetting("arcExamUntil", shiftDate(arc.date, 6))}>Turn on Exam Mode</button>
+          )}
+        </div>
+      )}
       {row?.kind === "exempt" ? (
         <>
           <div className="arc-card__title display">Paused</div>
