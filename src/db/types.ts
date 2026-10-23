@@ -333,6 +333,7 @@ export interface RecurringRuleDto {
   templateDose?: string;   // carried onto spawned instances' `dose` field
   templateRemindBefore?: number; // carried onto spawned instances' `remindBefore` field
   templateAllDay?: number;       // carried onto spawned instances' `allDay` field
+  startDate?: string;  // YYYY-MM-DD; no instances before it (e.g. the Winter Arc drill block starts Nov 1)
   createdAt: number;
 }
 
