@@ -34,3 +34,25 @@ export function sunriseMin(date: string): number {
   return Math.round(340 + 36 * t);
 }
 
+export interface ChecklistItem { id: string; label: string; done: boolean; auto: boolean; note?: string }
+
+export function checklist(date: string, facts: ArcFacts, rules: string[], ticks: string[]): { items: ChecklistItem[]; score: number } {
+  const items: ChecklistItem[] = [
+    { id: "drill", label: "Arc drill", done: facts.drill, auto: true },
+    { id: "training", label: "Training (or planned rest)", done: facts.training, auto: true },
+    { id: "protein", label: "Protein target", done: facts.protein, auto: true },
+    { id: "water", label: "Water goal", done: facts.water, auto: true },
+    { id: "sleep", label: "Slept your target", done: facts.sleep, auto: true },
+  ];
+  for (const id of rules.slice(0, MAX_RULES)) {
+    const def = RULE_PRESETS.find((r) => r.id === id);
+    if (!def) continue;
+    const done = id === "sunrise" ? facts.wakeMin != null && facts.wakeMin < sunriseMin(date)
+      : id === "study" ? facts.studyMin >= 60
+      : ticks.includes(id);
+    items.push({ id, label: def.label, done, auto: def.auto, note: def.note });
+  }
+  const score = Math.round(items.filter((i) => i.done).length / items.length * 100);
+  return { items, score };
+}
+
