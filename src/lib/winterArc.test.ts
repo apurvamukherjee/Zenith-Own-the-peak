@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ARC_DAYS, DRILLS, RECOVERY, drillFor, minimumOf, inArc, dayIndex, phaseOf } from "./winterArc.ts";
+import { ARC_DAYS, DRILLS, RECOVERY, drillFor, minimumOf, missedStreak, settle, inArc, dayIndex, phaseOf } from "./winterArc.ts";
 
 const def = (name: string) => DRILLS.find((x) => x.name === name)!;
 const nov = (d: number) => `2026-11-${String(d).padStart(2, "0")}`;
@@ -58,4 +58,21 @@ test("sore/wrecked swap to recovery; minimum is half base and repays nothing", (
   assert.equal(m.debtDays, 0);
   assert.equal(m.kind, "minimum");
   assert.ok(m.target <= drillFor(nov(10)).base);
+});
+
+test("missed streak counts back to the last covered day, never before join/start", () => {
+  const covered = new Set([nov(3)]);
+  assert.equal(missedStreak(nov(6), covered, "2026-10-25"), 2);
+  assert.equal(missedStreak(nov(3), covered, "2026-10-25"), 2);
+  assert.equal(missedStreak(nov(6), new Set(), nov(5)), 1);
+  assert.equal(missedStreak(nov(6), new Set(), nov(6)), 0);
+  assert.equal(missedStreak(nov(1), new Set(), "2026-10-20"), 0);
+});
+
+test("settle: debt repairs nearest days, reserves cover next, rest are scars", () => {
+  assert.deepEqual(settle(nov(10), 4, 2, 1), [
+    { date: nov(9), kind: "repaired" }, { date: nov(8), kind: "repaired" }, { date: nov(7), kind: "reserve" },
+  ]);
+  assert.deepEqual(settle(nov(10), 1, 0, 0), []);
+  assert.deepEqual(settle(nov(10), 2, 0, 3), [{ date: nov(9), kind: "reserve" }, { date: nov(8), kind: "reserve" }]);
 });
