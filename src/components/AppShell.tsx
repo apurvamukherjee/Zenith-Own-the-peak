@@ -24,12 +24,14 @@ import { unlockAudio } from "../lib/audio";
 import { convexConfigured } from "../lib/convexClient";
 import { GoogleCalendarSyncEngine } from "../features/googleCalendar/useGoogleCalendarSync";
 import { CloudSyncEngine } from "../features/sync/useSync";
+import { useArcVoice } from "../features/winterArc/useArcVoice";
 
 const DebugPanel = lazy(() => import("./DebugPanel").then((m) => ({ default: m.DebugPanel })));
 
 export function AppShell() {
   useReminderEngine();
   useTaskReminderSync();
+  useArcVoice();
   useAchievementEngine();
   useRewardVaultEngine();
 
