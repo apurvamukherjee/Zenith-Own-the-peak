@@ -14,7 +14,7 @@ import { useAchievements, markAllSeen, type AchievementView } from "./useAchieve
 import { useXP } from "../../hooks/useXP";
 
 const GROUP_ORDER: AchGroup[] = [
-  "streak", "iron", "discipline", "water", "sleep", "mind", "road", "table", "body", "mystery",
+  "streak", "iron", "discipline", "water", "sleep", "mind", "road", "table", "body", "winter", "mystery",
 ];
 
 // small tier notches (I..V) in the medallion corner
