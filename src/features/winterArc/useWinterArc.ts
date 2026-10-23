@@ -9,7 +9,8 @@ import {
   type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf,
   LEG_MUSCLES,
 } from "../../lib/winterArc";
-import { halfStart, chapterOf, themeFor, inExam, GAUNTLET, type ArcDayTheme } from "../../lib/arcCalendar";
+import { halfStart, chapterOf, themeFor, inExam, MILESTONES, GAUNTLET, type ArcDayTheme } from "../../lib/arcCalendar";
+import { celebrate } from "../../lib/celebrate";
 
 export interface ArcToday {
   date: string; day: number; phase: ArcPhase; drill: Drill; readiness: Readiness;
@@ -87,9 +88,19 @@ export async function completeDrill(arc: ArcToday, drill: Drill): Promise<boolea
     ...settle(arc.date, arc.missed, drill.debtDays, arc.reservesLeft).map((s) => ({ ...s, at })),
   ]);
   await markDrillTaskDone(arc.date);
+  await celebrateMilestone();
   if (arc.missed === 0) return false;
   await grantXP("arc_comeback");
   return true;
+}
+
+async function celebrateMilestone(): Promise<void> {
+  const kept = await db.arcDays.filter((r) => r.kind === "done" || r.kind === "repaired").count();
+  const seen = String((await db.settings.get("arcMilestones"))?.value ?? "").split(",").filter(Boolean).map(Number);
+  const hit = MILESTONES.filter((m) => kept >= m && !seen.includes(m)).pop();
+  if (!hit) return;
+  await setSetting("arcMilestones", [...seen, ...MILESTONES.filter((m) => m <= hit && !seen.includes(m))].join(","));
+  celebrate({ kind: "arc", title: hit === 61 ? "61 days. The arc is closed." : `${hit} days kept.`, subtitle: hit < 61 ? `${61 - hit} to go. Winter's still coming.` : "You did the whole winter." });
 }
 
 /** Sick/injury pause — today or, at most, yesterday. */
