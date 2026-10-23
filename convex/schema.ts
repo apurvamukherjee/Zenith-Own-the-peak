@@ -42,6 +42,16 @@ export default defineSchema({
     .index("by_follower", ["followerId"])
     .index("by_follower_followed", ["followerId", "followedId"]),
 
+  // Winter Arc 2026. Only which days were kept is shared — never the drill,
+  // reps, or anything logged. `partnerId` is one-sided until both point at
+  // each other, which is what makes an Arc Partner pact.
+  arcProgress: defineTable({
+    userId: v.id("users"),
+    kept: v.array(v.string()),
+    partnerId: v.optional(v.id("users")),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
   backups: defineTable({
     userId: v.id("users"),
     storageId: v.id("_storage"),
