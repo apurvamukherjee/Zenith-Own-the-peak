@@ -17,7 +17,7 @@ export function WeeklyVolumeCard() {
   const rows = ALL_MUSCLES.map((m) => ({ m, v: tally[m] ?? 0 })).sort((a, b) => b.v - a.v).map(({ m, v }) => {
     if (v > 0) heat[m] = 0.2 + 0.8 * Math.min(1, v / 20);
     const status = volumeStatus(v);
-    return { muscle: m, value: <>{fmtSets(v)}<small> sets</small></>, pct: v / 20, tag: { label: STATUS_LABEL[status], tone: status }, dim: status === "none" };
+    return { muscle: m, value: <>{fmtSets(v)}<small> {v === 1 ? "set" : "sets"}</small></>, pct: v / 20, tag: { label: STATUS_LABEL[status], tone: status }, dim: status === "none" };
   });
   const behind = rows.filter((r) => r.tag.tone === "low" || r.tag.tone === "none").length;
   const trainingDays = schedule.filter((s) => s.dayId).length;

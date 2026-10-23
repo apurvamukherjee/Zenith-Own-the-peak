@@ -39,7 +39,7 @@ export function MuscleHeatCard() {
     const delta = previous && before > 0 ? Math.round(((v - before) / before) * 100) : null;
     return {
       muscle: m, pct: v / max, dim: v === 0,
-      value: delta === null ? <>{fmtSets(v)}<small> sets</small></> : (
+      value: delta === null ? <>{fmtSets(v)}<small> {v === 1 ? "set" : "sets"}</small></> : (
         <>{fmtSets(v)} <small className={delta >= 0 ? "mc-up" : "mc-down"}>{delta >= 0 ? <TbArrowUpRight size={11} /> : <TbArrowDownRight size={11} />}{Math.abs(delta)}%</small></>
       ),
       tag: { label: v ? `${fmtSets(Math.round(perWeek * 10) / 10)}/wk · ${status === "good" ? "in range" : status}` : "Untrained", tone: status },
