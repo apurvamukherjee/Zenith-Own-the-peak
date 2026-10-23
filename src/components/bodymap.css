@@ -30,7 +30,8 @@ html[data-motion="reduce"] .bm-outline path, html[data-motion="reduce"] .bm-heat
 html[data-motion="reduce"] .bm-flash { display: none; }
 
 .is-pick .bm-idle, .is-pick .bm-heat { cursor: pointer; }
-.is-pick .bm-idle:hover { fill: color-mix(in srgb, var(--accent) 22%, var(--surface-2)); }
+/* Touch screens keep :hover on the last tapped part, which would read as lit. */
+@media (hover: hover) { .is-pick .bm-idle:hover { fill: color-mix(in srgb, var(--accent) 22%, var(--surface-2)); } }
 
 /* Glyph: static, no entrance — it shows up in lists. */
 .bm-glyph { display: inline-grid; flex-shrink: 0; vertical-align: middle; }
