@@ -13,6 +13,7 @@ import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "..
 import { useExercise, useExerciseLibrary, useGhostSets, logSet, deleteSet } from "../features/gym/useGym";
 import { buildItems, findNextInGroup } from "../features/gym/groupExercises";
 import { pressable } from "../lib/a11y";
+import { MuscleGlyph } from "./BodyMap";
 
 // Fullscreen "one set at a time" view for /workout. Sits ON TOP of
 // SessionLogger (which stays mounted underneath, unchanged) rather than
@@ -458,6 +459,7 @@ function SetView({
           <TbArrowsRightLeft size={12} /> Superset · round {superset.round}/{superset.target}
         </div>
       )}
+      <MuscleGlyph muscle={ex.primaryMuscle} size={56} />
       <div className="display" style={{ fontSize: 24, fontWeight: 800, textAlign: "center", marginBottom: 4 }}>
         {ex.name}
       </div>
