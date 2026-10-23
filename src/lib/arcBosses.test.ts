@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BOSSES, bossFor, trialOpen, murphPlan, wraithHp, WRAITH_HP } from "./arcBosses.ts";
+import { BOSSES, bossFor, trialOpen, murphPlan, wraithHp, WRAITH_HP, canWager, settleWager } from "./arcBosses.ts";
+import { shiftDate } from "./winterArc.ts";
 
 test("one boss per chapter except Trials week and the deload", () => {
   assert.equal(bossFor("2026-11-03"), undefined);
@@ -29,4 +30,16 @@ test("the Wraith: kept days and bosses hit it, scars heal it", () => {
   assert.equal(wraithHp(55, 6, 0), 0);
   assert.equal(wraithHp(10, 1, 3), 53);
   assert.equal(wraithHp(0, 0, 5), WRAITH_HP + 5);
+});
+
+test("wager only on a chapter's first day; settles once the chapter ends", () => {
+  assert.ok(canWager("2026-11-08", null));
+  assert.ok(!canWager("2026-11-09", null));
+  assert.ok(!canWager("2026-11-08", { chapter: 2, placedOn: "2026-11-08" }));
+  const w = { chapter: 2, placedOn: "2026-11-08" };
+  const all = new Set(Array.from({ length: 7 }, (_, i) => shiftDate("2026-11-08", i)));
+  assert.equal(settleWager(w, "2026-11-14", all), null);
+  assert.equal(settleWager(w, "2026-11-15", all), true);
+  all.delete("2026-11-11");
+  assert.equal(settleWager(w, "2026-11-15", all), false);
 });
