@@ -56,3 +56,5 @@ export const halfStart = (date: string) => date >= SECOND_WIND ? SECOND_WIND : A
 // Early milestones are weighted heavier: 2→3 days is +50%, 200→201 is noise.
 export const MILESTONES = [3, 7, 14, 21, 30, 45, 61];
 
+export const GAUNTLET = { start: "2026-11-08", end: "2026-11-19", need: 9 };
+
