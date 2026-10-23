@@ -1,3 +1,4 @@
+import { ARC_DAYS, dayIndex } from "./winterArc.ts";
 
 // Cold Rules are measurable on purpose: "skip social events" / "cut people"
 // are deliberately absent — in Bengal's festival season they guarantee
@@ -15,4 +16,21 @@ export const RULE_PRESETS: RuleDef[] = [
   { id: "nophone", label: "No phone in bed", auto: false },
 ];
 export const MAX_RULES = 3;
+
+export interface ArcFacts {
+  drill: boolean;      // drill done (any kind) or day paused
+  training: boolean;   // logged a session, or today is a planned rest day
+  protein: boolean;
+  water: boolean;
+  sleep: boolean;      // last night ≥ sleep target
+  wakeMin?: number;    // minutes after midnight you got up, from today's sleep log
+  studyMin: number;
+}
+
+// Kolkata sunrise drifts ~5:40 → ~6:16 across the arc.
+// ponytail: linear fit, off by a few minutes mid-arc; swap in a real solar table if it matters.
+export function sunriseMin(date: string): number {
+  const t = Math.max(0, Math.min(1, dayIndex(date) / (ARC_DAYS - 1)));
+  return Math.round(340 + 36 * t);
+}
 
