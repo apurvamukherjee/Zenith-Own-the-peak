@@ -91,3 +91,12 @@ export function deck(seed: string, legsRecent = false): Card[] {
   for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
   return cards;
 }
+
+export function parseJson<T>(raw: string, fallback: T): T {
+  try {
+    return raw ? JSON.parse(raw) as T : fallback;
+  } catch (e) {
+    if (e instanceof SyntaxError) return fallback;
+    throw e;
+  }
+}
