@@ -50,3 +50,13 @@ export function weeklyPlanTally(schedule: WeekScheduleDto[], dayExercises: DayEx
 export function loggedTally(sets: Pick<WorkoutSetDto, "exerciseId">[], library: ExerciseDto[]): MuscleTally {
   return tallySets(sets.map((s) => ({ exerciseId: s.exerciseId, sets: 1 })), library);
 }
+
+export const fmtSets = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
+
+// 10–20 sets a week per muscle is the commonly cited growth range.
+export type VolumeStatus = "none" | "low" | "good" | "high";
+export function volumeStatus(setsPerWeek: number): VolumeStatus {
+  if (setsPerWeek <= 0) return "none";
+  if (setsPerWeek < 10) return "low";
+  return setsPerWeek <= 20 ? "good" : "high";
+}

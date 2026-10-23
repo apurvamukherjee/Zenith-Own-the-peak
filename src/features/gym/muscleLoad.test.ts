@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { muscleLoad, weeklyPlanTally, loggedTally } from "./muscleLoad.ts";
+import { muscleLoad, weeklyPlanTally, loggedTally, volumeStatus } from "./muscleLoad.ts";
 import type { DayExerciseDto, ExerciseDto, WorkoutSetDto } from "../../db/types";
 
 const lib: ExerciseDto[] = [
@@ -30,4 +30,8 @@ test("tally counts primary sets fully and assists as half", () => {
   );
   assert.deepEqual(t, { chest: 6, triceps: 3, shoulders: 3 });
   assert.deepEqual(loggedTally([set(2, 1), set(1, 1)], lib), { triceps: 1.5, chest: 1, shoulders: 0.5 });
+});
+
+test("volume status bands", () => {
+  assert.deepEqual([0, 4, 10, 20, 21].map(volumeStatus), ["none", "low", "good", "good", "high"]);
 });
