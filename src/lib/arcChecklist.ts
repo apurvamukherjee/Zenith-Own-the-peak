@@ -1,4 +1,5 @@
 import { ARC_DAYS, dayIndex } from "./winterArc.ts";
+import { themeFor } from "./arcCalendar.ts";
 
 // Cold Rules are measurable on purpose: "skip social events" / "cut people"
 // are deliberately absent — in Bengal's festival season they guarantee
@@ -36,7 +37,11 @@ export function sunriseMin(date: string): number {
 
 export interface ChecklistItem { id: string; label: string; done: boolean; auto: boolean; note?: string }
 
-export function checklist(date: string, facts: ArcFacts, rules: string[], ticks: string[]): { items: ChecklistItem[]; score: number } {
+const clock = (min: number) => `${Math.floor(min / 60)}:${String(min % 60).padStart(2, "0")}`;
+
+/** `exam`: Exam Mode adds a 2-hour study item — the gym bar is already "any session counts". */
+export function checklist(date: string, facts: ArcFacts, rules: string[], ticks: string[], exam = false): { items: ChecklistItem[]; score: number } {
+  const theme = themeFor(date);
   const items: ChecklistItem[] = [
     { id: "drill", label: "Arc drill", done: facts.drill, auto: true },
     { id: "training", label: "Training (or planned rest)", done: facts.training, auto: true },
@@ -44,14 +49,17 @@ export function checklist(date: string, facts: ArcFacts, rules: string[], ticks:
     { id: "water", label: "Water goal", done: facts.water, auto: true },
     { id: "sleep", label: "Slept your target", done: facts.sleep, auto: true },
   ];
+  if (exam) items.push({ id: "exam", label: "Study 2h (Exam Mode)", done: facts.studyMin >= 120, auto: true });
   for (const id of rules.slice(0, MAX_RULES)) {
     const def = RULE_PRESETS.find((r) => r.id === id);
     if (!def) continue;
-    const done = id === "sunrise" ? facts.wakeMin != null && facts.wakeMin < sunriseMin(date)
+    const done = id === "sunrise" ? !!theme?.excuseSunrise || (facts.wakeMin != null && facts.wakeMin < sunriseMin(date))
       : id === "study" ? facts.studyMin >= 60
       : ticks.includes(id);
-    items.push({ id, label: def.label, done, auto: def.auto, note: def.note });
+    const label = id === "sunrise" ? `${def.label} (${theme?.excuseSunrise ? "excused" : clock(sunriseMin(date))})` : def.label;
+    items.push({ id, label, done, auto: def.auto, note: def.note });
   }
+  if (theme?.quest) items.push({ id: theme.quest.id, label: theme.quest.label, done: ticks.includes(theme.quest.id), auto: false });
   const score = Math.round(items.filter((i) => i.done).length / items.length * 100);
   return { items, score };
 }
