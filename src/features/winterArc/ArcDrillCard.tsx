@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { App, Popconfirm } from "antd";
 import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit } from "react-icons/tb";
@@ -8,6 +9,8 @@ import { todayKey } from "../../lib/date.utils";
 import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as amount, ARC_RESERVES, shouldShowGate, type Drill, type Readiness } from "../../lib/winterArc";
 import { useArcToday, completeDrill, pauseDay, setReadiness, type ArcToday } from "./useWinterArc";
 import { ArcGate } from "./ArcGate";
+import { VowSheet } from "./VowSheet";
+import { parseVow } from "../../lib/arcChecklist";
 import "./arc.css";
 
 const PHASE_LABEL = { calibration: "Calibration", build: "Build", deload: "Deload", taper: "Taper", finale: "Finale" } as const;
@@ -16,12 +19,15 @@ const READINESS: { r: Readiness; label: string }[] = [{ r: "fine", label: "Fine"
 export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | undefined }) {
   const joined = useSetting("arcJoined");
   const reserves = useSetting("arcReserves");
+  const signed = !!parseVow(String(useSetting("arcVow")));
+  const [vowOpen, setVowOpen] = useState(false);
   const arc = useArcToday(trainedToday);
   const date = todayKey();
   if (date > ARC_END) return null;
 
   const blackIce = Number(reserves) === 0;
-  const join = async (r: number) => { await setSetting("arcReserves", r); await setSetting("arcJoined", date); };
+  const join = async (r: number) => { await setSetting("arcReserves", r); await setSetting("arcJoined", date); setVowOpen(true); };
+  const vow = vowOpen && <VowSheet onClose={() => setVowOpen(false)} />;
   const until = daysUntilArc(date);
   if (until > 0 || !joined) {
     return (
@@ -32,6 +38,7 @@ export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | u
         {joined ? (
           <div className="arc-card__done">
             <TbCheck size={16} /> You're in{blackIce ? " — Black Ice" : ""}. Lock in.
+            <button type="button" className="arc-card__link" onClick={() => setVowOpen(true)}>{signed ? "Edit vow" : "Sign your vow"}</button>
             {until > 0 && (
               <button type="button" className="arc-card__link" onClick={() => void setSetting("arcReserves", blackIce ? ARC_RESERVES : 0)}>
                 {blackIce ? "Take the 3 reserves" : "Go Black Ice"}
@@ -47,15 +54,21 @@ export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | u
             </button>
           </div>
         )}
+        {vow}
       </div>
     );
   }
 
   if (!arc) return <div className="arc-card arc-card--loading" />;
-  return <ArcDay arc={arc} />;
+  return (
+    <>
+      <ArcDay arc={arc} signed={signed} onVow={() => setVowOpen(true)} />
+      {vow}
+    </>
+  );
 }
 
-function ArcDay({ arc }: { arc: ArcToday }) {
+function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow: () => void }) {
   const { drill, row } = arc;
   const done = row?.kind === "done";
   const { message } = App.useApp();
@@ -114,6 +127,7 @@ function ArcDay({ arc }: { arc: ArcToday }) {
         {skipped === arc.date && !row && <span>Skipped — you owe one</span>}
         <span>{arc.kept} kept</span>
         {arc.scars > 0 && <span>{arc.scars} scar{arc.scars === 1 ? "" : "s"}</span>}
+        <button type="button" className="arc-card__link" onClick={onVow}>{signed ? "Vow" : "Sign your vow"}</button>
         {!row && (
           <Popconfirm title="Sick or injured today?" description="No miss, no debt." okText="Pause today" cancelText="Cancel"
             onConfirm={() => void pauseDay(arc.date)}>
