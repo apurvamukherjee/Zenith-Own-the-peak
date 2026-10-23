@@ -1,7 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import type { ArcDayDto, MuscleGroup } from "../../db/types";
-import { useSetting } from "../../hooks/useSettings";
+import { setSetting, useSetting } from "../../hooks/useSettings";
 import { todayKey } from "../../lib/date.utils";
 import { type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf, LEG_MUSCLES, ARC_START } from "../../lib/winterArc";
 
@@ -70,3 +70,5 @@ export async function pauseDay(date: string): Promise<void> {
   if (await db.arcDays.get(date)) return;
   await db.arcDays.put({ date, kind: "exempt", at: Date.now() });
 }
+
+export const setReadiness = (date: string, r: Readiness) => setSetting("arcReadiness", `${date}|${r}`);
