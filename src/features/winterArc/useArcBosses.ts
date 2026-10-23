@@ -1,9 +1,14 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import { useSetting } from "../../hooks/useSettings";
+import { DEFAULTS, setSetting, useSetting, type SettingKey } from "../../hooks/useSettings";
+import { grantXP } from "../../lib/xp";
 import { shiftDate, ARC_END, LEG_MUSCLES } from "../../lib/winterArc";
-import { type BossDef, type TrialScore, type Wager, bossFor, trialOpen, wraithHp, canWager, parseJson } from "../../lib/arcBosses";
+import { type BossDef, type TrialScore, type Wager, type MurphTier, bossFor, trialOpen, wraithHp, canWager, parseJson, PLANK_CAP_SEC } from "../../lib/arcBosses";
 import { arcDayStates } from "../../lib/arcCalendar";
+
+async function raw(key: SettingKey): Promise<string> {
+  return String((await db.settings.get(key))?.value ?? DEFAULTS[key]);
+}
 
 /** Legs in the last 48h (today or yesterday's logged sets) — squat-heavy bosses swap their squats out. */
 export async function legsWithin48h(date: string): Promise<boolean> {
@@ -50,4 +55,25 @@ export function useArcBosses(date: string): ArcBossState | undefined {
       wager, wagerOpen: canWager(date, wager),
     };
   }, [date, scoresRaw, trialsRaw, wagerRaw, murphDone, joined]);
+}
+
+export async function saveBossScore(id: string, score: number): Promise<void> {
+  const scores = parseJson<Record<string, number>>(await raw("arcBossScores"), {});
+  const first = scores[id] === undefined;
+  await setSetting("arcBossScores", JSON.stringify({ ...scores, [id]: score }));
+  if (first) await grantXP("arc_boss");
+}
+
+export async function saveTrial(n: number, score: TrialScore): Promise<void> {
+  const trials = parseJson<Record<string, TrialScore>>(await raw("arcTrials"), {});
+  const first = trials[String(n)] === undefined;
+  const capped = { ...score, plank: Math.min(score.plank, PLANK_CAP_SEC) };
+  await setSetting("arcTrials", JSON.stringify({ ...trials, [String(n)]: capped }));
+  if (first) await grantXP("arc_trial");
+}
+
+export async function finishMurph(tier: MurphTier): Promise<void> {
+  const first = !(await raw("arcMurph"));
+  await setSetting("arcMurph", tier);
+  if (first) await grantXP("arc_boss");
 }
