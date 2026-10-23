@@ -84,3 +84,14 @@ span.arc-list__item { cursor: default; }
 .arc-vow__note { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--warn); }
 .arc-vow__sign { align-self: stretch; justify-content: center; }
 @media (max-width: 380px) { .arc-vow__row { grid-template-columns: 1fr; } }
+
+/* Chapters, themed days */
+.arc-card__theme { margin-top: 8px; padding: 8px 10px; border-radius: 12px; font-size: 12px; line-height: 1.4; color: rgba(255, 255, 255, 0.82); background: rgba(170, 210, 255, 0.1); }
+.arc-card__theme b { display: inline-flex; align-items: center; gap: 4px; color: #fff; }
+.arc-card__theme.is-indoor { background: rgba(246, 185, 59, 0.14); }
+.arc-card__theme .arc-card__link { margin-left: 6px; }
+.arc-card__progress { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.65); font-variant-numeric: tabular-nums; }
+.arc-card__pips { display: flex; gap: 3px; }
+.arc-card__pips i { width: 14px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); }
+.arc-card__pips i.is-on { background: #a9cfff; box-shadow: 0 0 8px rgba(169, 207, 255, 0.55); }
+.arc-card__total { margin-left: auto; }
