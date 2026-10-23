@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Modal, Button, App, Segmented, Input } from "antd";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
@@ -40,6 +40,8 @@ import { shareText } from "../../lib/saveFile";
 import type { TaskDto, GoalDayDto } from "../../db/types";
 import dayjs from "dayjs";
 import { pressable } from "../../lib/a11y";
+import { useArcStates } from "../winterArc/useWinterArc";
+import type { ArcCellState } from "../../lib/arcCalendar";
 
 function inferMealType() {
   const h = new Date().getHours();
@@ -50,6 +52,17 @@ function inferMealType() {
 }
 
 const WEEKDAY_HEADERS = ["S", "M", "T", "W", "T", "F", "S"];
+
+// Frost layer: an inset ring per Winter Arc day state. Repaired reads as kept
+// (amber, not red) on purpose — seeing the chain intact is what keeps people in.
+const ARC_FROST: Record<ArcCellState, CSSProperties> = {
+  done: { boxShadow: "inset 0 0 0 2px var(--info)" },
+  repaired: { boxShadow: "inset 0 0 0 2px var(--gold)" },
+  reserve: { boxShadow: "inset 0 0 0 2px color-mix(in srgb, var(--info) 40%, transparent)" },
+  exempt: { boxShadow: "inset 0 0 0 2px var(--violet)" },
+  owed: { outline: "1.5px dashed var(--danger)", outlineOffset: -3 },
+  scar: { boxShadow: "inset 0 0 0 2px color-mix(in srgb, var(--danger) 65%, transparent)" },
+};
 const FILTERS: { label: string; value: ScoreFilter }[] = [
   { label: "All", value: "blended" }, { label: "Water", value: "water" },
   { label: "Sleep", value: "sleep" }, { label: "Train", value: "session" }, { label: "Protein", value: "protein" },
@@ -125,6 +138,8 @@ export function CalendarPage() {
   const [hiddenLists, setHiddenLists] = useState<Set<string>>(new Set());
   const [showGymLayer, setShowGymLayer] = useState(true);
   const [showScoreLayer, setShowScoreLayer] = useState(true);
+  const [showArcLayer] = useState(true);
+  const arcStates = useArcStates();
   const [layersOpen, setLayersOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const visibleListIds = useMemo(
@@ -361,6 +376,7 @@ export function CalendarPage() {
                   const hasGoal = goals.some((g) => g.date === c.date);
                   const hasPhoto = photoDates.has(c.date);
                   const gym = showGymLayer ? gymOverlay.get(c.date) : undefined;
+                  const arc = showArcLayer ? arcStates.get(c.date) : undefined;
                   const barColor = showScoreLayer && c.hasAny ? colorFor(pct, true, t) : undefined;
                   const allDayHere = (allDayEvents.get(c.date) ?? []).filter((tk) => visibleListIds.has(tk.listId));
                   return (
@@ -380,6 +396,7 @@ export function CalendarPage() {
                         color: c.isToday ? "var(--accent)" : "var(--ink)",
                         fontWeight: c.isToday ? 800 : 600, fontSize: "var(--fs-sm)", cursor: c.isFuture ? "default" : "pointer",
                         display: "flex", alignItems: "center", justifyContent: "center",
+                        ...(arc && ARC_FROST[arc]),
                       }}
                     >
                       {gym && (
