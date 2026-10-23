@@ -126,3 +126,12 @@ export function settle(date: string, missed: number, repaid: number, reservesLef
 }
 
 export const ARC_RESERVES = 3;
+
+export const FINAL_CALL_HOUR = 21;
+/** Arc Gate shows over Home until today is handled. "Later today" hides it until 21:00, once. */
+export function shouldShowGate(date: string, handled: boolean, later: string, skipped: string, hour: number): boolean {
+  if (handled || skipped === date) return false;
+  const [d, h] = later.split("|");
+  if (d !== date) return true;
+  return Number(h) < FINAL_CALL_HOUR && hour >= FINAL_CALL_HOUR;
+}
