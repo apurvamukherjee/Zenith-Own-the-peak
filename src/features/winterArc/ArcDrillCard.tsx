@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Popconfirm } from "antd";
+import { App, Popconfirm } from "antd";
 import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit } from "react-icons/tb";
 import type { MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
@@ -41,9 +41,15 @@ export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | u
 function ArcDay({ arc }: { arc: ArcToday }) {
   const { drill, row } = arc;
   const done = row?.kind === "done";
+  const { message } = App.useApp();
   const later = String(useSetting("arcGateLater"));
   const skipped = String(useSetting("arcSkipped"));
-  const finish = (d: Drill) => { void completeDrill(arc, d).then(hapticSuccess); };
+  const finish = (d: Drill) => {
+    void completeDrill(arc, d).then((comeback) => {
+      hapticSuccess();
+      if (comeback) void message.success("Got back up. +15 XP — the chain re-links.");
+    });
+  };
 
   return (
     <div className={`arc-card${done ? " is-done" : ""}${row?.kind === "exempt" ? " is-exempt" : ""}`}>
