@@ -4,6 +4,7 @@ import type { ArcDayDto, MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
 import { todayKey } from "../../lib/date.utils";
 import { grantXP } from "../../lib/xp";
+import { markDrillTaskDone } from "./vow";
 import {
   type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf,
   LEG_MUSCLES, ARC_START,
@@ -70,6 +71,7 @@ export async function completeDrill(arc: ArcToday, drill: Drill): Promise<boolea
     { date: arc.date, kind: "done", at, exercise: drill.name, unit: drill.unit, target: drill.target, drillKind: drill.kind },
     ...settle(arc.date, arc.missed, drill.debtDays, arc.reservesLeft).map((s) => ({ ...s, at })),
   ]);
+  await markDrillTaskDone(arc.date);
   if (arc.missed === 0) return false;
   await grantXP("arc_comeback");
   return true;
