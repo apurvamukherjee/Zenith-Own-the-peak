@@ -72,6 +72,11 @@ export const DEFAULTS = {
   arcTicks: "",           // JSON { date: ruleId[] } for manual Cold Rules
   arcExamUntil: "",       // YYYY-MM-DD Exam Mode runs through (armed a week at a time)
   arcMilestones: "",      // comma-separated kept-day milestones already celebrated
+  arcTrials: "",          // JSON { "1" | "2" | "3": TrialScore } — Day 1 / 31 / 60 battery
+  arcBossScores: "",      // JSON { bossId: score }
+  arcMurph: "",           // Murph tier finished on Dec 31 ("half" | "intermediate" | "full")
+  arcWager: "",           // JSON Wager on the current chapter, "" = none running
+  arcWagerLog: "",        // comma-separated "chapter:won|lost"
   arcReadiness: "",       // "YYYY-MM-DD|fine|sore|wrecked" — today's readiness tap
 };
 export type SettingKey = keyof typeof DEFAULTS;
