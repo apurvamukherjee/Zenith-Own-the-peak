@@ -111,6 +111,7 @@ function ArcDay({ arc }: { arc: ArcToday }) {
       )}
       <div className="arc-card__foot">
         <span><TbShieldHalf size={13} /> {blackIce ? "Black Ice" : `${arc.reservesLeft} reserve${arc.reservesLeft === 1 ? "" : "s"}`}</span>
+        {skipped === arc.date && !row && <span>Skipped — you owe one</span>}
         <span>{arc.kept} kept</span>
         {arc.scars > 0 && <span>{arc.scars} scar{arc.scars === 1 ? "" : "s"}</span>}
         {!row && (
