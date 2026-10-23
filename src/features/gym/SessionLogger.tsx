@@ -11,8 +11,8 @@ import { Rings } from "../../components/ui/Rings";
 import { TrainingHeroBg } from "../dashboard/TrainingHeroArt";
 import "./train.css";
 import { useTokens } from "../../hooks/useTokens";
-import { MuscleIcon } from "../../components/MuscleIcon";
-import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types";
+import { MuscleGlyph } from "../../components/BodyMap";
+import type { DayExerciseDto, ExerciseDto, WorkoutSetDto } from "../../db/types";
 import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
   useSessionSets, useGhostSets, useExercise, useExerciseLibrary, ensureSession,
@@ -200,7 +200,7 @@ function ExerciseBlock({ plan, order, dayId, sets, getSessionId, actions, dayDon
         <div className="xb-title">
           <h3 title={ex.name}>{ex.name}</h3>
           <div className="xb-meta">
-            <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={13} color="currentColor" />
+            <MuscleGlyph muscle={ex.primaryMuscle} size={18} />
             {plan.sets} × {plan.repLow}–{plan.repHigh} · {plan.restSec}s rest
           </div>
         </div>
