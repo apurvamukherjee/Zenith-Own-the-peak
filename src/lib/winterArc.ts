@@ -31,3 +31,15 @@ export const DRILLS: DrillDef[] = [
 
 export const LEG_MUSCLES: MuscleGroup[] = ["quads", "hamstrings", "glutes", "calves"];
 
+const DAY_MS = 86_400_000;
+const parse = (date: string) => { const [y, m, d] = date.split("-").map(Number); return new Date(y, m - 1, d); };
+const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+export const shiftDate = (date: string, n: number) => { const d = parse(date); d.setDate(d.getDate() + n); return fmt(d); };
+
+export function dayIndex(date: string): number {
+  return Math.round((parse(date).getTime() - parse(ARC_START).getTime()) / DAY_MS);
+}
+export const ARC_DAYS = dayIndex(ARC_END) + 1;
+export const inArc = (date: string) => { const i = dayIndex(date); return i >= 0 && i < ARC_DAYS; };
+export const daysUntilArc = (date: string) => -dayIndex(date);
+
