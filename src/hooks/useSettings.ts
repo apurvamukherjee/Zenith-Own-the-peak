@@ -59,6 +59,8 @@ export const DEFAULTS = {
   equippedFrame: "",            // avatar frame id, "" = no ring
   equippedTitle: "",            // level name, "" = derive from current level
   arcJoined: "",          // YYYY-MM-DD you joined the Winter Arc, "" = not in
+  arcReserves: 3,         // Emergency Reserves for the whole arc; 0 = Black Ice mode
+  arcReadiness: "",       // "YYYY-MM-DD|fine|sore|wrecked" — today's readiness tap
 };
 export type SettingKey = keyof typeof DEFAULTS;
 
