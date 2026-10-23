@@ -60,6 +60,9 @@ export const DEFAULTS = {
   equippedTitle: "",            // level name, "" = derive from current level
   arcJoined: "",          // YYYY-MM-DD you joined the Winter Arc, "" = not in
   arcReserves: 3,         // Emergency Reserves for the whole arc; 0 = Black Ice mode
+  remArc: 1,              // 1 = Winter Arc drill pushes (escalate through the day)
+  arcTone: 3,             // tone ceiling 0 Coach · 1 Nag · 2 Roast · 3 Savage
+  arcProfanity: 0,        // 1 = last push of the day is the unhinged, swearing one
   arcReadiness: "",       // "YYYY-MM-DD|fine|sore|wrecked" — today's readiness tap
 };
 export type SettingKey = keyof typeof DEFAULTS;
