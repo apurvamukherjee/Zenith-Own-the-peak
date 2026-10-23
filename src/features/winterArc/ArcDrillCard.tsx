@@ -136,6 +136,13 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
           )}
         </>
       )}
+      <div className="arc-card__progress" aria-label={`Chapter ${arc.chapter.n}: ${arc.chapter.kept} of ${arc.chapter.days} kept`}>
+        <span>Ch {arc.chapter.n}</span>
+        <div className="arc-card__pips">
+          {Array.from({ length: arc.chapter.days }, (_, i) => <i key={i} className={i < arc.chapter.kept ? "is-on" : ""} />)}
+        </div>
+        <span className="arc-card__total">{arc.kept + (signed ? 1 : 0)}/{ARC_DAYS + 1}{signed ? " · Day 0 ✓" : ""}</span>
+      </div>
       <div className="arc-card__foot">
         <span><TbShieldHalf size={13} /> {blackIce ? "Black Ice" : `${arc.reservesLeft} reserve${arc.reservesLeft === 1 ? "" : "s"}`}</span>
         {skipped === arc.date && !row && <span>Skipped — you owe one</span>}
