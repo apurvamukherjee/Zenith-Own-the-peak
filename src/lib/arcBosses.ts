@@ -1,3 +1,4 @@
+import { chapterOf } from "./arcCalendar.ts";
 
 // Weekly bosses: one per chapter, doable any day of it — fixed-time windows
 // punish people with classes and jobs. Rematches put last time's score up as
@@ -27,3 +28,6 @@ export const BOSSES: BossDef[] = [
   { id: "big-3", chapter: 9, title: "Big 3 Quality", kind: "quality",
     rules: "Taper week: McGill curl-up, side plank and bird dog — 10-second holds, 5/4/3 per side. Perfect form, nothing else.", scoreLabel: "clean sets" },
 ];
+// Chapter 1 is Trials + calibration, chapter 5 is the deload — no boss.
+export const bossFor = (date: string) => BOSSES.find((b) => b.chapter === chapterOf(date).n);
+
