@@ -42,3 +42,15 @@ export const TRIALS = [
 export const trialOpen = (date: string) => TRIALS.find((t) => date >= t.opens && date <= t.closes);
 export const PLANK_CAP_SEC = 120; // holds past ~2 min add little (McGill)
 
+// Dec 31. No pull-ups (no bar in a hostel room), and the squat block swaps to
+// plank minutes if legs were trained in the last 48h.
+export type MurphTier = "half" | "intermediate" | "full";
+export function murphPlan(tier: MurphTier, legsRecent: boolean): { move: string; amount: string }[] {
+  const n = { half: 1, intermediate: 2, full: 3 }[tier];
+  return [
+    { move: "Push-ups", amount: `${[50, 100, 200][n - 1]}` },
+    legsRecent ? { move: "Plank (any split)", amount: `${[3, 5, 8][n - 1]} min` } : { move: "Air squats", amount: `${[100, 200, 300][n - 1]}` },
+    { move: "Burpees", amount: `${[25, 50, 100][n - 1]}` },
+  ];
+}
+
