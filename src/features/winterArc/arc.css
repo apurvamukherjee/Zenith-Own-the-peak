@@ -69,3 +69,18 @@ span.arc-list__item { cursor: default; }
 .arc-list li.is-done .arc-list__item { color: var(--ink-soft); }
 .arc-list__item em { margin-left: auto; font-style: normal; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
 .arc-list__note { margin: -4px 0 8px 26px; font-size: 11.5px; line-height: 1.4; color: var(--warn); }
+
+/* Vow sheet */
+.arc-vow__title { display: inline-flex; align-items: center; gap: 6px; }
+.arc-vow { display: flex; flex-direction: column; gap: 14px; }
+.arc-vow label { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+.arc-vow label em { font-style: normal; font-weight: 500; opacity: 0.8; }
+.arc-vow__row { display: grid; grid-template-columns: auto 1fr; gap: 12px; }
+.arc-vow__rules > span { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+.arc-vow__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.arc-chip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; }
+.arc-chip.is-on { border-color: var(--info); background: color-mix(in srgb, var(--info) 16%, transparent); }
+.arc-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+.arc-vow__note { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--warn); }
+.arc-vow__sign { align-self: stretch; justify-content: center; }
+@media (max-width: 380px) { .arc-vow__row { grid-template-columns: 1fr; } }
