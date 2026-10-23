@@ -56,3 +56,24 @@ export function checklist(date: string, facts: ArcFacts, rules: string[], ticks:
   return { items, score };
 }
 
+export const parseList = (raw: string) => raw.split(",").filter(Boolean);
+
+/** arcTicks setting: JSON `{ "YYYY-MM-DD": ["cold", ...] }`. */
+export function parseTicks(raw: string): Record<string, string[]> {
+  try {
+    const v: unknown = JSON.parse(raw || "{}");
+    return typeof v === "object" && v !== null && !Array.isArray(v) ? v as Record<string, string[]> : {};
+  } catch (e) {
+    if (e instanceof SyntaxError) return {};
+    throw e;
+  }
+}
+
+export function toggleTick(raw: string, date: string, id: string): string {
+  const all = parseTicks(raw);
+  const day = new Set(all[date] ?? []);
+  if (day.has(id)) day.delete(id); else day.add(id);
+  all[date] = [...day];
+  return JSON.stringify(all);
+}
+
