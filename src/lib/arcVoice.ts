@@ -53,3 +53,11 @@ export const LINES: Record<Tier, string[]> = {
   ],
 };
 
+export const COMEBACK: string[] = [
+  "Yesterday slipped. Clear today's drill and the chain re-links.",
+  "New day. Yesterday's drill is owed — pay it today and it's like it never broke.",
+  "One miss is a blip. Two is a pattern. Today decides which.",
+  "Missed one. Doesn't matter. Today's drill repairs it.",
+  "The arc forgives repaid debt. Today's the day to pay.",
+];
+
