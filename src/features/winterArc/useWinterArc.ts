@@ -9,7 +9,7 @@ import {
   type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf,
   LEG_MUSCLES,
 } from "../../lib/winterArc";
-import { halfStart, chapterOf, themeFor, inExam, MILESTONES, GAUNTLET, type ArcDayTheme } from "../../lib/arcCalendar";
+import { halfStart, chapterOf, themeFor, inExam, arcDayStates, MILESTONES, GAUNTLET, type ArcDayTheme, type ArcCellState } from "../../lib/arcCalendar";
 import { celebrate } from "../../lib/celebrate";
 
 export interface ArcToday {
@@ -111,3 +111,10 @@ export async function pauseDay(date: string): Promise<void> {
 
 export const setReadiness = (date: string, r: Readiness) => setSetting("arcReadiness", `${date}|${r}`);
 
+/** Frost-layer states for the calendar (done / repaired / reserve / exempt / owed / scar). */
+export function useArcStates(): Map<string, ArcCellState> {
+  const joined = String(useSetting("arcJoined"));
+  const date = todayKey();
+  return useLiveQuery(async () => arcDayStates(await db.arcDays.toArray(), joined, date), [joined, date]) ?? EMPTY_STATES;
+}
+const EMPTY_STATES = new Map<string, ArcCellState>();
