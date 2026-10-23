@@ -35,3 +35,21 @@ export function bestRun(kept: ReadonlySet<string>): number {
   }
   return best;
 }
+
+export interface WrappedStats {
+  persona: Persona; kept: number; bestRun: number; trials: TrialDelta[];
+  bosses: number; murph: string; reservesUsed: number; wraithSlain: boolean; xp: number;
+}
+
+/** Shareable text — deliberately leaves out the vow, which stays private. */
+export function wrappedText(s: WrappedStats): string {
+  const lines = [
+    `❄ Winter Arc 2026 — ${s.persona.title}`,
+    s.persona.line,
+    `${s.kept}/61 days kept · best run ${s.bestRun}`,
+    ...s.trials.map((t) => `${t.label}: ${t.first}${t.unit} → ${t.last}${t.unit} (${t.delta >= 0 ? "+" : ""}${t.delta})`),
+    `${s.bosses} bosses${s.murph ? ` · Murph (${s.murph})` : ""}${s.wraithSlain ? " · Wraith slain" : ""}`,
+    `+${s.xp} XP · Zenith — own the peak`,
+  ];
+  return lines.join("\n");
+}
