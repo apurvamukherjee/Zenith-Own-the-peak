@@ -1,3 +1,4 @@
+import { ARC_END } from "./winterArc.ts";
 import { chapterOf } from "./arcCalendar.ts";
 
 // Weekly bosses: one per chapter, doable any day of it — fixed-time windows
@@ -30,4 +31,14 @@ export const BOSSES: BossDef[] = [
 ];
 // Chapter 1 is Trials + calibration, chapter 5 is the deload — no boss.
 export const bossFor = (date: string) => BOSSES.find((b) => b.chapter === chapterOf(date).n);
+
+// Day 1 / Day 31 / Day 60 battery (final Trials move to Dec 30, the day before Murph).
+export interface TrialScore { pushups: number; plank: number; deathBy: number }
+export const TRIALS = [
+  { n: 1, opens: "2026-11-01", closes: "2026-11-07" },
+  { n: 2, opens: "2026-12-01", closes: "2026-12-07" },
+  { n: 3, opens: "2026-12-30", closes: ARC_END },
+] as const;
+export const trialOpen = (date: string) => TRIALS.find((t) => date >= t.opens && date <= t.closes);
+export const PLANK_CAP_SEC = 120; // holds past ~2 min add little (McGill)
 
