@@ -43,4 +43,12 @@ html[data-motion="reduce"] .bm-flash { display: none; }
 .bm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .bm-chip { min-height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; }
 .bm-chip.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); box-shadow: 0 0 12px -4px var(--accent); }
+.bm-chip.is-assist { border-style: dashed; border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); color: var(--ink); }
 .bm-chip:active { transform: scale(0.96); }
+.bm-mode { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.bm-mode button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bm-mode button.is-on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 0 var(--border); }
+.bm-dot { display: inline-block; flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; }
+.bm-dot--hot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.bm-dot--warm { background: color-mix(in srgb, var(--accent) 40%, var(--surface-2)); }
+.bm-dot--cold { background: color-mix(in srgb, var(--ink) 12%, var(--surface-2)); box-shadow: inset 0 0 0 1px var(--border); }

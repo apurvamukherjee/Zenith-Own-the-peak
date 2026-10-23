@@ -199,3 +199,52 @@ export function MusclePicker({ value, onChange, hint }: { value: MuscleGroup[]; 
     </div>
   );
 }
+
+// Exercise muscles: one primary (fully lit) plus any number of assists (dim).
+export function ExerciseMusclePicker({ primary, secondary, onChange }: {
+  primary?: MuscleGroup; secondary: MuscleGroup[];
+  onChange: (next: { primary?: MuscleGroup; secondary: MuscleGroup[] }) => void;
+}) {
+  const [mode, setMode] = useState<"primary" | "assist">(primary ? "assist" : "primary");
+  const [flash, bump] = useTapFlash();
+  const pick = (m: MuscleGroup) => {
+    bump(m);
+    if (mode === "primary") {
+      // The old primary becomes an assist rather than vanishing.
+      const demoted = primary && primary !== m ? [primary] : [];
+      onChange({ primary: m, secondary: [...secondary.filter((x) => x !== m), ...demoted] });
+      setMode("assist");
+    } else if (m === primary) {
+      onChange({ primary: undefined, secondary });
+      setMode("primary");
+    } else {
+      onChange({ primary, secondary: secondary.includes(m) ? secondary.filter((x) => x !== m) : [...secondary, m] });
+    }
+  };
+  const stateOf = (m: MuscleGroup) => (m === primary ? "primary" : secondary.includes(m) ? "assist" : "off");
+  return (
+    <div className="bm-pick">
+      <div className="bm-mode" role="radiogroup" aria-label="What a tap sets">
+        {(["primary", "assist"] as const).map((k) => (
+          <button key={k} type="button" role="radio" aria-checked={mode === k} className={mode === k ? "is-on" : ""} onClick={() => setMode(k)}>
+            <i className={`bm-dot bm-dot--${k === "primary" ? "hot" : "warm"}`} />
+            {k === "primary" ? `Primary${primary ? ` · ${MUSCLE_LABELS[primary]}` : ""}` : `Assist${secondary.length ? ` · ${secondary.length}` : ""}`}
+          </button>
+        ))}
+      </div>
+      <BodyMap heat={heatOf(primary ? [primary] : [], secondary)} flash={flash} onPick={pick} />
+      <div className="bm-hint">{mode === "primary" ? "Tap the main muscle it works" : "Tap muscles that help · tap the primary to clear it"}</div>
+      <div className="bm-chips">
+        {ALL_MUSCLES.map((m) => {
+          const s = stateOf(m);
+          return (
+            <button key={m} type="button" aria-pressed={s !== "off"} aria-label={`${MUSCLE_LABELS[m]}${s === "off" ? "" : `, ${s}`}`}
+              className={`bm-chip${s === "primary" ? " is-on" : s === "assist" ? " is-assist" : ""}`} onClick={() => pick(m)}>
+              {MUSCLE_LABELS[m]}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
