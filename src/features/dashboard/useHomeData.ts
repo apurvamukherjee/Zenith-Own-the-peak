@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
-import type { TaskDto, TaskListDto, WorkoutDayDto } from "../../db/types";
+import type { ExerciseDto, MuscleGroup, TaskDto, TaskListDto, WorkoutDayDto } from "../../db/types";
+import { muscleLoad } from "../gym/muscleLoad";
 import { computeTodayScore } from "../../lib/todayScore";
 import { computeUnifiedStreak, isFreezeAvailable } from "../../lib/streak.utils";
 import { computeScoresForMonth, type DayMetrics } from "../../lib/dayScore";
@@ -59,6 +60,8 @@ export function useLast7(waterGoal: number, proteinTarget: number): WeekDot[] {
 
 export interface TrainingToday {
   day: WorkoutDayDto | null;
+  /** The day's picked muscles plus whatever its exercises work. */
+  muscles: MuscleGroup[];
   exercises: number;
   totalSets: number;
   doneSets: number;
@@ -82,17 +85,19 @@ export function useTrainingToday(): TrainingToday | undefined {
         const d = id ? await db.workoutDays.get(id) : undefined;
         if (d) next = { name: d.name, weekday: w };
       }
-      return { day: null, exercises: 0, totalSets: 0, doneSets: 0, estMin: 0, next };
+      return { day: null, muscles: [], exercises: 0, totalSets: 0, doneSets: 0, estMin: 0, next };
     }
     const [plan, session] = await Promise.all([
       db.dayExercises.where({ dayId: day.id }).toArray(),
       db.workoutSessions.where({ date, dayId: day.id }).first(),
     ]);
+    const library = (await db.exercises.bulkGet(plan.map((p) => p.exerciseId))).filter((e): e is ExerciseDto => !!e);
+    const { hot: muscles } = muscleLoad(day.muscles, plan, library);
     const doneSets = session?.id ? await db.workoutSets.where({ sessionId: session.id }).count() : 0;
     const totalSets = plan.reduce((s, e) => s + e.sets, 0);
     // ~40s under the bar per set plus its programmed rest.
     const estMin = Math.round(plan.reduce((s, e) => s + e.sets * (40 + e.restSec), 0) / 60);
-    return { day, exercises: plan.length, totalSets, doneSets, estMin, next: null };
+    return { day, muscles, exercises: plan.length, totalSets, doneSets, estMin, next: null };
   }, [date]);
 }
 
