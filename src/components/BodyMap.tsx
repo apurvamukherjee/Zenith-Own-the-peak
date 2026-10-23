@@ -77,6 +77,16 @@ const BACK_LINES = "M46.4,23 L48.8,30";
 const MIRROR = "matrix(-1 0 0 1 100 0)";
 const FULL_BOX = "0 0 100 196";
 
+// Square crops for the single-muscle glyph.
+const GLYPH: Record<MuscleGroup, { view: View; box: string }> = {
+  chest: { view: "front", box: "26 22 48 48" }, shoulders: { view: "front", box: "18 18 64 64" },
+  biceps: { view: "front", box: "10 36 40 40" }, forearms: { view: "front", box: "6 62 42 42" },
+  abs: { view: "front", box: "26 46 48 48" }, quads: { view: "front", box: "22 88 56 56" },
+  traps: { view: "back", box: "24 14 52 52" }, back: { view: "back", box: "22 28 56 56" },
+  triceps: { view: "back", box: "10 36 40 40" }, glutes: { view: "back", box: "26 78 48 48" },
+  hamstrings: { view: "back", box: "22 98 56 56" }, calves: { view: "back", box: "22 136 56 56" },
+};
+
 function Figure({ view, heat, flash, onPick, box = FULL_BOX, glow = true }: {
   view: View; heat: Heat; flash?: Flash; onPick?: (m: MuscleGroup) => void; box?: string; glow?: boolean;
 }) {
@@ -141,6 +151,16 @@ export function BodyMap({ heat, flash, onPick, className }: {
         </figure>
       ))}
     </div>
+  );
+}
+
+// Single-muscle anatomical glyph, cropped to where the muscle lives.
+export function MuscleGlyph({ muscle, size = 18 }: { muscle: MuscleGroup; size?: number }) {
+  const g = GLYPH[muscle];
+  return (
+    <span className="bm-glyph" style={{ width: size, height: size }} role="img" aria-label={MUSCLE_LABELS[muscle]}>
+      <Figure view={g.view} heat={{ [muscle]: 1 }} box={g.box} glow={size >= 40} />
+    </span>
   );
 }
 
