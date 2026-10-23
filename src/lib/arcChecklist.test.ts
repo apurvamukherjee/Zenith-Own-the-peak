@@ -40,3 +40,15 @@ test("vow parses only when signed", () => {
   assert.equal(parseVow("{oops"), null);
   assert.deepEqual(parseVow('{"goal":"75kg","signedAt":1}'), { goal: "75kg", when: "", where: "", ifThen: "", signedAt: 1 });
 });
+
+test("festival quests, excused sunrise and Exam Mode join the list", () => {
+  const morningAfter = checklist("2026-11-09", { ...all, wakeMin: 600 }, ["sunrise"], []);
+  assert.equal(morningAfter.items[5].done, true);
+  assert.match(morningAfter.items[5].label, /excused/);
+  const sugar = checklist("2026-11-14", all, [], ["q-sugar"]);
+  assert.equal(sugar.items[sugar.items.length - 1].id, "q-sugar");
+  assert.equal(sugar.score, 100);
+  const exam = checklist("2026-11-25", { ...all, studyMin: 90 }, [], [], true);
+  assert.equal(exam.items.find((i) => i.id === "exam")?.done, false);
+  assert.match(checklist("2026-11-01", all, ["sunrise"], []).items[5].label, /5:40/);
+});
