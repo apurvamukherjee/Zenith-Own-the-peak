@@ -12,6 +12,7 @@ import { ArcGate } from "./ArcGate";
 import { ArcChecklist } from "./ArcChecklist";
 import { ArcBossPanel } from "./ArcBossPanel";
 import { ArcAfter } from "./ArcAfter";
+import { ArcWrappedSheet } from "./ArcWrapped";
 import { GAUNTLET } from "../../lib/arcCalendar";
 import { VowSheet } from "./VowSheet";
 import { parseVow } from "../../lib/arcChecklist";
@@ -78,6 +79,7 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
   const { drill, row } = arc;
   const done = row?.kind === "done";
   const { message } = App.useApp();
+  const [wrapped, setWrapped] = useState(false);
   const later = String(useSetting("arcGateLater"));
   const skipped = String(useSetting("arcSkipped"));
   const blackIce = Number(useSetting("arcReserves")) === 0;
@@ -91,6 +93,7 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
   return (
     <div className={`arc-card${done ? " is-done" : ""}${row?.kind === "exempt" ? " is-exempt" : ""}`}>
       {shouldShowGate(arc.date, !!row, later, skipped, new Date().getHours()) && <ArcGate arc={arc} onFinish={finish} />}
+      {wrapped && <ArcWrappedSheet onClose={() => setWrapped(false)} />}
       <div className="arc-card__eyebrow">
         <TbSnowflake size={14} /> Winter Arc · Day {arc.day}/{ARC_DAYS} · {PHASE_LABEL[arc.phase]}
       </div>
@@ -120,6 +123,7 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
           {done ? (
             <div className="arc-card__done">
               <TbCheck size={16} /> {drill.kind === "full" ? "Drill cleared" : "Chain kept"}
+              {arc.date === ARC_END && <button type="button" className="arc-card__link" onClick={() => setWrapped(true)}>Open your Wrapped</button>}
             </div>
           ) : (
             <>
