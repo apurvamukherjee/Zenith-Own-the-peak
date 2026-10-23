@@ -48,3 +48,8 @@ export function chapterOf(date: string): { n: number; start: string; end: string
   return { n, start, end };
 }
 
+// Dec 1 is exactly Day 31 — a fresh-start landmark (Dai, Milkman & Riis 2014):
+// scars and reserves are counted per half.
+export const SECOND_WIND = "2026-12-01";
+export const halfStart = (date: string) => date >= SECOND_WIND ? SECOND_WIND : ARC_START;
+
