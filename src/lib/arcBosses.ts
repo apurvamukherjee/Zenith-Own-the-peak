@@ -54,3 +54,10 @@ export function murphPlan(tier: MurphTier, legsRecent: boolean): { move: string;
   ];
 }
 
+// The Winter Wraith: one 61-HP boss for the whole arc. Kept days and cleared
+// bosses hit it; a scar heals it — a miss costs the boss fight, not you.
+export const WRAITH_HP = 61;
+export function wraithHp(kept: number, bossesCleared: number, scars: number): number {
+  return Math.max(0, Math.min(WRAITH_HP + scars, WRAITH_HP - kept - bossesCleared + scars));
+}
+
