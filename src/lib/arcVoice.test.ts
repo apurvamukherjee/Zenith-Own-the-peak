@@ -53,3 +53,11 @@ test("nothing before the arc, before joining, or when not joined; ids unique", (
   assert.equal(new Set(all.map((p) => p.id)).size, all.length);
   assert.ok(all.every((p) => p.id >= ARC_PUSH_ID_BASE));
 });
+
+test("a gate skip silences today, still counts as a miss, and quotes the plan tomorrow", () => {
+  const p = planArcPushes({ ...base, quietToday: true, plan: { date: "2026-11-11", text: "If class runs late, drill before dinner." } });
+  assert.equal(onDay(p, 10).length, 0);
+  const [morning] = onDay(p, 11);
+  assert.ok(morning.body.includes("Debt: 1 day."));
+  assert.ok(morning.body.includes("Your plan: “If class runs late, drill before dinner.”"));
+});
