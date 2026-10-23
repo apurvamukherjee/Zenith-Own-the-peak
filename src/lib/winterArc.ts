@@ -43,3 +43,14 @@ export const ARC_DAYS = dayIndex(ARC_END) + 1;
 export const inArc = (date: string) => { const i = dayIndex(date); return i >= 0 && i < ARC_DAYS; };
 export const daysUntilArc = (date: string) => -dayIndex(date);
 
+// Training-block shape: deload ≈ every 5–6 weeks, taper into the Dec 31 finale.
+export type ArcPhase = "calibration" | "build" | "deload" | "taper" | "finale";
+export function phaseOf(date: string): ArcPhase {
+  const day = dayIndex(date) + 1;
+  if (day <= 3) return "calibration";
+  if (day >= 29 && day <= 35) return "deload";
+  if (day >= 57 && day <= 60) return "taper";
+  if (day === ARC_DAYS) return "finale";
+  return "build";
+}
+
