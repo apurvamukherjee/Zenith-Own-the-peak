@@ -101,3 +101,11 @@ export const drillAmount = (d: Drill) => d.unit === "sec" ? `${d.target}s hold` 
 /** The 5-minute floor: half of today's base, keeps the chain, repays nothing. */
 export const minimumOf = (d: Drill): Drill => ({ ...d, target: roundTo(d.base / 2, d.unit), debtDays: 0, kind: "minimum" });
 
+/** Consecutive arc days right before `date` with no row at all, counted from when you joined. */
+export function missedStreak(date: string, covered: ReadonlySet<string>, joined: string): number {
+  const from = joined > ARC_START ? joined : ARC_START;
+  let n = 0;
+  for (let d = shiftDate(date, -1); d >= from && !covered.has(d); d = shiftDate(d, -1)) n++;
+  return n;
+}
+
