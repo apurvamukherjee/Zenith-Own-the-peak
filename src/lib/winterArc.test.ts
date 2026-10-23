@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ARC_DAYS, DRILLS, RECOVERY, drillFor, minimumOf, missedStreak, settle, inArc, dayIndex, phaseOf } from "./winterArc.ts";
+import { ARC_DAYS, DRILLS, RECOVERY, shouldShowGate, drillFor, minimumOf, missedStreak, settle, inArc, dayIndex, phaseOf } from "./winterArc.ts";
 
 const def = (name: string) => DRILLS.find((x) => x.name === name)!;
 const nov = (d: number) => `2026-11-${String(d).padStart(2, "0")}`;
@@ -75,4 +75,14 @@ test("settle: debt repairs nearest days, reserves cover next, rest are scars", (
   ]);
   assert.deepEqual(settle(nov(10), 1, 0, 0), []);
   assert.deepEqual(settle(nov(10), 2, 0, 3), [{ date: nov(9), kind: "reserve" }, { date: nov(8), kind: "reserve" }]);
+});
+
+test("gate: hidden once handled or skipped; 'later' hides it until the 21:00 final call, once", () => {
+  assert.equal(shouldShowGate(nov(5), false, "", "", 9), true);
+  assert.equal(shouldShowGate(nov(5), true, "", "", 9), false);
+  assert.equal(shouldShowGate(nov(5), false, "", nov(5), 9), false);
+  assert.equal(shouldShowGate(nov(5), false, `${nov(5)}|10`, "", 15), false);
+  assert.equal(shouldShowGate(nov(5), false, `${nov(5)}|10`, "", 21), true);
+  assert.equal(shouldShowGate(nov(5), false, `${nov(5)}|21`, "", 22), false);
+  assert.equal(shouldShowGate(nov(6), false, `${nov(5)}|21`, "", 8), true);
 });
