@@ -373,7 +373,9 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 
 export const ACHIEVEMENT_COUNT = ACHIEVEMENTS.length;
 export const MYSTERY_COUNT = ACHIEVEMENTS.filter((a) => a.mystery).length;
-const NON_MYSTERY_COUNT = ACHIEVEMENT_COUNT - MYSTERY_COUNT;
+// Seasonal badges can't stay winnable forever, so they never gate Completionist.
+const countsForCompletionist = (a: AchievementDef) => !a.mystery && a.group !== "winter";
+const NON_MYSTERY_COUNT = ACHIEVEMENTS.filter(countsForCompletionist).length;
 
 export function defById(id: string): AchievementDef | undefined {
   return ACHIEVEMENTS.find((a) => a.id === id);
@@ -397,7 +399,7 @@ export async function syncAchievements(ctx: AchievementContext): Promise<string[
 
   // Completionist resolves last: every non-mystery badge earned.
   if (!have.has("completionist")) {
-    const nonMysteryUnlocked = ACHIEVEMENTS.filter((a) => !a.mystery && have.has(a.id)).length;
+    const nonMysteryUnlocked = ACHIEVEMENTS.filter((a) => countsForCompletionist(a) && have.has(a.id)).length;
     if (nonMysteryUnlocked >= NON_MYSTERY_COUNT) {
       await db.achievements.add({ id: "completionist", unlockedAt: now, seen: 0 });
       fresh.push("completionist");
