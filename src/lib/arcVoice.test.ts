@@ -68,3 +68,12 @@ test("pushes start at the vowed drill time when it's inside waking hours", () =>
   assert.equal(p.length, 5);
   assert.equal(onDay(planArcPushes({ ...base, anchorMin: 5 * 60 }), 10)[0].at.getHours(), 8);
 });
+
+test("Exam Mode: 3 pushes a day, capped at Nag, no swearing; festival days get titled", () => {
+  const p = onDay(planArcPushes({ ...base, profanity: true, examUntil: "2026-11-12" }), 10);
+  assert.equal(p.length, 3);
+  p.forEach((x) => assert.ok([...LINES[0], ...LINES[1], ...COMEBACK].some((l) => x.body.startsWith(l)), x.body));
+  const kali = onDay(planArcPushes({ ...base, today: "2026-11-08", now: new Date(2026, 10, 8, 6).getTime() }), 8);
+  assert.match(kali[0].title, /Lights Out/);
+  assert.match(kali[0].body, /Indoors today/);
+});
