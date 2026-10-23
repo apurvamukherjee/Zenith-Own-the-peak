@@ -10,6 +10,7 @@ import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as a
 import { useArcToday, completeDrill, pauseDay, setReadiness, type ArcToday } from "./useWinterArc";
 import { ArcGate } from "./ArcGate";
 import { ArcChecklist } from "./ArcChecklist";
+import { ArcBossPanel } from "./ArcBossPanel";
 import { GAUNTLET } from "../../lib/arcCalendar";
 import { VowSheet } from "./VowSheet";
 import { parseVow } from "../../lib/arcChecklist";
@@ -136,6 +137,7 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
           )}
         </>
       )}
+      <ArcBossPanel date={arc.date} />
       <div className="arc-card__progress" aria-label={`Chapter ${arc.chapter.n}: ${arc.chapter.kept} of ${arc.chapter.days} kept`}>
         <span>Ch {arc.chapter.n}</span>
         <div className="arc-card__pips">
