@@ -1,4 +1,4 @@
-import { ARC_END } from "./winterArc.ts";
+import { ARC_START, ARC_END, shiftDate } from "./winterArc.ts";
 import { chapterOf } from "./arcCalendar.ts";
 
 // Weekly bosses: one per chapter, doable any day of it — fixed-time windows
@@ -59,5 +59,18 @@ export function murphPlan(tier: MurphTier, legsRecent: boolean): { move: string;
 export const WRAITH_HP = 61;
 export function wraithHp(kept: number, bossesCleared: number, scars: number): number {
   return Math.max(0, Math.min(WRAITH_HP + scars, WRAITH_HP - kept - bossesCleared + scars));
+}
+
+// Sunday XP wager on a perfect chapter: stake 50, get 100 back.
+export const WAGER_STAKE = 50;
+export interface Wager { chapter: number; placedOn: string }
+export const canWager = (date: string, wager: Wager | null) => !wager && date === chapterOf(date).start;
+/** null = still running; otherwise whether every day of the chapter was covered. */
+export function settleWager(w: Wager, today: string, covered: ReadonlySet<string>): boolean | null {
+  const start = shiftDate(ARC_START, (w.chapter - 1) * 7);
+  const end = chapterOf(start).end;
+  if (today <= end) return null;
+  for (let d = start; d <= end; d = shiftDate(d, 1)) if (!covered.has(d)) return false;
+  return true;
 }
 
