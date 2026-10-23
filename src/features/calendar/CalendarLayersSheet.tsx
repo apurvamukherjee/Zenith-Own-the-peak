@@ -11,13 +11,15 @@ interface Props {
   onToggleGym: () => void;
   showScore: boolean;
   onToggleScore: () => void;
+  showArc: boolean;
+  onToggleArc: () => void;
 }
 
 // Independent show/hide toggles per "layer" — the discipline-score tint, the
 // synthetic gym overlay, and each real task list — so a cluttered calendar
 // can be narrowed down to just what matters right now.
 export function CalendarLayersSheet({
-  open, onClose, lists, visibleLists, onToggleList, showGym, onToggleGym, showScore, onToggleScore,
+  open, onClose, lists, visibleLists, onToggleList, showGym, onToggleGym, showScore, onToggleScore, showArc, onToggleArc,
 }: Props) {
   return (
     <Modal open={open} onCancel={onClose} footer={null} title="Layers">
@@ -31,6 +33,11 @@ export function CalendarLayersSheet({
           <Checkbox checked={showGym} onChange={onToggleGym} />
           <span style={{ width: 10, height: 10, borderRadius: 3, background: "var(--accent)", flexShrink: 0 }} />
           <span style={{ flex: 1, fontSize: 13 }}>Gym days</span>
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", cursor: "pointer" }}>
+          <Checkbox checked={showArc} onChange={onToggleArc} />
+          <span style={{ width: 10, height: 10, borderRadius: 3, background: "var(--info)", flexShrink: 0 }} />
+          <span style={{ flex: 1, fontSize: 13 }}>Winter Arc</span>
         </label>
         <div style={{ borderTop: "1px solid var(--border)", margin: "6px 0" }} />
         {lists.map((l) => (

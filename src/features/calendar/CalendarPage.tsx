@@ -142,7 +142,7 @@ export function CalendarPage() {
   const [hiddenLists, setHiddenLists] = useState<Set<string>>(new Set());
   const [showGymLayer, setShowGymLayer] = useState(true);
   const [showScoreLayer, setShowScoreLayer] = useState(true);
-  const [showArcLayer] = useState(true);
+  const [showArcLayer, setShowArcLayer] = useState(true);
   const arcStates = useArcStates();
   const [layersOpen, setLayersOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -508,6 +508,8 @@ export function CalendarPage() {
         onToggleGym={() => setShowGymLayer((v) => !v)}
         showScore={showScoreLayer}
         onToggleScore={() => setShowScoreLayer((v) => !v)}
+        showArc={showArcLayer}
+        onToggleArc={() => setShowArcLayer((v) => !v)}
       />
       <CalendarSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} onJumpTo={jumpToSearchResult} />
 
