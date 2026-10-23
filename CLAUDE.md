@@ -111,7 +111,9 @@ src/
     SplashScreen.tsx     Gothic animated splash with particles
     QuickLogFab.tsx      Floating lightning-bolt action button
     NavStrip.tsx         Secondary scrollable chip row (scroll pos persisted)
-    MuscleIcon.tsx       Vector muscle-group icon component (JSX, separate from data)
+    BodyMap.tsx          Anatomical front/back body map (heat, glow, entrance + flash animations),
+                         MuscleGlyph (cropped single-muscle icon), MusclePicker / ExerciseMusclePicker
+    MuscleCard.tsx       Body map + per-muscle rows; shared by Train, Planner (weekly volume), Progress (muscle heat)
     ColdIcon.tsx         Cold angular achievement glyph set (currentColor SVG)
     CoachMark.tsx        Multi-step tooltip component
     PageTransition.tsx, SectionTitle.tsx, MetricCard.tsx, AnimatedNumber.tsx
@@ -174,8 +176,8 @@ Rule: style prop → CSS var. SVG/Progress attribute → `useTokens()`.
 - **XP dedup reads `xpEvents`.** `useXPEngine` decides "already granted
   today" from today's `xpEvents` rows and runs one mutation at a time —
   don't reintroduce in-memory or localStorage guards (they reset on launch).
-- **exerciseLibrary.ts is plain .ts** (data only). MuscleIcon (JSX) lives in
-  `components/MuscleIcon.tsx`. Mixing JSX into the .ts file broke Vite's dev
+- **exerciseLibrary.ts is plain .ts** (data only). Muscle visuals (JSX) live in
+  `components/BodyMap.tsx`. Mixing JSX into the .ts file broke Vite's dev
   server — don't merge them back.
 - **seedIfEmpty()** runs before the router mounts (gated in App.tsx) so hooks
   never query empty tables on first load.
@@ -864,3 +866,20 @@ write goes through the existing `useGym.ts` functions plus two small additions.
 - **Look**: hard 1px borders, tabular numerals, uppercase micro-labels, red only
   as signal (next set, rest, ticks). No gradients/glows on cards — keep it that
   way; styles live in `features/gym/train.css`.
+
+## Body map (muscle visuals)
+
+- `components/BodyMap.tsx` draws ~45 anatomical parts per view, each owned by one
+  of the 12 `MuscleGroup`s (or none: serratus, adductors, tibialis stay idle).
+  Heat is 0–1 per muscle; ≥0.5 also blooms. Left halves are mirrored.
+- Logic is pure and tested in `features/gym/muscleLoad.ts`: `muscleLoad` (a day's
+  targets = picked muscles ∪ exercise primaries, so a day with none picked still
+  lights up), `tallySets` (primary set = 1, assist = ½), `volumeStatus`
+  (10–20 sets/wk), `guessExercise` (custom exercises borrow muscles from the
+  closest library name until the user picks).
+- Surfaces: Train "Muscles today" (brightens as sets finish, flashes per set),
+  Planner day cards + Weekly volume, Progress "Muscle heat" (4W/8W/All vs
+  previous period), add-exercise rows, focus mode, dashboard chips.
+- `AddExerciseSheet` is the one exercise picker (Planner + Train); creating a
+  custom exercise swaps to `CustomExerciseForm` inside the same sheet — never
+  stack a second sheet, the two `useBackClose` history entries unwind each other.

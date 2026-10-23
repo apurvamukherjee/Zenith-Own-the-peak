@@ -11,9 +11,8 @@ import { Rings } from "../../components/ui/Rings";
 import { TrainingHeroBg } from "../dashboard/TrainingHeroArt";
 import "./train.css";
 import { useTokens } from "../../hooks/useTokens";
-import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
-import { MuscleIcon } from "../../components/MuscleIcon";
-import type { DayExerciseDto, ExerciseDto, MuscleGroup, WorkoutSetDto } from "../../db/types";
+import { MuscleGlyph } from "../../components/BodyMap";
+import type { DayExerciseDto, ExerciseDto, WorkoutSetDto } from "../../db/types";
 import {
   useWorkoutDays, useDayExercises, useTodayDayId, useTodaySession,
   useSessionSets, useGhostSets, useExercise, useExerciseLibrary, ensureSession,
@@ -22,6 +21,8 @@ import {
 } from "./useGym";
 import { AddExerciseSheet } from "./AddExerciseSheet";
 import { SessionSummary } from "./SessionSummary";
+import { MuscleTargets } from "./MuscleTargets";
+import { muscleLoad } from "./muscleLoad";
 import { SupersetPicker } from "./SupersetPicker";
 import { SetRow, SetHeader } from "./SetRow";
 import { LEG_MUSCLES } from "./useOverloadSuggestions";
@@ -199,7 +200,7 @@ function ExerciseBlock({ plan, order, dayId, sets, getSessionId, actions, dayDon
         <div className="xb-title">
           <h3 title={ex.name}>{ex.name}</h3>
           <div className="xb-meta">
-            <MuscleIcon muscle={ex.primaryMuscle as MuscleGroup} size={13} color="currentColor" />
+            <MuscleGlyph muscle={ex.primaryMuscle} size={18} />
             {plan.sets} × {plan.repLow}–{plan.repHigh} · {plan.restSec}s rest
           </div>
         </div>
@@ -391,6 +392,7 @@ export function SessionLogger() {
   }, []);
 
   const library = useExerciseLibrary();
+  const load = muscleLoad(dayPlan?.muscles ?? [], todayExercises, library, sets);
   const names = useMemo(() => new Map(library.map((e) => [e.id ?? -1, e.name])), [library]);
   const [linkAnchor, setLinkAnchor] = useState<DayExerciseDto | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -471,11 +473,6 @@ export function SessionLogger() {
             <div className="tr-hero__row">
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="z-hero__title">{isRest ? "Rest day" : dayPlan?.name ?? "Session"}</div>
-                {dayPlan && dayPlan.muscles.length > 0 && (
-                  <div className="tr-hero__chips">
-                    {dayPlan.muscles.map((m) => <span key={m} className="tr-chip">{MUSCLE_LABELS[m]}</span>)}
-                  </div>
-                )}
                 {isRest && <div className="z-hero__sub">Muscle is built between sessions. Pick a day below to train anyway.</div>}
               </div>
               {!isRest && totalSets > 0 && (
@@ -550,6 +547,7 @@ export function SessionLogger() {
           </div>
         ) : (
           <>
+            <MuscleTargets load={load} picked={(dayPlan?.muscles.length ?? 0) > 0} />
             {items.map((item, idx) => (
               <div key={itemKey(item)} data-key={itemKey(item)} className="tr-slot">
                 {item.type === "single" ? (
@@ -588,7 +586,7 @@ export function SessionLogger() {
       <SupersetPicker anchor={linkAnchor} day={exercises} names={names} onClose={() => setLinkAnchor(null)} />
       {dayId ? (
         <AddExerciseSheet open={addOpen} onClose={() => setAddOpen(false)} dayId={dayId}
-          dayMuscles={dayPlan?.muscles ?? []} day={exercises} />
+          dayMuscles={load.hot} day={exercises} />
       ) : null}
       {focusOn && !isRest && dayId && (
         <GymFocusMode

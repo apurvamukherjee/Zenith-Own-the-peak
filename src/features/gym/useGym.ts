@@ -65,6 +65,10 @@ export function useWeekSchedule() {
   return useLiveQuery(() => db.weekSchedule.orderBy("weekday").toArray(), []) ?? [];
 }
 
+export function useAllDayExercises() {
+  return useLiveQuery(() => db.dayExercises.toArray(), []) ?? [];
+}
+
 // ---- Write functions ----
 export async function ensureSession(dayId: number): Promise<number> {
   const date = todayKey();
@@ -120,6 +124,10 @@ export async function updateSet(
 export async function addWorkoutDay(name: string, muscles: MuscleGroup[]): Promise<number> {
   const count = await db.workoutDays.count();
   return db.workoutDays.add({ name, muscles, order: count });
+}
+
+export async function updateWorkoutDay(id: number, patch: { name: string; muscles: MuscleGroup[] }) {
+  await db.workoutDays.update(id, patch);
 }
 
 export async function deleteWorkoutDay(id: number) {

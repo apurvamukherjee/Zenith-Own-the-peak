@@ -1,0 +1,85 @@
+.bm { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.bm-fig { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; border-radius: 12px; background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--accent) 7%, var(--surface-2)), var(--surface-2) 70%); border: 1px solid var(--border); }
+.bm-fig svg { width: 100%; max-width: 120px; height: auto; overflow: visible; }
+.bm-fig figcaption { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+
+.bm svg path, .bm-glyph svg path { stroke-linejoin: round; }
+.bm-outline path { fill: color-mix(in srgb, var(--ink) 70%, transparent); stroke: color-mix(in srgb, var(--ink) 70%, transparent); stroke-width: 2.4; }
+.bm-bone { fill: color-mix(in srgb, var(--ink) 42%, var(--surface-2)); stroke: var(--surface-2); stroke-width: 0.6; }
+.bm-idle { fill: color-mix(in srgb, var(--ink) 9%, var(--surface-2)); stroke: var(--surface-2); stroke-width: 0.6; }
+.bm-heat { fill: var(--accent); stroke: var(--surface-2); stroke-width: 0.6; transition: fill-opacity 0.6s ease; }
+.bm-heat.is-max { stroke: color-mix(in srgb, #fff 40%, var(--accent)); stroke-width: 0.45; }
+.bm-lines { fill: none; stroke: var(--surface-2); stroke-width: 0.6; stroke-linecap: round; opacity: 0.8; pointer-events: none; }
+.bm-glow { pointer-events: none; mix-blend-mode: screen; }
+.bm-glow path { fill: var(--accent); transition: opacity 0.6s ease; }
+.bm-flash { fill: #fff; stroke: var(--accent); pointer-events: none; transform-box: fill-box; transform-origin: center; animation: bm-flash 0.75s ease-out forwards; }
+
+/* Entrance: silhouette draws itself, then muscles ignite top → bottom and keep breathing. */
+.bm-outline path { stroke-dasharray: 1; animation: bm-draw 0.9s ease-out both; }
+.bm-heat { animation: bm-ignite 0.7s ease-out both; animation-delay: calc(0.35s + var(--d, 0ms)); }
+.bm-glow path { animation: bm-ignite 0.7s ease-out both, bm-breathe 2.8s ease-in-out infinite; animation-delay: calc(0.35s + var(--d, 0ms)), 1.4s; }
+@keyframes bm-draw { from { stroke-dashoffset: 1; fill-opacity: 0; } 70% { fill-opacity: 0; } to { stroke-dashoffset: 0; fill-opacity: 1; } }
+@keyframes bm-ignite { from { fill-opacity: 0; opacity: 0; } }
+@keyframes bm-breathe { 50% { opacity: 0.35; } }
+@keyframes bm-flash { from { opacity: 0.85; transform: scale(1); stroke-width: 0; } to { opacity: 0; transform: scale(1.35); stroke-width: 3; } }
+@media (prefers-reduced-motion: reduce) {
+  .bm-outline path, .bm-heat, .bm-glow path { animation: none; }
+  .bm-flash { display: none; }
+}
+html[data-motion="reduce"] .bm-outline path, html[data-motion="reduce"] .bm-heat, html[data-motion="reduce"] .bm-glow path { animation: none; }
+html[data-motion="reduce"] .bm-flash { display: none; }
+
+.is-pick .bm-idle, .is-pick .bm-heat { cursor: pointer; }
+/* A tap has to answer now, not wait for the entrance stagger. */
+.is-pick .bm-heat { animation-delay: 0s; animation-duration: 0.25s; }
+.is-pick .bm-glow path { animation-delay: 0s, 0.6s; animation-duration: 0.25s, 2.8s; }
+/* Touch screens keep :hover on the last tapped part, which would read as lit. */
+@media (hover: hover) { .is-pick .bm-idle:hover { fill: color-mix(in srgb, var(--accent) 22%, var(--surface-2)); } }
+
+/* Glyph: static, no entrance — it shows up in lists. */
+.bm-glyph { display: inline-grid; flex-shrink: 0; vertical-align: middle; }
+.bm-glyph svg { width: 100%; height: 100%; overflow: hidden; }
+.bm-glyph .bm-outline path { stroke-width: 1.6; animation: none; }
+.bm-glyph .bm-heat, .bm-glyph .bm-glow path { animation: none; }
+
+.bm-pick { display: flex; flex-direction: column; gap: 10px; }
+.bm-hint { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); text-align: center; }
+.bm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bm-chip { min-height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; }
+.bm-chip.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); box-shadow: 0 0 12px -4px var(--accent); }
+.bm-chip.is-assist { border-style: dashed; border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); color: var(--ink); }
+.bm-chip:active { transform: scale(0.96); }
+.bm-mode { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.bm-mode button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 8px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bm-mode button.is-on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 0 var(--border); }
+.bm-dot { display: inline-block; flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; }
+.bm-dot--hot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.bm-dot--warm { background: color-mix(in srgb, var(--accent) 40%, var(--surface-2)); }
+.bm-dot--cold { background: color-mix(in srgb, var(--ink) 12%, var(--surface-2)); box-shadow: inset 0 0 0 1px var(--border); }
+
+/* ---- MuscleCard ---- */
+.mc { margin-bottom: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.mc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.mc-eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+.mc-legend { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 10px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.mc-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.mc-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin: 12px 0 0; padding: 0; list-style: none; }
+.mc-list li { position: relative; display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; column-gap: 8px; row-gap: 4px; }
+.mc-list li > .bm-glyph { grid-row: span 2; }
+.mc-name { font-size: 13px; font-weight: 800; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc-val { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.mc-val small { font-size: 11px; color: var(--ink-soft); }
+.mc-bar { grid-column: 2 / -1; height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.mc-bar span { display: block; height: 100%; background: var(--accent); transform-origin: left; transition: transform 0.5s cubic-bezier(.22, 1, .36, 1); }
+.mc-tag { grid-column: 2 / -1; font-style: normal; font-size: 9.5px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; }
+.mc-tag--good { color: var(--accent); }
+.mc-tag--low, .mc-tag--none { color: var(--ink-soft); }
+.mc-tag--high { color: var(--gold); }
+.mc-list li.is-dim .mc-name, .mc-list li.is-dim .mc-val { color: var(--ink-soft); }
+.mc-foot { margin: 12px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--ink-soft); }
+.mc-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; margin: -2px 0 10px; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.mc-tabs button { min-height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; cursor: pointer; }
+.mc-tabs button.is-on { background: var(--accent); color: #fff; box-shadow: 0 6px 14px -8px var(--accent); }
+.mc-val small.mc-up, .mc-val small.mc-down { display: inline-flex; align-items: center; font-weight: 800; }
+.mc-val small.mc-up { color: var(--accent); }
+.mc-foot b { color: var(--ink); font-weight: 800; }

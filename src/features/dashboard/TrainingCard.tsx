@@ -4,6 +4,7 @@ import { TbPlayerPlayFilled, TbStarFilled, TbClock, TbStack2, TbCalendarEvent, T
 import { ColdIcon } from "../../components/ColdIcon";
 import { TrainingHeroBg, SetsBar } from "./TrainingHeroArt";
 import type { TrainingToday } from "./useHomeData";
+import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
 
 const WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -42,9 +43,10 @@ export function TrainingCard({ t, rocky }: { t: TrainingToday | undefined; rocky
           {t.day.name}
           {rocky && <span title="Rocky Mode — 40+ sets today" aria-label="Rocky Mode" className="hb-train__rocky"><TbStarFilled size={16} /></span>}
         </div>
-        {t.day.muscles.length > 0 && (
+        {t.muscles.length > 0 && (
           <div className="hb-train__chips">
-            {t.day.muscles.slice(0, 4).map((m) => <span key={m} className="hb-chip">{m}</span>)}
+            {t.muscles.slice(0, 4).map((m) => <span key={m} className="hb-chip">{MUSCLE_LABELS[m]}</span>)}
+            {t.muscles.length > 4 && <span className="hb-chip">+{t.muscles.length - 4}</span>}
           </div>
         )}
         <div className="hb-train__stats">

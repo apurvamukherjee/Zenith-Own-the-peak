@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Button, Modal, Input, Select, Tag, App, Segmented, Alert, Popconfirm } from "antd";
+import { Card, Button, Modal, Input, Select, App, Alert, Popconfirm } from "antd";
 import { SmartInputNumber } from "../../components/SmartInputNumber";
 import { TbPlus, TbTrash, TbCopy, TbEdit, TbBarbell, TbLink, TbLinkOff, TbTrendingUp, TbSwitch3, TbRefresh, TbMoon } from "react-icons/tb";
 import { PageTransition } from "../../components/PageTransition";
@@ -9,18 +9,19 @@ import "./train.css";
 import { CoachMark } from "../../components/CoachMark";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
-import { MuscleIcon } from "../../components/MuscleIcon";
-import type { MuscleGroup, ExerciseDto, DayExerciseDto } from "../../db/types";
+import { BodyMap, MusclePicker, MuscleGlyph, heatOf } from "../../components/BodyMap";
+import { muscleLoad } from "./muscleLoad";
+import { AddExerciseSheet } from "./AddExerciseSheet";
+import { WeeklyVolumeCard } from "./WeeklyVolumeCard";
+import type { MuscleGroup, DayExerciseDto } from "../../db/types";
 import {
   useWorkoutDays, useExerciseLibrary, useDayExercises, useWeekSchedule,
-  addWorkoutDay, deleteWorkoutDay, cloneDay,
-  addDayExercise, updateDayExercise, removeDayExercise, setWeekday,
-  toggleSupersetLink, addCustomExercise,
+  addWorkoutDay, updateWorkoutDay, deleteWorkoutDay, cloneDay,
+  updateDayExercise, removeDayExercise, setWeekday, toggleSupersetLink,
 } from "./useGym";
 import { useActivePlan, planExerciseCount, resetBuiltInPlan } from "./usePlans";
 import { PlanSwitcherSheet } from "./PlanSwitcherSheet";
 import { useOverloadSuggestions } from "./useOverloadSuggestions";
-import { pressable } from "../../lib/a11y";
 
 const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -52,7 +53,23 @@ function PlanHeroCard({ onOpenSwitcher }: { onOpenSwitcher: () => void }) {
     </Hero>
   );
 }
-const ALL_MUSCLES: MuscleGroup[] = ["chest", "back", "shoulders", "biceps", "triceps", "quads", "hamstrings", "glutes", "calves", "abs", "forearms", "traps"];
+// Mounted only while open, so each open starts from `initial`.
+function DayEditor({ title, okText, initial, onClose, onSave }: {
+  title: string; okText: string; initial: { name: string; muscles: MuscleGroup[] };
+  onClose: () => void; onSave: (name: string, muscles: MuscleGroup[]) => Promise<unknown>;
+}) {
+  const [name, setName] = useState(initial.name);
+  const [muscles, setMuscles] = useState(initial.muscles);
+  return (
+    <Modal open onCancel={onClose} title={title} okText={okText} okButtonProps={{ disabled: !name.trim() }}
+      onOk={async () => { await onSave(name.trim(), muscles); onClose(); }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+        <Input placeholder="Day name (e.g. Back Day)" value={name} onChange={(e) => setName(e.target.value)} />
+        <MusclePicker value={muscles} onChange={setMuscles} hint={muscles.length ? undefined : "Optional — leave empty and it lights up from the exercises"} />
+      </div>
+    </Modal>
+  );
+}
 
 function DayCard({ dayId }: { dayId: number }) {
   const { message, modal } = App.useApp();
@@ -61,67 +78,25 @@ function DayCard({ dayId }: { dayId: number }) {
   const exercises = useDayExercises(dayId);
   const library = useExerciseLibrary();
   const [addOpen, setAddOpen] = useState(false);
-  const [filter, setFilter] = useState<MuscleGroup | "all">("all");
   const [editEx, setEditEx] = useState<DayExerciseDto | null>(null);
   const [dismissedSuggestions, setDismissedSuggestions] = useState<number[]>([]);
-  const [customOpen, setCustomOpen] = useState(false);
-  const [customName, setCustomName] = useState("");
-  const [customPrimary, setCustomPrimary] = useState<MuscleGroup | undefined>(undefined);
-  const [customSecondary, setCustomSecondary] = useState<MuscleGroup[]>([]);
-  const [customEquipment, setCustomEquipment] = useState("");
-  const [customCues, setCustomCues] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
 
   const suggestions = useOverloadSuggestions(exercises);
   const activeSuggestions = suggestions.filter((s) => !dismissedSuggestions.includes(s.exerciseId));
 
   if (!day) return null;
-  const filtered = filter === "all" ? library : library.filter((e) => e.primaryMuscle === filter);
-
-  async function handleAddEx(ex: ExerciseDto) {
-    await addDayExercise(dayId, ex.id!, { sets: 3, repLow: 8, repHigh: 12, weightKg: 0, restSec: 90 });
-    setAddOpen(false);
-    message.success(`Added ${ex.name}`);
-  }
-
-  function resetCustomForm() {
-    setCustomName(""); setCustomPrimary(undefined); setCustomSecondary([]);
-    setCustomEquipment(""); setCustomCues("");
-  }
-
-  async function handleSaveCustom() {
-    const name = customName.trim();
-    if (!name || !customPrimary) return;
-    const id = await addCustomExercise({
-      name, primaryMuscle: customPrimary, secondaryMuscles: customSecondary,
-      equipment: customEquipment.trim() || "other",
-      cues: customCues.trim() || undefined,
-    });
-    await addDayExercise(dayId, id, { sets: 3, repLow: 8, repHigh: 12, weightKg: 0, restSec: 90 });
-    message.success(`Added ${name} to your exercise library`);
-    setCustomOpen(false);
-    setAddOpen(false);
-    resetCustomForm();
-  }
+  const { hot, warm } = muscleLoad(day.muscles, exercises, library);
+  const totalSets = exercises.reduce((s, e) => s + e.sets, 0);
 
   return (
     <Card size="small" style={{ marginBottom: 14, borderRadius: 16, borderLeft: "3px solid var(--accent)" }}
       styles={{ header: { border: "none", paddingBottom: 0 } }}
       title={
-        <div style={{ padding: "4px 0" }}>
-          <div className="display" style={{ fontWeight: 800, fontSize: 16 }}>{day.name}</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
-            {day.muscles.map((m, i) => (
-              <span key={i} style={{
-                display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 700,
-                borderRadius: 999, padding: "1px 8px", background: "rgba(255,39,64,0.12)", color: "var(--accent)",
-              }}>
-                <MuscleIcon muscle={m} size={11} color="var(--accent)" /> {MUSCLE_LABELS[m]}
-              </span>
-            ))}
-          </div>
-        </div>
+        <div className="display" style={{ padding: "4px 0", fontWeight: 800, fontSize: 16 }}>{day.name}</div>
       }
       extra={<div style={{ display: "flex", gap: 6 }}>
+        <Button size="small" icon={<TbEdit />} onClick={() => setEditOpen(true)} aria-label="Edit day" />
         <Button size="small" icon={<TbCopy />} onClick={() => {
           const name = prompt("Clone name", `${day.name} copy`);
           if (name) cloneDay(dayId, name);
@@ -130,6 +105,26 @@ function DayCard({ dayId }: { dayId: number }) {
           modal.confirm({ title: `Delete ${day.name}?`, onOk: () => deleteWorkoutDay(dayId), okButtonProps: { danger: true } });
         }} aria-label="Delete" />
       </div>}>
+      <div className="pl-day__top">
+        <button type="button" className="pl-day__map" onClick={() => setEditOpen(true)} aria-label={`Edit ${day.name} target muscles`}>
+          <BodyMap heat={heatOf(hot, warm)} />
+        </button>
+        <div className="pl-day__info">
+          <div className="pl-day__stat"><b>{exercises.length}</b> exercises · <b>{totalSets}</b> sets</div>
+          {hot.length > 0 && (
+            <div className="bm-chips">{hot.map((m) => <span key={m} className={`bm-chip${day.muscles.includes(m) ? " is-on" : " is-assist"}`}>{MUSCLE_LABELS[m]}</span>)}</div>
+          )}
+          {day.muscles.length === 0 && (
+            <button type="button" className="pl-day__empty" onClick={() => setEditOpen(true)}>
+              {hot.length ? "Auto from exercises · pin targets" : "+ Pick target muscles"}
+            </button>
+          )}
+        </div>
+      </div>
+      {editOpen && (
+        <DayEditor title="Edit day" okText="Save" initial={{ name: day.name, muscles: day.muscles }}
+          onClose={() => setEditOpen(false)} onSave={(name, muscles) => updateWorkoutDay(dayId, { name, muscles })} />
+      )}
       {/* Progressive overload suggestions — fires after 3 sessions all hitting repHigh */}
       {activeSuggestions.map((s) => (
         <Alert key={s.exerciseId} type="info" style={{ marginBottom: 8, borderRadius: 10 }}
@@ -176,7 +171,7 @@ function DayCard({ dayId }: { dayId: number }) {
                 borderLeft: inGroup ? "3px solid var(--accent)" : "3px solid transparent",
                 paddingLeft: inGroup ? 8 : 0,
               }}>
-                <MuscleIcon muscle={ex?.primaryMuscle as MuscleGroup} size={16} color="var(--accent)" />
+                {ex && <MuscleGlyph muscle={ex.primaryMuscle} size={28} />}
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{ex?.name ?? "?"}</div>
                   <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
@@ -214,66 +209,8 @@ function DayCard({ dayId }: { dayId: number }) {
       )}
       <Button type="dashed" block icon={<TbPlus />} onClick={() => setAddOpen(true)} style={{ marginTop: 8 }}>Add exercise</Button>
 
-      {/* Add exercise modal */}
-      <Modal open={addOpen} onCancel={() => setAddOpen(false)} footer={null} title="Exercise library">
-        <Button type="dashed" block icon={<TbPlus />} onClick={() => setCustomOpen(true)} style={{ marginBottom: 10 }}>
-          Add custom exercise
-        </Button>
-        <div style={{ marginBottom: 10 }}>
-          <Segmented size="small"
-            value={filter}
-            onChange={(v) => setFilter(v as MuscleGroup | "all")}
-            options={[{ label: "All", value: "all" }, ...ALL_MUSCLES.map((m) => ({ label: MUSCLE_LABELS[m], value: m }))]}
-            style={{ overflowX: "auto", display: "flex" }} />
-        </div>
-        <div style={{ maxHeight: 350, overflow: "auto" }}>
-          {filtered.map((ex) => (
-            <div key={ex.id} {...pressable(() => handleAddEx(ex))}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 4px", cursor: "pointer", borderBottom: "1px solid var(--border)" }}>
-              <MuscleIcon muscle={ex.primaryMuscle} size={16} color="var(--accent)" />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{ex.name}</div>
-                <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                  {ex.equipment} · {ex.secondaryMuscles.map((m) => MUSCLE_LABELS[m]).join(", ") || "isolated"}
-                </div>
-              </div>
-              <TbPlus style={{ color: "var(--accent)" }} />
-            </div>
-          ))}
-        </div>
-      </Modal>
-
-      {/* Add custom exercise modal */}
-      <Modal open={customOpen} onCancel={() => { setCustomOpen(false); resetCustomForm(); }}
-        title="Add custom exercise" onOk={handleSaveCustom} okText="Add"
-        okButtonProps={{ disabled: !customName.trim() || !customPrimary }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
-          <Input placeholder="Exercise name" value={customName} onChange={(e) => setCustomName(e.target.value)} />
-          <div>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>Primary muscle</div>
-            <Select
-              style={{ width: "100%" }}
-              placeholder="Select primary muscle"
-              value={customPrimary}
-              onChange={(v) => setCustomPrimary(v)}
-              options={ALL_MUSCLES.map((m) => ({ label: MUSCLE_LABELS[m], value: m }))}
-            />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>Secondary muscles (optional)</div>
-            <Select
-              mode="multiple"
-              style={{ width: "100%" }}
-              placeholder="Select secondary muscles"
-              value={customSecondary}
-              onChange={(v) => setCustomSecondary(v)}
-              options={ALL_MUSCLES.filter((m) => m !== customPrimary).map((m) => ({ label: MUSCLE_LABELS[m], value: m }))}
-            />
-          </div>
-          <Input placeholder="Equipment (e.g. barbell, dumbbell, cable, bodyweight)" value={customEquipment} onChange={(e) => setCustomEquipment(e.target.value)} />
-          <Input placeholder="Cue / tip (optional)" value={customCues} onChange={(e) => setCustomCues(e.target.value)} />
-        </div>
-      </Modal>
+      <AddExerciseSheet open={addOpen} onClose={() => setAddOpen(false)} dayId={dayId} dayMuscles={hot} day={exercises}
+        hint={`Adds to ${day.name}, at the end.`} />
 
       {/* Edit exercise modal */}
       <Modal open={!!editEx} onCancel={() => setEditEx(null)} title="Edit exercise"
@@ -300,8 +237,6 @@ export function WorkoutPlanner() {
   const days = useWorkoutDays();
   const schedule = useWeekSchedule();
   const [addOpen, setAddOpen] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newMuscles, setNewMuscles] = useState<MuscleGroup[]>([]);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const coachDone = Number(useSetting("coachPlanner"));
   const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
@@ -309,12 +244,6 @@ export function WorkoutPlanner() {
     { title: "Plan your week", body: "Assign a workout day to each weekday below. You can have multiple days with different muscle groups." },
     { title: "Link supersets", body: "In any day card, tap the chain icon between two exercises to link them as a superset A1→A2." },
   ];
-
-  function handleCreate() {
-    if (!newName.trim()) return;
-    addWorkoutDay(newName.trim(), newMuscles);
-    setNewName(""); setNewMuscles([]); setAddOpen(false);
-  }
 
   return (
     <PageTransition>
@@ -369,6 +298,8 @@ export function WorkoutPlanner() {
         })}
       </div>
 
+      <WeeklyVolumeCard />
+
       {days.length === 0 ? (
         <div style={{ textAlign: "center", padding: 32 }}>
           <div style={{ marginBottom: 8 }}><TbBarbell size={48} style={{ color: "var(--accent)" }} /></div>
@@ -379,21 +310,10 @@ export function WorkoutPlanner() {
         days.map((d) => <DayCard key={d.id} dayId={d.id!} />)
       )}
 
-      <Modal open={addOpen} onCancel={() => setAddOpen(false)} title="New workout day" onOk={handleCreate} okText="Create">
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
-          <Input placeholder="Day name (e.g. Back Day)" value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Target muscles (tap to toggle)</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {ALL_MUSCLES.map((m) => (
-              <Tag key={m} icon={<MuscleIcon muscle={m} size={12} />} style={{ cursor: "pointer", borderRadius: 8 }}
-                color={newMuscles.includes(m) ? "var(--accent)" : "default"}
-                onClick={() => setNewMuscles((prev) => prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m])}>
-                {MUSCLE_LABELS[m]}
-              </Tag>
-            ))}
-          </div>
-        </div>
-      </Modal>
+      {addOpen && (
+        <DayEditor title="New workout day" okText="Create" initial={{ name: "", muscles: [] }}
+          onClose={() => setAddOpen(false)} onSave={addWorkoutDay} />
+      )}
     </PageTransition>
   );
 }
