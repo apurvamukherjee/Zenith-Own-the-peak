@@ -3,7 +3,11 @@ import { db } from "../../db/db";
 import type { ArcDayDto, MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
 import { todayKey } from "../../lib/date.utils";
-import { type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf, LEG_MUSCLES, ARC_START } from "../../lib/winterArc";
+import { grantXP } from "../../lib/xp";
+import {
+  type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf,
+  LEG_MUSCLES, ARC_START,
+} from "../../lib/winterArc";
 
 export interface ArcToday {
   date: string; day: number; phase: ArcPhase; drill: Drill; readiness: Readiness;
@@ -57,12 +61,18 @@ export function useArcToday(trainedToday: MuscleGroup[] | undefined): ArcToday |
 
 // Clearing a debt drill pays back the missed days it carried, so they count
 // as kept — repair beats punishment for staying in (Silverman & Barasch 2023).
-export async function completeDrill(arc: ArcToday, drill: Drill): Promise<void> {
+// Returns true when this was a comeback (first drill after a miss): the
+// return-after-a-miss bonus was the top arm of Milkman et al.'s 61k-person
+// gym megastudy (+27% visits).
+export async function completeDrill(arc: ArcToday, drill: Drill): Promise<boolean> {
   const at = Date.now();
   await db.arcDays.bulkPut([
     { date: arc.date, kind: "done", at, exercise: drill.name, unit: drill.unit, target: drill.target, drillKind: drill.kind },
     ...settle(arc.date, arc.missed, drill.debtDays, arc.reservesLeft).map((s) => ({ ...s, at })),
   ]);
+  if (arc.missed === 0) return false;
+  await grantXP("arc_comeback");
+  return true;
 }
 
 /** Sick/injury pause — today or, at most, yesterday. */
