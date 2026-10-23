@@ -5,6 +5,8 @@ import { chapterOf } from "../../lib/arcCalendar";
 import { WRAITH_HP, WAGER_STAKE } from "../../lib/arcBosses";
 import { useArcBosses, placeWager } from "./useArcBosses";
 import { ArcBossSheet, type BossMode } from "./ArcBossSheet";
+import { ArcPartnerChip } from "./ArcSocial";
+import { convexConfigured } from "../../lib/convexClient";
 
 // Bosses, Trials, the Wraith and the wager live under the drill on the card:
 // the drill keeps the chain, these are the fights on top of it.
@@ -46,6 +48,7 @@ export function ArcBossPanel({ date }: { date: string }) {
           </Popconfirm>
         )}
         {s.wager && <span className="arc-pill is-static"><TbCoins size={13} /> {WAGER_STAKE} XP on Ch {s.wager.chapter}</span>}
+        {convexConfigured && <ArcPartnerChip />}
       </div>
       {mode && <ArcBossSheet mode={mode} state={s} date={date} onClose={() => setMode(null)} />}
     </div>
