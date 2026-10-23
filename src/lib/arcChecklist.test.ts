@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checklist, sunriseMin, type ArcFacts } from "./arcChecklist.ts";
+import { checklist, sunriseMin, toggleTick, parseTicks, parseVow, type ArcFacts } from "./arcChecklist.ts";
 
 const none: ArcFacts = { drill: false, training: false, protein: false, water: false, sleep: false, studyMin: 0 };
 const all: ArcFacts = { drill: true, training: true, protein: true, water: true, sleep: true, wakeMin: 300, studyMin: 90 };
@@ -24,4 +24,19 @@ test("auto rules tick from logs; manual rules from ticks", () => {
   const c = checklist("2026-11-05", late, ["sunrise", "study", "cold"], ["cold"]);
   assert.deepEqual(c.items.slice(5).map((i) => i.done), [false, false, true]);
   assert.equal(checklist("2026-11-05", { ...all, wakeMin: undefined }, ["sunrise"], []).items[5].done, false);
+});
+
+test("tick toggling round-trips and tolerates junk", () => {
+  const once = toggleTick("", "2026-11-05", "cold");
+  assert.deepEqual(parseTicks(once)["2026-11-05"], ["cold"]);
+  assert.deepEqual(parseTicks(toggleTick(once, "2026-11-05", "cold"))["2026-11-05"], []);
+  assert.deepEqual(parseTicks("not json"), {});
+  assert.deepEqual(parseTicks("[1,2]"), {});
+});
+
+test("vow parses only when signed", () => {
+  assert.equal(parseVow(""), null);
+  assert.equal(parseVow('{"goal":"x"}'), null);
+  assert.equal(parseVow("{oops"), null);
+  assert.deepEqual(parseVow('{"goal":"75kg","signedAt":1}'), { goal: "75kg", when: "", where: "", ifThen: "", signedAt: 1 });
 });
