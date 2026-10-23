@@ -18,6 +18,7 @@ interface VaultContext {
   level: number;
   tierCounts: Record<Tier, number>;
   hasCompletionist: boolean;
+  closedWinterArc: boolean;
 }
 
 export async function buildVaultContext(): Promise<VaultContext> {
@@ -27,13 +28,14 @@ export async function buildVaultContext(): Promise<VaultContext> {
   ]);
   const level = xpToLevel(totalXp).level;
   const tierCounts: Record<Tier, number> = { bronze: 0, silver: 0, gold: 0, platinum: 0, mythic: 0 };
-  let hasCompletionist = false;
+  let hasCompletionist = false, closedWinterArc = false;
   for (const u of unlocked) {
     if (u.id === "completionist") hasCompletionist = true;
+    if (u.id === "arc_close") closedWinterArc = true;
     const def = defById(u.id);
     if (def) tierCounts[def.tier]++;
   }
-  return { totalXp, level, tierCounts, hasCompletionist };
+  return { totalXp, level, tierCounts, hasCompletionist, closedWinterArc };
 }
 
 // ---- Accent themes --------------------------------------------------------
@@ -57,6 +59,7 @@ export const ACCENT_THEMES: AccentThemeDef[] = [
   { id: "bronze", label: "Bronze", hint: "Reach Level 5 — Bronze.", light: "#9a5a1f", dark: "#d98a3d", unlock: (c) => c.level >= 5 },
   { id: "gold", label: "Gold", hint: "Reach Level 13 — Gold.", light: "#a8790a", dark: "#f6b93b", unlock: (c) => c.level >= 13 },
   { id: "violet", label: "Violet", hint: "Reach Level 16 — Mythic.", light: "#6b2fb3", dark: "#9b5cff", unlock: (c) => c.level >= 16 },
+  { id: "glacier", label: "Glacier", hint: "Close the Winter Arc — clear the Dec 31 drill.", light: "#1f6fa8", dark: "#8ecbff", unlock: (c) => c.closedWinterArc },
   { id: "zenith", label: "Zenith", hint: "Reach Level 20 — Zenith. The peak.", light: "#141013", dark: "#f5efe6", unlock: (c) => c.level >= 20 },
 ];
 
