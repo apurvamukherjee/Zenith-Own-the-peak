@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { planArcPushes, LINES, type VoiceInput, type ArcPush } from "./arcVoice.ts";
+import { planArcPushes, LINES, COMEBACK, type VoiceInput, type ArcPush } from "./arcVoice.ts";
 
 const base: VoiceInput = {
   today: "2026-11-10", now: new Date(2026, 10, 10, 6, 0).getTime(), joined: "2026-10-25",
@@ -23,4 +23,13 @@ test("never pushes once today is covered; skips past slots", () => {
   assert.equal(onDay(planArcPushes({ ...base, todayCovered: true }), 10).length, 0);
   const late = planArcPushes({ ...base, now: new Date(2026, 10, 10, 20, 0).getTime() });
   assert.ok(onDay(late, 10).length < 5);
+});
+
+test("morning after a miss is a comeback line, never a roast", () => {
+  const [morning] = onDay(planArcPushes({ ...base, missed: 1 }), 10);
+  assert.ok(COMEBACK.some((l) => morning.body.startsWith(l)));
+  assert.ok(morning.body.includes("Debt: 1 day."));
+  // Today not done → tomorrow's pre-scheduled morning assumes the miss.
+  assert.ok(onDay(planArcPushes(base), 11)[0].body.includes("Debt: 1 day."));
+  assert.ok(!onDay(planArcPushes({ ...base, todayCovered: true }), 11)[0].body.includes("Debt"));
 });
