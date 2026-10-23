@@ -73,3 +73,5 @@ export function arcDayStates(rows: { date: string; kind: ArcDayKind }[], joined:
   return out;
 }
 
+/** Exam Mode: a one-week window you arm yourself — WB exam dates slip too often to hardcode. */
+export const inExam = (date: string, until: string) => !!until && date <= until;
