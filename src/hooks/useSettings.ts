@@ -63,6 +63,9 @@ export const DEFAULTS = {
   remArc: 1,              // 1 = Winter Arc drill pushes (escalate through the day)
   arcTone: 3,             // tone ceiling 0 Coach · 1 Nag · 2 Roast · 3 Savage
   arcProfanity: 0,        // 1 = last push of the day is the unhinged, swearing one
+  arcGateLater: "",       // "YYYY-MM-DD|H" — Arc Gate dismissed with "Later today" at hour H
+  arcSkipped: "",         // YYYY-MM-DD skipped via the gate (still a miss; silences that day's pushes)
+  arcIfThen: "",          // if-then plan typed when skipping, quoted back the next morning
   arcReadiness: "",       // "YYYY-MM-DD|fine|sore|wrecked" — today's readiness tap
 };
 export type SettingKey = keyof typeof DEFAULTS;
