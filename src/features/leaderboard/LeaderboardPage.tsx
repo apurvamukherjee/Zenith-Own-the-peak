@@ -15,6 +15,7 @@ import { api } from "../../../convex/_generated/api";
 import { weekKey } from "../../lib/date.utils";
 import { LEVELS } from "../../lib/xp";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
+import { ArcBoard } from "../winterArc/ArcSocial";
 
 // Convex hooks require a ConvexAuthProvider in the tree, which main.tsx only
 // mounts when configured — so useSync()/useQuery() must not run otherwise.
@@ -130,6 +131,8 @@ function LeaderboardPageInner() {
           </div>
         </motion.div>
       )}
+
+      {sync.session && <ArcBoard />}
 
       {/* Week label */}
       <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 10, letterSpacing: "0.1em" }}>
