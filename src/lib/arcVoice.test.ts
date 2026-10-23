@@ -1,0 +1,26 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { planArcPushes, LINES, type VoiceInput, type ArcPush } from "./arcVoice.ts";
+
+const base: VoiceInput = {
+  today: "2026-11-10", now: new Date(2026, 10, 10, 6, 0).getTime(), joined: "2026-10-25",
+  todayCovered: false, missed: 0, drill: { name: "Push-Ups", amount: "30 reps", minimum: "15 reps" },
+  wakeHour: 7, bedtime: "23:30", ceiling: 3, profanity: false,
+};
+const onDay = (p: ArcPush[], d: number) => p.filter((x) => x.at.getDate() === d && x.at.getMonth() === 10);
+
+test("5 pushes a day, inside waking hours, escalating tiers", () => {
+  const today = onDay(planArcPushes(base), 10);
+  assert.equal(today.length, 5);
+  assert.equal(today[0].at.getHours(), 8);
+  assert.ok(today[4].at.getHours() * 60 + today[4].at.getMinutes() <= 23 * 60);
+  today.forEach((p, slot) => assert.ok(LINES[Math.min(slot, 3) as 0].some((l) => p.body.startsWith(l)), p.body));
+  assert.ok(today[0].body.includes("Push-Ups · 30 reps"));
+  assert.ok(today[3].body.includes("Minimum counts: 15 reps"));
+});
+
+test("never pushes once today is covered; skips past slots", () => {
+  assert.equal(onDay(planArcPushes({ ...base, todayCovered: true }), 10).length, 0);
+  const late = planArcPushes({ ...base, now: new Date(2026, 10, 10, 20, 0).getTime() });
+  assert.ok(onDay(late, 10).length < 5);
+});
