@@ -22,3 +22,11 @@ export function useRecentPRs(limit = 8) {
     return prs.sort((a, b) => b.createdAt - a.createdAt).slice(0, limit);
   }, [limit]) ?? [];
 }
+
+// Logged sets from `since` (YYYY-MM-DD) on, or every set when null.
+export function useLoggedSetsSince(since: string | null) {
+  return useLiveQuery(
+    () => (since ? db.workoutSets.where("date").aboveOrEqual(since).toArray() : db.workoutSets.toArray()),
+    [since],
+  );
+}
