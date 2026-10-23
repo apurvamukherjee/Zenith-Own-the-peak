@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ARC_DAYS, DRILLS, drillFor, inArc, dayIndex, phaseOf } from "./winterArc.ts";
+import { ARC_DAYS, DRILLS, RECOVERY, drillFor, minimumOf, inArc, dayIndex, phaseOf } from "./winterArc.ts";
 
 const def = (name: string) => DRILLS.find((x) => x.name === name)!;
 const nov = (d: number) => `2026-11-${String(d).padStart(2, "0")}`;
@@ -40,4 +40,22 @@ test("avoids muscles trained today", () => {
     const m = def(drillFor(nov(i), 0, ["chest", "triceps", "shoulders"]).name).muscle;
     assert.ok(!["chest", "triceps", "shoulders"].includes(m), nov(i));
   }
+});
+
+test("debt adds 50% per missed day, capped at 2 days and 1.5× the peak", () => {
+  for (let i = 4; i <= 28; i++) {
+    const d0 = drillFor(nov(i));
+    const d9 = drillFor(nov(i), 9);
+    assert.equal(d9.debtDays, 2);
+    assert.ok(d9.target <= Math.round(def(d0.name).to * 1.5 / 5) * 5 + 5);
+    assert.ok(d9.target >= d0.base);
+  }
+});
+
+test("sore/wrecked swap to recovery; minimum is half base and repays nothing", () => {
+  assert.deepEqual(drillFor(nov(10), 2, [], "sore"), RECOVERY);
+  const m = minimumOf(drillFor(nov(10), 2));
+  assert.equal(m.debtDays, 0);
+  assert.equal(m.kind, "minimum");
+  assert.ok(m.target <= drillFor(nov(10)).base);
 });
