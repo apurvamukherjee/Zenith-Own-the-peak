@@ -11,6 +11,7 @@ import { useArcToday, completeDrill, pauseDay, setReadiness, type ArcToday } fro
 import { ArcGate } from "./ArcGate";
 import { ArcChecklist } from "./ArcChecklist";
 import { ArcBossPanel } from "./ArcBossPanel";
+import { ArcAfter } from "./ArcAfter";
 import { GAUNTLET } from "../../lib/arcCalendar";
 import { VowSheet } from "./VowSheet";
 import { parseVow } from "../../lib/arcChecklist";
@@ -26,7 +27,8 @@ export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | u
   const [vowOpen, setVowOpen] = useState(false);
   const arc = useArcToday(trainedToday);
   const date = todayKey();
-  if (date > ARC_END) return null;
+  // The post-arc card (Wrapped + 2027 handoff) stays up through January.
+  if (date > ARC_END) return joined && date < "2027-02-01" ? <ArcAfter /> : null;
 
   const blackIce = Number(reserves) === 0;
   const join = async (r: number) => { await setSetting("arcReserves", r); await setSetting("arcJoined", date); setVowOpen(true); };
@@ -116,7 +118,9 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
             {drill.debtDays > 0 && <span className="arc-card__debt"><TbAlertTriangle size={13} /> {drill.debtDays}-day debt</span>}
           </div>
           {done ? (
-            <div className="arc-card__done"><TbCheck size={16} /> {drill.kind === "full" ? "Drill cleared" : "Chain kept"}</div>
+            <div className="arc-card__done">
+              <TbCheck size={16} /> {drill.kind === "full" ? "Drill cleared" : "Chain kept"}
+            </div>
           ) : (
             <>
               <div className="arc-card__ready" role="radiogroup" aria-label="How do you feel">
