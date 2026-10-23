@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 import { useSetting } from "../../hooks/useSettings";
 import { useTrainingToday } from "../dashboard/useHomeData";
 import { isNativeNotifications, applyOneOffReminders, startTaskReminderWebLoop, ARC_RANGE } from "../../lib/notifications";
@@ -9,6 +10,8 @@ import { useArcToday } from "./useWinterArc";
 // Re-plans the arc's pushes from real data on every relevant change: finishing
 // or pausing today cancels the rest of today's, and each open re-writes the
 // 7-day pre-schedule that covers the days you don't open the app.
+// iOS caps pending notifications at 64 app-wide, so it gets a 4-day horizon.
+const HORIZON_DAYS = Capacitor.getPlatform() === "ios" ? 4 : 7;
 
 export function useArcVoice(): void {
   const on = Number(useSetting("remArc")) === 1;
@@ -23,7 +26,7 @@ export function useArcVoice(): void {
   const pushes = on && arc ? planArcPushes({
     today: arc.date, now: Date.now(), joined, todayCovered: !!arc.row, missed: arc.missed,
     drill: { name: arc.drill.name, amount: drillAmount(arc.drill), minimum: drillAmount(minimumOf(arc.drill)) },
-    wakeHour, bedtime, ceiling: Math.max(0, Math.min(3, tone)) as 0 | 1 | 2 | 3, profanity,
+    wakeHour, bedtime, ceiling: Math.max(0, Math.min(3, tone)) as 0 | 1 | 2 | 3, profanity, horizonDays: HORIZON_DAYS,
   }) : [];
 
   const key = pushes.map((p) => `${p.id}:${p.at.getTime()}:${p.body}`).join("|");
