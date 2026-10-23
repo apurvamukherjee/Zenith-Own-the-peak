@@ -70,6 +70,8 @@ export const DEFAULTS = {
   arcVowRuleId: 0,        // recurringRules row that blocks the drill on the calendar at the vowed time
   arcRules: "",           // comma-separated Cold Rule ids (max 3)
   arcTicks: "",           // JSON { date: ruleId[] } for manual Cold Rules
+  arcExamUntil: "",       // YYYY-MM-DD Exam Mode runs through (armed a week at a time)
+  arcMilestones: "",      // comma-separated kept-day milestones already celebrated
   arcReadiness: "",       // "YYYY-MM-DD|fine|sore|wrecked" — today's readiness tap
 };
 export type SettingKey = keyof typeof DEFAULTS;
