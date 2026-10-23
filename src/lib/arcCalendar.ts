@@ -75,3 +75,43 @@ export function arcDayStates(rows: { date: string; kind: ArcDayKind }[], joined:
 
 /** Exam Mode: a one-week window you arm yourself — WB exam dates slip too often to hardcode. */
 export const inExam = (date: string, until: string) => !!until && date <= until;
+
+export interface ArcBadgeFacts {
+  kept: number; comebacks: number; clearedTwoDayDebt: boolean; gauntlet: number;
+  lightsOut: boolean; secondWind: boolean; parkStreet: boolean; closed: boolean;
+  decemberClean: boolean; wholeWinter: boolean; reservesUsed: number; blackIce: boolean; scars: number;
+}
+
+type BadgeRow = { date: string; kind: ArcDayKind; at: number };
+/** Everything the Winter Arc badges read, from arcDays alone — so an unlock can't drift from what the calendar shows. */
+export function arcBadgeFacts(rows: BadgeRow[], joined: string, reserves: number): ArcBadgeFacts {
+  const by = new Map(rows.map((r) => [r.date, r]));
+  const done = (d: string) => by.get(d)?.kind === "done";
+  const from = joined > ARC_START ? joined : ARC_START;
+  const isKept = (r: BadgeRow) => r.kind === "done" || r.kind === "repaired";
+  let comebacks = 0, clearedTwoDayDebt = false;
+  for (const r of rows) {
+    if (r.kind !== "done") continue;
+    const prev = shiftDate(r.date, -1);
+    const p = by.get(prev);
+    if (prev >= from && (!p || (p.kind !== "done" && p.kind !== "exempt" && p.at === r.at))) comebacks++;
+    if (rows.filter((x) => x.kind === "repaired" && x.at === r.at).length >= 2) clearedTwoDayDebt = true;
+  }
+  const between = (a: string, b: string) => rows.filter((r) => r.date >= a && r.date <= b);
+  const nov8 = by.get("2026-11-08");
+  const states = arcDayStates(rows, joined, shiftDate(ARC_END, 1));
+  return {
+    kept: rows.filter(isKept).length,
+    comebacks, clearedTwoDayDebt,
+    gauntlet: between(GAUNTLET.start, GAUNTLET.end).filter(isKept).length,
+    lightsOut: nov8?.kind === "done" && new Date(nov8.at).getHours() < 18,
+    secondWind: done(SECOND_WIND),
+    parkStreet: done("2026-12-25"),
+    closed: done(ARC_END),
+    decemberClean: between(SECOND_WIND, ARC_END).filter((r) => r.kind === "done" || r.kind === "exempt").length === 31,
+    wholeWinter: between(ARC_START, ARC_END).filter((r) => r.kind !== "reserve").length === 61,
+    reservesUsed: rows.filter((r) => r.kind === "reserve").length,
+    blackIce: reserves === 0,
+    scars: [...states.values()].filter((s) => s === "scar").length,
+  };
+}
