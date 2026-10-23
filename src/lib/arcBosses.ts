@@ -74,3 +74,20 @@ export function settleWager(w: Wager, today: string, covered: ReadonlySet<string
   return true;
 }
 
+// Deck of cards — seeded so a reload mid-boss draws the same deck.
+export interface Card { suit: "♠" | "♥" | "♦" | "♣"; rank: string; reps: number; move: string }
+const MOVES = { "♠": "push-ups", "♥": "squats", "♦": "crunches", "♣": "burpees" } as const;
+export function deck(seed: string, legsRecent = false): Card[] {
+  const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+  const cards: Card[] = [];
+  for (const suit of ["♠", "♥", "♦", "♣"] as const) {
+    for (const rank of ranks) {
+      const reps = rank === "A" ? 11 : ["J", "Q", "K"].includes(rank) ? 10 : Number(rank);
+      cards.push({ suit, rank, reps, move: suit === "♥" && legsRecent ? "crunches" : MOVES[suit] });
+    }
+  }
+  let s = [...seed].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261);
+  const rand = () => { s = Math.imul(s ^ (s >>> 15), 2246822507) >>> 0; s = Math.imul(s ^ (s >>> 13), 3266489909) >>> 0; return ((s ^ (s >>> 16)) >>> 0) / 2 ** 32; };
+  for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
+  return cards;
+}
