@@ -63,6 +63,10 @@ const ARC_FROST: Record<ArcCellState, CSSProperties> = {
   owed: { outline: "1.5px dashed var(--danger)", outlineOffset: -3 },
   scar: { boxShadow: "inset 0 0 0 2px color-mix(in srgb, var(--danger) 65%, transparent)" },
 };
+const ARC_LEGEND: [ArcCellState, string, string][] = [
+  ["done", "var(--info)", "Arc kept"], ["repaired", "var(--gold)", "Repaired"], ["reserve", "color-mix(in srgb, var(--info) 40%, transparent)", "Reserve"],
+  ["exempt", "var(--violet)", "Paused"], ["owed", "var(--danger)", "Owed"], ["scar", "color-mix(in srgb, var(--danger) 65%, transparent)", "Scar"],
+];
 const FILTERS: { label: string; value: ScoreFilter }[] = [
   { label: "All", value: "blended" }, { label: "Water", value: "water" },
   { label: "Sleep", value: "sleep" }, { label: "Train", value: "session" }, { label: "Protein", value: "protein" },
@@ -437,6 +441,11 @@ export function CalendarPage() {
                 <Legend color="var(--danger)" label="Rough (<40%)" />
                 <Legend color="var(--surface)" label="No data" bordered />
               </div>
+              {showArcLayer && arcStates.size > 0 && (
+                <div style={{ display: "flex", gap: 12, marginTop: 8, fontSize: 12, color: "var(--ink-soft)", flexWrap: "wrap" }}>
+                  {ARC_LEGEND.filter(([k]) => [...arcStates.values()].includes(k)).map(([k, c, label]) => <Legend key={k} color={c} label={label} />)}
+                </div>
+              )}
               <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>
                 Hold a day, then tap another to see stats for that range.
               </div>
