@@ -12,6 +12,22 @@
 .bm-lines { fill: none; stroke: var(--surface-2); stroke-width: 0.6; stroke-linecap: round; opacity: 0.8; pointer-events: none; }
 .bm-glow { pointer-events: none; mix-blend-mode: screen; }
 .bm-glow path { fill: var(--accent); transition: opacity 0.6s ease; }
+.bm-flash { fill: #fff; stroke: var(--accent); pointer-events: none; transform-box: fill-box; transform-origin: center; animation: bm-flash 0.75s ease-out forwards; }
+
+/* Entrance: silhouette draws itself, then muscles ignite top → bottom and keep breathing. */
+.bm-outline path { stroke-dasharray: 1; animation: bm-draw 0.9s ease-out both; }
+.bm-heat { animation: bm-ignite 0.7s ease-out both; animation-delay: calc(0.35s + var(--d, 0ms)); }
+.bm-glow path { animation: bm-ignite 0.7s ease-out both, bm-breathe 2.8s ease-in-out infinite; animation-delay: calc(0.35s + var(--d, 0ms)), 1.4s; }
+@keyframes bm-draw { from { stroke-dashoffset: 1; fill-opacity: 0; } 70% { fill-opacity: 0; } to { stroke-dashoffset: 0; fill-opacity: 1; } }
+@keyframes bm-ignite { from { fill-opacity: 0; opacity: 0; } }
+@keyframes bm-breathe { 50% { opacity: 0.35; } }
+@keyframes bm-flash { from { opacity: 0.85; transform: scale(1); stroke-width: 0; } to { opacity: 0; transform: scale(1.35); stroke-width: 3; } }
+@media (prefers-reduced-motion: reduce) {
+  .bm-outline path, .bm-heat, .bm-glow path { animation: none; }
+  .bm-flash { display: none; }
+}
+html[data-motion="reduce"] .bm-outline path, html[data-motion="reduce"] .bm-heat, html[data-motion="reduce"] .bm-glow path { animation: none; }
+html[data-motion="reduce"] .bm-flash { display: none; }
 
 .is-pick .bm-idle, .is-pick .bm-heat { cursor: pointer; }
 .is-pick .bm-idle:hover { fill: color-mix(in srgb, var(--accent) 22%, var(--surface-2)); }
