@@ -31,7 +31,8 @@ export async function spawnRecurring(startDate: string, endDate: string): Promis
         shouldSpawn = cursor.date() === createdDay;
       }
 
-      if (shouldSpawn && (!rule.endDate || cursor.format("YYYY-MM-DD") <= rule.endDate)) {
+      const key = cursor.format("YYYY-MM-DD");
+      if (shouldSpawn && (!rule.endDate || key <= rule.endDate) && (!rule.startDate || key >= rule.startDate)) {
         dates.push(cursor.format("YYYY-MM-DD"));
       }
       cursor = cursor.add(rule.interval || 1, rule.frequency === "monthly" ? "month" : rule.frequency === "weekly" ? "week" : "day");
