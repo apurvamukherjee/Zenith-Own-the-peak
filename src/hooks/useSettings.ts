@@ -77,6 +77,7 @@ export const DEFAULTS = {
   arcMurph: "",           // Murph tier finished on Dec 31 ("half" | "intermediate" | "full")
   arcWager: "",           // JSON Wager on the current chapter, "" = none running
   arcWagerLog: "",        // comma-separated "chapter:won|lost"
+  arcAfter: "",           // Jan 1 handoff: "keep" (5-min drill habit) | "off", "" = not chosen yet
   arcReadiness: "",       // "YYYY-MM-DD|fine|sore|wrecked" — today's readiness tap
 };
 export type SettingKey = keyof typeof DEFAULTS;
