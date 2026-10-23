@@ -1,8 +1,9 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { App } from "antd";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
-import { TbSnowflake, TbCheck } from "react-icons/tb";
+import { TbSnowflake, TbFlame, TbGhost2, TbUsers, TbCheck } from "react-icons/tb";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { db } from "../../db/db";
@@ -81,5 +82,27 @@ export function ArcBoard() {
       </ol>
       <p className="arc-board__note">Friends only see which days you kept. An Arc Partner is mutual: you both pick each other.</p>
     </section>
+  );
+}
+
+/** On the drill card: your partner's day, your shared flame and the co-op Wraith. */
+export function ArcPartnerChip() {
+  const board = useBoard();
+  if (board === undefined || board === null) return null;
+  const partner = board.find((r) => r.partner === "mutual");
+  if (!partner) {
+    const invited = board.find((r) => r.partner === "invited");
+    return (
+      <Link to="/leaderboard" className="arc-pill">
+        <TbUsers size={13} /> {invited ? `${invited.displayName} wants to partner up` : "Pick an Arc Partner"}
+      </Link>
+    );
+  }
+  return (
+    <Link to="/leaderboard" className={`arc-pill${partner.keptToday ? " is-done" : ""}`}>
+      <TbUsers size={13} /> {partner.displayName} {partner.keptToday ? "kept today" : "not yet"}
+      {partner.sharedFlame > 0 && <> · <TbFlame size={12} /> {partner.sharedFlame}</>}
+      {partner.coopWraithHp !== null && <> · <TbGhost2 size={12} /> {partner.coopWraithHp}</>}
+    </Link>
   );
 }
