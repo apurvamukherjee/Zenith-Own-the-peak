@@ -61,3 +61,10 @@ test("a gate skip silences today, still counts as a miss, and quotes the plan to
   assert.ok(morning.body.includes("Debt: 1 day."));
   assert.ok(morning.body.includes("Your plan: “If class runs late, drill before dinner.”"));
 });
+
+test("pushes start at the vowed drill time when it's inside waking hours", () => {
+  const p = onDay(planArcPushes({ ...base, anchorMin: 18 * 60 }), 10);
+  assert.equal(p[0].at.getHours(), 18);
+  assert.equal(p.length, 5);
+  assert.equal(onDay(planArcPushes({ ...base, anchorMin: 5 * 60 }), 10)[0].at.getHours(), 8);
+});
