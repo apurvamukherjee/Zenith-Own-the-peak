@@ -13,6 +13,7 @@ import { progressionByDate, volumeLoad } from "../../lib/workout.utils";
 import { prettyDate } from "../../lib/date.utils";
 import { useTokens } from "../../hooks/useTokens";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { MuscleHeatCard } from "./MuscleHeatCard";
 import "./progress.css";
 
 export function WorkoutProgressPage() {
@@ -40,6 +41,7 @@ export function WorkoutProgressPage() {
           hint="Hit Train, log a few sets, and your strength curves appear here automatically." />
       ) : (
         <>
+          <MuscleHeatCard />
           <div className="pg-chips" role="tablist" aria-label="Exercise">
             {exercises.map((e) => (
               <button key={e} type="button" role="tab" aria-selected={e === active}

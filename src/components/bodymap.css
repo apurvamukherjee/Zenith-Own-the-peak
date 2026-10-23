@@ -76,3 +76,6 @@ html[data-motion="reduce"] .bm-flash { display: none; }
 .mc-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; margin: -2px 0 10px; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
 .mc-tabs button { min-height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; cursor: pointer; }
 .mc-tabs button.is-on { background: var(--accent); color: #fff; box-shadow: 0 6px 14px -8px var(--accent); }
+.mc-val small.mc-up, .mc-val small.mc-down { display: inline-flex; align-items: center; font-weight: 800; }
+.mc-val small.mc-up { color: var(--accent); }
+.mc-foot b { color: var(--ink); font-weight: 800; }
