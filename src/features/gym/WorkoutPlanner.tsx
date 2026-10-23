@@ -12,6 +12,7 @@ import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
 import { BodyMap, MusclePicker, MuscleGlyph, heatOf } from "../../components/BodyMap";
 import { muscleLoad } from "./muscleLoad";
 import { AddExerciseSheet } from "./AddExerciseSheet";
+import { WeeklyVolumeCard } from "./WeeklyVolumeCard";
 import type { MuscleGroup, DayExerciseDto } from "../../db/types";
 import {
   useWorkoutDays, useExerciseLibrary, useDayExercises, useWeekSchedule,
@@ -296,6 +297,8 @@ export function WorkoutPlanner() {
           );
         })}
       </div>
+
+      <WeeklyVolumeCard />
 
       {days.length === 0 ? (
         <div style={{ textAlign: "center", padding: 32 }}>
