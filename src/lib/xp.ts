@@ -17,7 +17,11 @@ const XP = {
   water_goal:    3,   // daily water goal hit
   sleep:         2,   // any sleep entry logged (once per day)
   meal:          1,   // meal logged (capped 5 per day to prevent farming)
-  arc_comeback:  15,  // first Winter Arc drill after a miss — the return is what's rewarded
+  // Winter Arc: 1.5× rates, aimed at consistency (drill, full checklist,
+  // comebacks) rather than raw volume — bingers quit more than pacers.
+  arc_drill:     8,   // 5 × 1.5 — today's drill done
+  arc_checklist: 15,  // 10 × 1.5 — every arc checklist item done
+  arc_comeback:  15,  // 10 × 1.5 — first drill after a miss; the return is what's rewarded
   badge_bronze:  10,
   badge_silver:  20,
   badge_gold:    40,
