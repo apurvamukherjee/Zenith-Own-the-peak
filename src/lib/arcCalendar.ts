@@ -1,4 +1,5 @@
 import { ARC_START, ARC_END, dayIndex, shiftDate } from "./winterArc.ts";
+import type { ArcDayKind } from "../db/types";
 
 // Kolkata 2026 dates from panchang aggregators — can differ by a day from a
 // Bengali panjika. Bhoot Chaturdashi (Nov 7) and UGC NET (Dec 14–19) are the
@@ -57,4 +58,18 @@ export const halfStart = (date: string) => date >= SECOND_WIND ? SECOND_WIND : A
 export const MILESTONES = [3, 7, 14, 21, 30, 45, 61];
 
 export const GAUNTLET = { start: "2026-11-08", end: "2026-11-19", need: 9 };
+
+export type ArcCellState = ArcDayKind | "owed" | "scar";
+/** Frost-layer state for every arc day up to today: misses inside the open streak are still owed, older ones are scars. */
+export function arcDayStates(rows: { date: string; kind: ArcDayKind }[], joined: string, today: string): Map<string, ArcCellState> {
+  const out = new Map<string, ArcCellState>(rows.map((r) => [r.date, r.kind]));
+  if (!joined) return out;
+  const from = joined > ARC_START ? joined : ARC_START;
+  let owed = true;
+  for (let d = shiftDate(today, -1); d >= from; d = shiftDate(d, -1)) {
+    if (out.has(d)) { owed = false; continue; }
+    out.set(d, owed ? "owed" : "scar");
+  }
+  return out;
+}
 
