@@ -7,12 +7,14 @@ import { grantXP } from "../../lib/xp";
 import { markDrillTaskDone } from "./vow";
 import {
   type Drill, type Readiness, type ArcPhase, drillFor, missedStreak, settle, shiftDate, dayIndex, phaseOf,
-  LEG_MUSCLES, ARC_START,
+  LEG_MUSCLES,
 } from "../../lib/winterArc";
+import { halfStart, chapterOf, themeFor, inExam, type ArcDayTheme } from "../../lib/arcCalendar";
 
 export interface ArcToday {
   date: string; day: number; phase: ArcPhase; drill: Drill; readiness: Readiness;
   row: ArcDayDto | undefined; missed: number; kept: number; scars: number; reservesLeft: number;
+  chapter: { n: number; kept: number; days: number }; theme: ArcDayTheme | undefined; exam: boolean;
 }
 
 function parseReadiness(raw: string, date: string): Readiness {
@@ -32,6 +34,7 @@ export function useArcToday(trainedToday: MuscleGroup[] | undefined): ArcToday |
   const joined = useSetting("arcJoined");
   const reserves = Number(useSetting("arcReserves"));
   const readinessRaw = useSetting("arcReadiness");
+  const examUntil = String(useSetting("arcExamUntil"));
   const date = todayKey();
   const avoidKey = trainedToday?.join() ?? "";
   return useLiveQuery(async () => {
@@ -46,18 +49,27 @@ export function useArcToday(trainedToday: MuscleGroup[] | undefined): ArcToday |
       ? { name: row.exercise, unit: row.unit, base: row.target, target: row.target, debtDays: 0, kind: row.drillKind ?? "full" }
       : drillFor(date, missed, avoid, readiness);
 
+    // Second Wind: from Dec 1, scars and reserves count for Phase 2 only.
+    const half = halfStart(date);
+    const from = joined > half ? joined : half;
     let uncovered = 0;
-    const from = joined > ARC_START ? joined : ARC_START;
     for (let d = from; d < date; d = shiftDate(d, 1)) if (!covered.has(d)) uncovered++;
+    const isKept = (r: ArcDayDto) => r.kind === "done" || r.kind === "repaired";
+    const ch = chapterOf(date);
 
     return {
       date, day: dayIndex(date) + 1, phase: phaseOf(date), drill, readiness, row, missed,
-      kept: rows.filter((r) => r.kind === "done" || r.kind === "repaired").length,
-      scars: uncovered - missed,
-      reservesLeft: Math.max(0, reserves - rows.filter((r) => r.kind === "reserve").length),
+      kept: rows.filter(isKept).length,
+      scars: Math.max(0, uncovered - missed),
+      reservesLeft: Math.max(0, reserves - rows.filter((r) => r.kind === "reserve" && r.date >= half).length),
+      chapter: {
+        n: ch.n, days: dayIndex(ch.end) - dayIndex(ch.start) + 1,
+        kept: rows.filter((r) => isKept(r) && r.date >= ch.start && r.date <= ch.end).length,
+      },
+      theme: themeFor(date), exam: inExam(date, examUntil),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, joined, reserves, readinessRaw, avoidKey]);
+  }, [date, joined, reserves, readinessRaw, avoidKey, examUntil]);
 }
 
 // Clearing a debt drill pays back the missed days it carried, so they count
@@ -84,3 +96,4 @@ export async function pauseDay(date: string): Promise<void> {
 }
 
 export const setReadiness = (date: string, r: Readiness) => setSetting("arcReadiness", `${date}|${r}`);
+
