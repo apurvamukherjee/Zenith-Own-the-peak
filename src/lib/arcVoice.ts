@@ -73,6 +73,7 @@ export interface VoiceInput {
   missed: number;          // open missed streak before today
   drill?: { name: string; amount: string; minimum: string };
   wakeHour: number;
+  anchorMin?: number;      // the vow's drill time — pushes start there instead of just after waking
   bedtime: string;         // HH:mm — quiet hours start 30 min before
   ceiling: 0 | 1 | 2 | 3;  // "dial it down"
   profanity: boolean;
@@ -113,6 +114,7 @@ export function planArcPushes(i: VoiceInput): ArcPush[] {
   const first = (i.wakeHour + 1) * 60;
   const last = Math.min(bedMin - 30, 23 * 60 + 30);
   if (last <= first) return [];
+  const start = i.anchorMin != null && i.anchorMin > first && i.anchorMin < last - 60 ? i.anchorMin : first;
 
   const out: ArcPush[] = [];
   for (let k = 0; k < (i.horizonDays ?? 7); k++) {
@@ -126,7 +128,7 @@ export function planArcPushes(i: VoiceInput): ArcPush[] {
       : "Open Zenith and clear today's drill.";
 
     SLOT_FRACTIONS.forEach((f, slot) => {
-      const at = atLocal(date, Math.round(first + (last - first) * f));
+      const at = atLocal(date, Math.round(start + (last - start) * f));
       if (at.getTime() <= i.now) return;
       const tier = (slot === 4 && i.profanity ? 4 : Math.min(slot, i.ceiling)) as Tier;
       let line: string;
