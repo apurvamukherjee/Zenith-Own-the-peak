@@ -5,6 +5,7 @@ import { useTrainingToday } from "../dashboard/useHomeData";
 import { isNativeNotifications, applyOneOffReminders, startTaskReminderWebLoop, ensureArcPrivateChannel, ARC_RANGE } from "../../lib/notifications";
 import { planArcPushes } from "../../lib/arcVoice";
 import { drillAmount, minimumOf, shiftDate } from "../../lib/winterArc";
+import { parseVow } from "../../lib/arcChecklist";
 import { useArcToday } from "./useWinterArc";
 
 // Re-plans the arc's pushes from real data on every relevant change: finishing
@@ -22,6 +23,7 @@ export function useArcVoice(): void {
   const bedtime = String(useSetting("remBedtimeAt"));
   const skipped = String(useSetting("arcSkipped"));
   const ifThen = String(useSetting("arcIfThen"));
+  const vowWhen = parseVow(String(useSetting("arcVow")))?.when;
   const training = useTrainingToday();
   const arc = useArcToday(training?.muscles);
 
@@ -30,7 +32,7 @@ export function useArcVoice(): void {
     quietToday: skipped === arc.date,
     plan: skipped && ifThen ? { date: shiftDate(skipped, 1), text: ifThen } : undefined,
     drill: { name: arc.drill.name, amount: drillAmount(arc.drill), minimum: drillAmount(minimumOf(arc.drill)) },
-    wakeHour, bedtime, ceiling: Math.max(0, Math.min(3, tone)) as 0 | 1 | 2 | 3, profanity, horizonDays: HORIZON_DAYS,
+    wakeHour, bedtime, anchorMin: vowWhen ? Number(vowWhen.slice(0, 2)) * 60 + Number(vowWhen.slice(3, 5)) : undefined, ceiling: Math.max(0, Math.min(3, tone)) as 0 | 1 | 2 | 3, profanity, horizonDays: HORIZON_DAYS,
   }) : [];
 
   const key = pushes.map((p) => `${p.id}:${p.at.getTime()}:${p.body}`).join("|");
