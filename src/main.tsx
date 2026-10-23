@@ -8,6 +8,8 @@ import App from "./App";
 import { convexClient } from "./lib/convexClient";
 import { initStatusBar } from "./lib/nativeShell";
 import { inject } from "@vercel/analytics";
+import { installDevClock } from "./lib/devClock";
+if (import.meta.env.DEV) installDevClock();
 inject();
 initStatusBar();
 // Without this, IndexedDB is "best effort" and the OS may clear it under storage
