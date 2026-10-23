@@ -183,3 +183,13 @@
 .sm-prs li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sm-prs li b { font-variant-numeric: tabular-nums; }
 .sm-share { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; margin-top: 14px; border: 0; border-radius: 10px; background: var(--ink); color: var(--surface); font: inherit; font-size: 13px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+
+/* ---- Add exercise: glyph rows + custom exercise form ---- */
+.cx { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+.cx-field { display: flex; flex-direction: column; gap: 6px; }
+.cx-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cx-auto { display: inline-flex; align-items: center; gap: 4px; max-width: 65%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11px; font-weight: 800; color: var(--accent); }
+.cx-note { margin: -6px 0 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--ink-soft); font: inherit; font-size: 12px; text-align: left; }
+.cx-note--btn { cursor: pointer; }
+.cx-note b { color: var(--accent); }
+.cx-back { color: var(--ink); }
