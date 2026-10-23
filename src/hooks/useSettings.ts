@@ -66,6 +66,10 @@ export const DEFAULTS = {
   arcGateLater: "",       // "YYYY-MM-DD|H" — Arc Gate dismissed with "Later today" at hour H
   arcSkipped: "",         // YYYY-MM-DD skipped via the gate (still a miss; silences that day's pushes)
   arcIfThen: "",          // if-then plan typed when skipping, quoted back the next morning
+  arcVow: "",             // JSON Vow (lib/arcChecklist) — goal, when, where, if-then, signedAt
+  arcVowRuleId: 0,        // recurringRules row that blocks the drill on the calendar at the vowed time
+  arcRules: "",           // comma-separated Cold Rule ids (max 3)
+  arcTicks: "",           // JSON { date: ruleId[] } for manual Cold Rules
   arcReadiness: "",       // "YYYY-MM-DD|fine|sore|wrecked" — today's readiness tap
 };
 export type SettingKey = keyof typeof DEFAULTS;
