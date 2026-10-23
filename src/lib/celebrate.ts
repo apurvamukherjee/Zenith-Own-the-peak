@@ -6,7 +6,7 @@ import { hapticSuccess } from "./haptics";
 // `subscribeCelebrate`. The overlay lives once at the App root, so callers
 // never worry about which route they're on.
 export interface CelebrationPayload {
-  kind: "pr";
+  kind: "pr" | "arc";
   title: string;      // headline shown on the overlay
   subtitle?: string;  // secondary line ("Bench Press · 62.5kg × 6 · e1RM 75")
 }
