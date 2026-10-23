@@ -8,7 +8,7 @@ import type {
   AchievementUnlockDto, FoodDto, MealTemplateItemDto, UsageHistoryDto, XpEventDto,
   TaskDto, TaskListDto, RecurringRuleDto, CosmeticUnlockDto, GoogleSyncOutboxDto,
   WorkoutPlanRowDto, ExpenseCategoryDto, ExpenseItemDto, ExpenseDto, CategoryBudgetDto,
-  HabitDto, HabitLogDto,
+  HabitDto, HabitLogDto, ArcDayDto,
 } from "./types";
 
 class ZenithDB extends Dexie {
@@ -52,6 +52,7 @@ class ZenithDB extends Dexie {
   categoryBudgets!: Table<CategoryBudgetDto, string>;
   habits!: Table<HabitDto, number>;
   habitLogs!: Table<HabitLogDto, number>;
+  arcDays!: Table<ArcDayDto, string>;
 
   constructor() {
     super("zenith");
@@ -161,6 +162,10 @@ class ZenithDB extends Dexie {
       habits: "++id, active, order",
       habitLogs: "++id, habitId, date, [habitId+date]",
     });
+    // v16: Winter Arc — keyed by date, at most one row per day.
+    this.version(16).stores({
+      arcDays: "&date",
+    });
   }
 }
 
@@ -191,7 +196,7 @@ db.tasks.hook("deleting", (_primKey, obj) => {
 });
 
 export async function exportAll(): Promise<string> {
-  const data: Record<string, unknown> = { version: 15, exportedAt: new Date().toISOString() };
+  const data: Record<string, unknown> = { version: 16, exportedAt: new Date().toISOString() };
   for (const t of db.tables) data[t.name] = await t.toArray();
   return JSON.stringify(data, null, 2);
 }

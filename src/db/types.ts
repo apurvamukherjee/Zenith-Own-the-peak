@@ -209,6 +209,20 @@ export interface HabitDto {
 }
 export interface HabitLogDto { id?: number; habitId: number; date: string; createdAt: number; }
 
+// ---- Winter Arc ----
+// At most one row per arc day; a day with no row is a miss (or a scar once a
+// later day settles past it). The drill is snapshotted so the Dec 31 recap
+// still reads right if the pool in lib/winterArc.ts changes.
+//   done     — drill completed that day (drillKind full/minimum/recovery)
+//   repaired — missed, then paid back by a later day's debt drill
+//   reserve  — missed, covered by one of the arc's Emergency Reserves
+//   exempt   — sick/injury pause: no miss, no debt
+export type ArcDayKind = "done" | "repaired" | "reserve" | "exempt";
+export interface ArcDayDto {
+  date: string; kind: ArcDayKind; at: number;
+  exercise?: string; unit?: "reps" | "sec" | "min"; target?: number; drillKind?: "full" | "minimum" | "recovery";
+}
+
 // ---- Achievements ----
 export interface AchievementUnlockDto {
   id: string;
