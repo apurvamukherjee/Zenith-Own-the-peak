@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { muscleLoad, weeklyPlanTally, loggedTally, volumeStatus } from "./muscleLoad.ts";
+import { muscleLoad, weeklyPlanTally, loggedTally, volumeStatus, guessExercise } from "./muscleLoad.ts";
 import type { DayExerciseDto, ExerciseDto, WorkoutSetDto } from "../../db/types";
 
 const lib: ExerciseDto[] = [
@@ -34,4 +34,15 @@ test("tally counts primary sets fully and assists as half", () => {
 
 test("volume status bands", () => {
   assert.deepEqual([0, 4, 10, 20, 21].map(volumeStatus), ["none", "low", "good", "good", "high"]);
+});
+
+test("guessExercise borrows muscles from the closest library name", () => {
+  const named = (id: number, name: string, primaryMuscle: ExerciseDto["primaryMuscle"]): ExerciseDto =>
+    ({ id, name, primaryMuscle, secondaryMuscles: [], equipment: "", isCustom: 0 });
+  const library = [named(1, "Flat Barbell Bench Press", "chest"), named(2, "Leg Press", "quads"), named(3, "Barbell Curl", "biceps"), named(4, "Lat Pulldown", "back")];
+  assert.equal(guessExercise("Paused bench", library)?.id, 1);
+  assert.equal(guessExercise("single leg press", library)?.id, 2);
+  assert.equal(guessExercise("hammer curls", library)?.id, 3);
+  assert.equal(guessExercise("barbell", library), undefined);
+  assert.equal(guessExercise("zz", library), undefined);
 });

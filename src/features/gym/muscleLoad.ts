@@ -60,3 +60,22 @@ export function volumeStatus(setsPerWeek: number): VolumeStatus {
   if (setsPerWeek < 10) return "low";
   return setsPerWeek <= 20 ? "good" : "high";
 }
+
+// Equipment words say little about which muscle an exercise works.
+const WEAK_WORDS = new Set(["barbell", "dumbbell", "cable", "machine", "bodyweight", "kettlebell", "band", "smith", "the", "and", "with"]);
+const words = (s: string) => s.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 3);
+
+// Closest library exercise by shared (or prefix-matching) words, so a new
+// custom "Paused bench" can borrow Bench Press's muscles. Ties go to the
+// shorter, more generic name.
+export function guessExercise(name: string, library: ExerciseDto[]): ExerciseDto | undefined {
+  const want = words(name);
+  let best: ExerciseDto | undefined;
+  let bestScore = 0;
+  for (const ex of library) {
+    const have = words(ex.name);
+    const score = want.reduce((s, w) => s + (have.some((h) => h.startsWith(w) || w.startsWith(h)) ? (WEAK_WORDS.has(w) ? 0.25 : 1) : 0), 0);
+    if (score > bestScore || (score === bestScore && best && ex.name.length < best.name.length)) { best = ex; bestScore = score; }
+  }
+  return bestScore >= 1 ? best : undefined;
+}
