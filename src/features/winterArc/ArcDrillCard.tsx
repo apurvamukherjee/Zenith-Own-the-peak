@@ -9,6 +9,7 @@ import { todayKey } from "../../lib/date.utils";
 import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as amount, ARC_RESERVES, shouldShowGate, type Drill, type Readiness } from "../../lib/winterArc";
 import { useArcToday, completeDrill, pauseDay, setReadiness, type ArcToday } from "./useWinterArc";
 import { ArcGate } from "./ArcGate";
+import { ArcChecklist } from "./ArcChecklist";
 import { VowSheet } from "./VowSheet";
 import { parseVow } from "../../lib/arcChecklist";
 import "./arc.css";
@@ -63,6 +64,7 @@ export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | u
   return (
     <>
       <ArcDay arc={arc} signed={signed} onVow={() => setVowOpen(true)} />
+      <ArcChecklist date={arc.date} />
       {vow}
     </>
   );
