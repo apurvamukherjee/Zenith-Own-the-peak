@@ -69,6 +69,7 @@ export interface VoiceInput {
   joined: string;          // "" = not in the arc → no pushes
   todayCovered: boolean;   // done or paused — never push once done
   quietToday?: boolean;    // skipped via the gate: still a miss, but no more nagging today
+  plan?: { date: string; text: string }; // if-then plan, quoted on that day's morning push
   missed: number;          // open missed streak before today
   drill?: { name: string; amount: string; minimum: string };
   wakeHour: number;
@@ -136,6 +137,7 @@ export function planArcPushes(i: VoiceInput): ArcPush[] {
         const pool = LINES[tier];
         line = pool[(day + slot) % pool.length];
       }
+      if (slot === 0 && i.plan?.date === date) line += ` Your plan: “${i.plan.text}”`;
       const tail = slot >= 2 && i.drill && date === i.today ? ` Minimum counts: ${i.drill.minimum}.` : "";
       out.push({
         id: ARC_PUSH_ID_BASE + day * 10 + slot, title: `Winter Arc · Day ${day + 1}`, body: `${line} ${action}${tail}`, at,
