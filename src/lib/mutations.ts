@@ -46,5 +46,5 @@ export function onMutation(cb: (table?: string) => void, tables?: readonly strin
 export const GAMEPLAY_TABLES = [
   "workoutSets", "workoutSessions", "water", "sleep", "studySessions", "meals",
   "streakFreezes", "fuel", "bodyweight", "bodyMeasurements", "dayPhotos",
-  "scheduleLogs", "studyItems", "settings", "xpEvents", "achievements", "weekSchedule",
+  "scheduleLogs", "studyItems", "settings", "xpEvents", "achievements", "weekSchedule", "arcDays",
 ] as const;
