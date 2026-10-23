@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { useSetting } from "../../hooks/useSettings";
 import { useTrainingToday } from "../dashboard/useHomeData";
-import { isNativeNotifications, applyOneOffReminders, startTaskReminderWebLoop, ARC_RANGE } from "../../lib/notifications";
+import { isNativeNotifications, applyOneOffReminders, startTaskReminderWebLoop, ensureArcPrivateChannel, ARC_RANGE } from "../../lib/notifications";
 import { planArcPushes } from "../../lib/arcVoice";
 import { drillAmount, minimumOf } from "../../lib/winterArc";
 import { useArcToday } from "./useWinterArc";
@@ -32,7 +32,7 @@ export function useArcVoice(): void {
   const key = pushes.map((p) => `${p.id}:${p.at.getTime()}:${p.body}`).join("|");
   useEffect(() => {
     if (isNativeNotifications()) {
-      void applyOneOffReminders(pushes, ARC_RANGE);
+      void (profanity ? ensureArcPrivateChannel() : Promise.resolve()).then(() => applyOneOffReminders(pushes, ARC_RANGE));
       return;
     }
     return startTaskReminderWebLoop(() => pushes);
