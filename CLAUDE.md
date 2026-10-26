@@ -62,6 +62,7 @@ debounces a push → XP engine grants XP → achievement engine checks badges.
 | `/quick` | QuickLogPage | no |
 | `/leaderboard` | LeaderboardPage | no |
 | `/tasks` | TasksPage (Phase 6 — standalone task manager, shares tables with Calendar) | marked `tab:true` in `ROUTE_META` but not one of BottomNav's 5 slots |
+| `/arc` | ArcPage (Winter Arc — black-ice event page, see dedicated section) | no; Home shortcut through Jan 2027 |
 
 Plus a `*` catch-all → 404 page (in `AnimatedRoutes.tsx`).
 
@@ -883,3 +884,39 @@ write goes through the existing `useGym.ts` functions plus two small additions.
 - `AddExerciseSheet` is the one exercise picker (Planner + Train); creating a
   custom exercise swaps to `CustomExerciseForm` inside the same sheet — never
   stack a second sheet, the two `useBackClose` history entries unwind each other.
+
+## Winter Arc — Nov 1 → Dec 31 2026 event (schema v16, 2026-10)
+
+A 61-day event ("the final 61") layered on top of everything else. Design
+rule from `docs/winter-arc/RESEARCH.md`: hardness lives in the work,
+forgiveness in the bookkeeping — first-miss handling, not difficulty, is
+what kills challenges. Dates are pinned to 2026 (`ARC_START`/`ARC_END`,
+`ARC_THEMES`) with `ponytail:` comments; test any of it with the dev-only
+`?now=2026-11-10T08:00` fake clock (`lib/devClock.ts`, `?now=off` clears).
+
+- **Pure logic, all tested** (`node --test src/lib/*.test.ts`):
+  `lib/winterArc.ts` (seeded daily drill that ramps, dodges trained muscles,
+  carries capped debt; phases; `settle()` into repaired/reserve/scar;
+  `formatFor()` EMOM/20-10/ladder rotation), `lib/arcCalendar.ts` (themed
+  Kolkata days, 9 Sunday chapters, Dec 1 Second Wind, Gauntlet, frost
+  states, badge facts), `lib/arcBosses.ts` (weekly bosses, Trials, Wraith,
+  wager, Murph, seeded deck), `lib/arcChecklist.ts`, `lib/arcVoice.ts`
+  (push tiers, comeback mornings, quiet hours, tone ceiling), `lib/arcWrapped.ts`.
+- **Data**: `db.arcDays` (v16) — one row per covered day, kind
+  `done | repaired | reserve | exempt`; a day with no row is owed (inside
+  the open missed streak) or a scar. Everything else is `settings` keys
+  prefixed `arc*` (joined date, reserves, vow, rules, gate later/skip,
+  readiness, exam window, boss/trial scores, wager, Murph).
+- **UI** (`features/winterArc/`): `ArcDrillCard` (Home + /arc, `gate={false}`
+  on the page), `ArcGate` (holds Home until the drill is handled),
+  `ArcChecklist`, `ArcBossPanel`/`ArcBossSheet` (`BossTimer` also drives
+  the drill's EMOM/interval timer), `VowSheet`, `ArcSafety`, `ArcWrapped`,
+  `ArcAfter` (post-arc card through January), `ArcPage` + `arcPage.css`
+  (always black ice: sticky snow/frost sky, frost map, chapters, badges,
+  rule explainer). Pushes run app-wide via `useArcVoice`; kept days sync to
+  Convex `convex/arc.ts` when configured (the social board is parked).
+- **XP**: drill and full checklist at 1.5×, +15 comeback on the first drill
+  after a miss, boss/Trials/wager grants — all through `useXPEngine`.
+- **Gotcha**: a live query keyed on optional data must tell "loading" from
+  "empty" (`?? null`, not `?? ""`) — the rest-day drill card sat on its
+  loading shell because both keyed to `""`.
