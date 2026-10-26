@@ -84,10 +84,25 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
     // One run at a time: every guard above is check-then-grant across awaits,
     // and a single user action bumps several tables at once, so overlapping
     // runs would each pass the same guard and grant twice.
-    let queue = Promise.resolve();
-    return onMutation(() => {
-      queue = queue.then(run).catch((err: unknown) => { console.error("XP engine run failed", err); });
-    }, GAMEPLAY_TABLES);
+    // Bumps during a run collapse into ONE follow-up run, not one each: a
+    // bulk write ("Complete full day" = ~25 sets) plus the run's own grants
+    // (xpEvents/settings are gameplay tables) used to queue ~75 serial runs
+    // and starve every other Dexie query, blanking Home for seconds.
+    let running = false;
+    let again = false;
+    const kick = async () => {
+      if (running) { again = true; return; }
+      running = true;
+      try {
+        do {
+          again = false;
+          await run().catch((err: unknown) => { console.error("XP engine run failed", err); });
+        } while (again);
+      } finally {
+        running = false;
+      }
+    };
+    return onMutation(() => { void kick(); }, GAMEPLAY_TABLES);
   }, [onLevelUp]);
 }
 
