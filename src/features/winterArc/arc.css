@@ -170,3 +170,9 @@ a.arc-pill.is-done:hover { color: #a9f0e0; }
 .arc-wrapped__vow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 10px 12px; border-radius: 14px; font-size: 12.5px; background: color-mix(in srgb, var(--info) 10%, transparent); }
 .arc-wrapped__vow em { flex-basis: 100%; font-style: normal; font-size: 11px; color: var(--ink-soft); }
 @media (max-width: 360px) { .arc-wrapped__grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* Drill format line + inline timer on the always-dark card */
+.arc-card__format { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; font-size: 12px; line-height: 1.4; color: rgba(255, 255, 255, 0.8); }
+.arc-card .arc-timer { margin-top: 10px; color: #fff; border-color: rgba(170, 210, 255, 0.2); }
+.arc-card .arc-timer__sub { color: rgba(255, 255, 255, 0.7); }
+.arc-timer__sub.is-work { color: var(--info); }

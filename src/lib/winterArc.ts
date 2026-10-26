@@ -98,6 +98,49 @@ export function drillFor(date: string, missedBefore = 0, avoid: MuscleGroup[] = 
 
 export const drillAmount = (d: Drill) => d.unit === "sec" ? `${d.target}s hold` : d.unit === "min" ? `${d.target} min` : `${d.target} reps`;
 
+// How today's target gets broken up. Rotating the format, not the volume,
+// keeps a 61-day drill from going stale (RESEARCH.md #15).
+export type DrillFormat =
+  | { kind: "straight" }
+  | { kind: "emom"; minutes: number; per: number }
+  | { kind: "intervals"; rounds: number; per: number }
+  | { kind: "ladder"; top: number };
+export const INTERVAL = { work: 20, rest: 10 } as const;
+
+/** Seeded by day so every device agrees; calibration, finale, recovery and the minimum stay straight. */
+export function formatFor(date: string, d: Drill): DrillFormat {
+  const phase = phaseOf(date);
+  if (d.kind !== "full" || phase === "calibration" || phase === "finale") return { kind: "straight" };
+  const i = dayIndex(date);
+  if (d.unit !== "reps") {
+    if (i % 2 === 0) return { kind: "straight" };
+    const minutes = Math.max(2, Math.ceil(d.target / 40));
+    return { kind: "emom", minutes, per: Math.ceil(d.target / minutes / 5) * 5 };
+  }
+  switch (i % 4) {
+    case 1: {
+      const minutes = Math.min(10, Math.max(4, Math.round(d.target / 8)));
+      return { kind: "emom", minutes, per: Math.ceil(d.target / minutes) };
+    }
+    case 2: return { kind: "intervals", rounds: 8, per: Math.ceil(d.target / 8) };
+    case 3: {
+      let top = 1;
+      while (top * (top + 1) / 2 < d.target) top++;
+      return { kind: "ladder", top };
+    }
+    default: return { kind: "straight" };
+  }
+}
+
+export function formatLabel(f: DrillFormat, unit: DrillUnit): string | null {
+  switch (f.kind) {
+    case "emom": return `EMOM ${f.minutes} min · ${f.per}${unit === "sec" ? "s hold" : " reps"} at the top of each minute`;
+    case "intervals": return `${f.rounds} rounds · ${INTERVAL.work}s on / ${INTERVAL.rest}s off · ${f.per} reps a round`;
+    case "ladder": return `Ladder 1, 2, 3… up to ${f.top} · stop once you pass the target`;
+    default: return null;
+  }
+}
+
 /** The 5-minute floor: half of today's base, keeps the chain, repays nothing. */
 export const minimumOf = (d: Drill): Drill => ({ ...d, target: roundTo(d.base / 2, d.unit), debtDays: 0, kind: "minimum" });
 

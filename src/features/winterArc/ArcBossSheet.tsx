@@ -11,8 +11,12 @@ import { saveBossScore, saveTrial, finishMurph, type ArcBossState } from "./useA
 
 export type BossMode = { type: "boss"; boss: BossDef } | { type: "trial"; n: number } | { type: "murph" };
 
-// Wall-clock based so a backgrounded tab doesn't drift; ticks on each new minute.
-function BossTimer({ minutes, deathBy }: { minutes?: number; deathBy?: boolean }) {
+// Wall-clock based so a backgrounded tab doesn't drift; ticks on each new
+// minute, or on every work/rest switch when `interval` is set.
+export function BossTimer({ minutes, deathBy, emomPer, interval }: {
+  minutes?: number; deathBy?: boolean; emomPer?: string;
+  interval?: { work: number; rest: number; rounds: number; per: string };
+}) {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [banked, setBanked] = useState(0);
   const [now, setNow] = useState(() => Date.now());
@@ -22,27 +26,37 @@ function BossTimer({ minutes, deathBy }: { minutes?: number; deathBy?: boolean }
     return () => window.clearInterval(iv);
   }, [startedAt]);
   const sec = Math.floor((banked + (startedAt !== null ? now - startedAt : 0)) / 1000);
-  const total = minutes ? minutes * 60 : 0;
+  const cycle = interval ? interval.work + interval.rest : 60;
+  const total = interval ? interval.rounds * cycle : minutes ? minutes * 60 : 0;
   const over = !!total && sec >= total;
   const minute = Math.floor(sec / 60) + 1;
+  const round = Math.floor(sec / cycle) + 1;
+  const working = !interval || sec % cycle < interval.work;
+  const beat = interval ? `${round}:${working}` : String(minute);
 
-  const lastMinute = useRef(1);
+  const lastBeat = useRef(beat);
   useEffect(() => {
     if (startedAt === null) return;
     if (over) { playBellDing(); hapticSuccess(); setBanked(total * 1000); setStartedAt(null); return; }
-    if (minute !== lastMinute.current) { lastMinute.current = minute; playTick(); hapticLight(); }
-  }, [minute, over, startedAt, total]);
+    if (beat !== lastBeat.current) { lastBeat.current = beat; playTick(); hapticLight(); }
+  }, [beat, over, startedAt, total]);
 
   const toggle = () => {
     if (startedAt === null) { setStartedAt(Date.now()); setNow(Date.now()); }
     else { setBanked((b) => b + Date.now() - startedAt); setStartedAt(null); }
   };
-  const reset = () => { setStartedAt(null); setBanked(0); lastMinute.current = 1; };
+  const reset = () => { setStartedAt(null); setBanked(0); lastBeat.current = interval ? "1:true" : "1"; };
 
   return (
     <div className="arc-timer">
       <div className="arc-timer__clock">{fmtMinSec(total ? Math.max(0, total - sec) : sec)}</div>
       {deathBy && <div className="arc-timer__sub">Minute {minute} · {minute} push-up{minute === 1 ? "" : "s"} this minute</div>}
+      {emomPer && !over && <div className="arc-timer__sub">Minute {Math.min(minute, minutes ?? minute)}{minutes ? `/${minutes}` : ""} · {emomPer}</div>}
+      {interval && !over && (
+        <div className={`arc-timer__sub${working ? " is-work" : ""}`}>
+          Round {round}/{interval.rounds} · {working ? `Work · ${interval.per}` : "Rest"} · {working ? interval.work - (sec % cycle) : cycle - (sec % cycle)}s
+        </div>
+      )}
       {over && <div className="arc-timer__sub">Time.</div>}
       <div className="arc-timer__row">
         <button type="button" className="z-btn z-btn--solid" onClick={toggle} disabled={over}>

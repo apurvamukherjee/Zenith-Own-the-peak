@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { App, Popconfirm } from "antd";
-import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit, TbSchool, TbHome } from "react-icons/tb";
+import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit, TbSchool, TbHome, TbStopwatch } from "react-icons/tb";
 import type { MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
 import { hapticSuccess } from "../../lib/haptics";
 import { todayKey } from "../../lib/date.utils";
-import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as amount, ARC_RESERVES, shouldShowGate, type Drill, type Readiness } from "../../lib/winterArc";
+import { ARC_DAYS, ARC_END, daysUntilArc, minimumOf, shiftDate, drillAmount as amount, ARC_RESERVES, shouldShowGate, formatFor, formatLabel, INTERVAL, type Drill, type Readiness } from "../../lib/winterArc";
 import { useArcToday, completeDrill, pauseDay, setReadiness, type ArcToday } from "./useWinterArc";
 import { ArcGate } from "./ArcGate";
 import { ArcChecklist } from "./ArcChecklist";
@@ -16,6 +16,7 @@ import { ArcWrappedSheet } from "./ArcWrapped";
 import { GAUNTLET } from "../../lib/arcCalendar";
 import { VowSheet } from "./VowSheet";
 import { ArcSafety } from "./ArcSafety";
+import { BossTimer } from "./ArcBossSheet";
 import { parseVow } from "../../lib/arcChecklist";
 import "./arc.css";
 
@@ -82,6 +83,10 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
   const { message } = App.useApp();
   const [wrapped, setWrapped] = useState(false);
   const [safety, setSafety] = useState(false);
+  const [timer, setTimer] = useState(false);
+  const format = formatFor(arc.date, drill);
+  const formatText = formatLabel(format, drill.unit);
+  const per = (n: number) => `${n}${drill.unit === "sec" ? "s hold" : " reps"}`;
   const later = String(useSetting("arcGateLater"));
   const skipped = String(useSetting("arcSkipped"));
   const blackIce = Number(useSetting("arcReserves")) === 0;
@@ -122,6 +127,20 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
             <span className="arc-card__amount">{amount(drill)}</span>
             {drill.debtDays > 0 && <span className="arc-card__debt"><TbAlertTriangle size={13} /> {drill.debtDays}-day debt</span>}
           </div>
+          {!done && formatText && (
+            <div className="arc-card__format">
+              <span>{formatText}</span>
+              {format.kind !== "ladder" && (
+                <button type="button" className="arc-card__link" aria-expanded={timer} onClick={() => setTimer(!timer)}>
+                  <TbStopwatch size={13} /> {timer ? "Hide timer" : "Timer"}
+                </button>
+              )}
+            </div>
+          )}
+          {!done && timer && format.kind === "emom" && <BossTimer minutes={format.minutes} emomPer={per(format.per)} />}
+          {!done && timer && format.kind === "intervals" && (
+            <BossTimer interval={{ ...INTERVAL, rounds: format.rounds, per: per(format.per) }} />
+          )}
           {done ? (
             <div className="arc-card__done">
               <TbCheck size={16} /> {drill.kind === "full" ? "Drill cleared" : "Chain kept"}

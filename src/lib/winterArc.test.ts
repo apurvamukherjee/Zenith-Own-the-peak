@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ARC_DAYS, DRILLS, RECOVERY, shouldShowGate, drillFor, minimumOf, missedStreak, settle, inArc, dayIndex, phaseOf } from "./winterArc.ts";
+import { ARC_DAYS, DRILLS, RECOVERY, shouldShowGate, drillFor, minimumOf, missedStreak, settle, inArc, dayIndex, phaseOf, formatFor, shiftDate } from "./winterArc.ts";
 
 const def = (name: string) => DRILLS.find((x) => x.name === name)!;
 const nov = (d: number) => `2026-11-${String(d).padStart(2, "0")}`;
@@ -85,4 +85,25 @@ test("gate: hidden once handled or skipped; 'later' hides it until the 21:00 fin
   assert.equal(shouldShowGate(nov(5), false, `${nov(5)}|10`, "", 21), true);
   assert.equal(shouldShowGate(nov(5), false, `${nov(5)}|21`, "", 22), false);
   assert.equal(shouldShowGate(nov(6), false, `${nov(5)}|21`, "", 8), true);
+});
+
+test("formats: straight while calibrating, for the minimum and recovery, and on the finale", () => {
+  assert.equal(formatFor(nov(2), drillFor(nov(2))).kind, "straight");
+  assert.equal(formatFor("2026-12-31", drillFor("2026-12-31")).kind, "straight");
+  assert.equal(formatFor(nov(10), minimumOf(drillFor(nov(10)))).kind, "straight");
+  assert.equal(formatFor(nov(10), RECOVERY).kind, "straight");
+});
+
+test("formats: every split still covers the target", () => {
+  const kinds = new Set<string>();
+  for (let i = 4; i < ARC_DAYS - 1; i++) {
+    const date = shiftDate(nov(1), i);
+    const d = drillFor(date, i % 3);
+    const f = formatFor(date, d);
+    kinds.add(f.kind);
+    if (f.kind === "emom") assert.ok(f.minutes * f.per >= d.target && f.minutes <= 10);
+    if (f.kind === "intervals") assert.ok(f.rounds * f.per >= d.target);
+    if (f.kind === "ladder") assert.ok(f.top * (f.top + 1) / 2 >= d.target && (f.top - 1) * f.top / 2 < d.target);
+  }
+  assert.deepEqual([...kinds].sort(), ["emom", "intervals", "ladder", "straight"]);
 });
