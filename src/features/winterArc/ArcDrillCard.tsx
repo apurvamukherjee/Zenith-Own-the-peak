@@ -31,6 +31,7 @@ export function ArcDrillCard({ trainedToday, gate = true }: { trainedToday: Musc
   const signed = !!parseVow(String(useSetting("arcVow")));
   const [vowOpen, setVowOpen] = useState(false);
   const arc = useArcToday(trainedToday);
+  const onArcPage = useLocation().pathname === "/arc";
   const date = todayKey();
   // The post-arc card (Wrapped + 2027 handoff) stays up through January.
   if (date > ARC_END) return joined && date < "2027-02-01" ? <ArcAfter /> : null;
@@ -41,11 +42,16 @@ export function ArcDrillCard({ trainedToday, gate = true }: { trainedToday: Musc
   const until = daysUntilArc(date);
   if (until > 0 || !joined) {
     return (
-      <div className="arc-card">
-        <div className="arc-card__eyebrow"><TbSnowflake size={14} /> Winter Arc · the final 61</div>
-        <div className="arc-card__title display">{until > 0 ? `${until} day${until === 1 ? "" : "s"} out` : "It's already started"}</div>
-        <p className="arc-card__copy">Nov 1 → Dec 31. One random drill a day. Miss one and you owe it. 3 reserves, no excuses.</p>
-        <Link to="/arc" className="arc-card__link arc-card__how">How it works <TbChevronRight size={13} /></Link>
+      <div className={`arc-card${joined ? "" : " arc-card--invite"}`}>
+        {/* On /arc the page hero already says all this. */}
+        {!onArcPage && (
+          <>
+            <div className="arc-card__eyebrow"><TbSnowflake size={14} /> Winter Arc · the final 61</div>
+            <div className="arc-card__title display">{until > 0 ? `${until} day${until === 1 ? "" : "s"} out` : "It's already started"}</div>
+            <p className="arc-card__copy">Nov 1 → Dec 31. One random drill a day. Miss one and you owe it. 3 reserves, no excuses.</p>
+          </>
+        )}
+        {!joined && !onArcPage && <Link to="/arc#how" className="arc-card__link arc-card__how">How it works <TbChevronRight size={13} /></Link>}
         {joined ? (
           <div className="arc-card__done">
             <TbCheck size={16} /> You're in{blackIce ? " — Black Ice" : ""}. Lock in.
@@ -57,11 +63,14 @@ export function ArcDrillCard({ trainedToday, gate = true }: { trainedToday: Musc
             )}
           </div>
         ) : (
-          <div className="arc-card__actions">
-            <motion.button type="button" className="arc-card__cta" whileTap={{ scale: 0.92 }}
-              onClick={() => void join(ARC_RESERVES)}>Join the arc</motion.button>
-            <button type="button" className="arc-card__ghost" onClick={() => void join(0)}>
-              Black Ice · 0 reserves
+          <div className="arc-join">
+            <motion.button type="button" className="arc-card__cta arc-join__cta" whileTap={{ scale: 0.96 }}
+              onClick={() => void join(ARC_RESERVES)}>
+              <TbSnowflake size={18} /> Join the Winter Arc
+            </motion.button>
+            <span className="arc-join__note">Free · {ARC_RESERVES} reserves · you sign a vow next</span>
+            <button type="button" className="arc-card__ghost arc-join__hard" onClick={() => void join(0)}>
+              Go Black Ice instead · 0 reserves, hard mode
             </button>
           </div>
         )}
