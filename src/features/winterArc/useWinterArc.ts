@@ -38,7 +38,9 @@ export function useArcToday(trainedToday: MuscleGroup[] | undefined): ArcToday |
   const readinessRaw = useSetting("arcReadiness");
   const examUntil = String(useSetting("arcExamUntil"));
   const date = todayKey();
-  const avoidKey = trainedToday?.join() ?? "";
+  // null while loading vs "" on a rest day — both used to be "", so a rest
+  // day never re-ran the query and the card sat on its loading shell.
+  const avoidKey = trainedToday?.join() ?? null;
   return useLiveQuery(async () => {
     if (!trainedToday) return undefined;
     const rows = await db.arcDays.toArray();
