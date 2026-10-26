@@ -4,7 +4,7 @@ import { Avatar } from "antd";
 import { motion, useScroll, useTransform, type MotionProps } from "framer-motion";
 import {
   TbFlame, TbSettings, TbShare2, TbTrophy, TbSun, TbSunrise, TbSunset, TbMoon, TbMoonStars, TbCoffee,
-  TbCalendar, TbChartLine, TbGasStation, TbWallet, TbAward, TbSparkles, TbQuote,
+  TbCalendar, TbChartLine, TbGasStation, TbWallet, TbAward, TbSparkles, TbQuote, TbSnowflake,
 } from "react-icons/tb";
 import type { IconType } from "react-icons";
 import { HomeQuoteCard } from "../../components/HomeQuoteCard";
@@ -53,6 +53,8 @@ function greeting(h: number, o: { devilsHour: boolean; zenithHour: boolean; pali
 }
 
 const SHORTCUTS: { to: string; label: string; icon: IconType; c: string }[] = [
+  // ponytail: dated to the 2026 arc, like ARC_START — drops off after January.
+  ...(todayKey() < "2027-02-01" ? [{ to: "/arc", label: "Arc", icon: TbSnowflake, c: "var(--info)" }] : []),
   { to: "/calendar", label: "Calendar", icon: TbCalendar, c: "var(--accent)" },
   { to: "/progress", label: "Progress", icon: TbChartLine, c: "var(--teal)" },
   { to: "/fuel", label: "Fuel", icon: TbGasStation, c: "var(--gold)" },
