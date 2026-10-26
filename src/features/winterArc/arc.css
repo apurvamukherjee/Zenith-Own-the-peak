@@ -176,3 +176,10 @@ a.arc-pill.is-done:hover { color: #a9f0e0; }
 .arc-card .arc-timer { margin-top: 10px; color: #fff; border-color: rgba(170, 210, 255, 0.2); }
 .arc-card .arc-timer__sub { color: rgba(255, 255, 255, 0.7); }
 .arc-timer__sub.is-work { color: var(--info); }
+
+/* Plain-language explainers on the join card, gate and vow */
+.arc-card__how { margin-top: 8px; }
+.arc-gate__why { margin: 12px 0 0; font-size: 12.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.72); }
+.arc-gate__why b { color: #fff; }
+.arc-vow__how { margin: 0; padding: 12px 12px 12px 30px; border-radius: 14px; font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); background: color-mix(in srgb, var(--info) 10%, transparent); display: flex; flex-direction: column; gap: 4px; }
+.arc-vow__how b { color: var(--ink); }

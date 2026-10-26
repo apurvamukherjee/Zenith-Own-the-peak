@@ -35,6 +35,13 @@ export function VowSheet({ onClose }: { onClose: () => void }) {
     <Sheet open onCancel={onClose} footer={null} destroyOnHidden
       title={<span className="arc-vow__title"><TbSnowflake size={16} /> {saved ? "Your vow" : "Sign the vow"}</span>}>
       <div className="arc-vow">
+        {!saved && (
+          <ol className="arc-vow__how">
+            <li><b>One drill a day</b>, Nov 1 → Dec 31 — tap Done on Home when it's cleared.</li>
+            <li><b>Miss one, you owe it</b> — tomorrow carries +50%. 3 reserves cover what debt can't.</li>
+            <li><b>Sick? Pause it.</b> Sore? Tap Sore for a recovery drill. The chain still counts.</li>
+          </ol>
+        )}
         <label>
           <span>What will 61 days of this get you? <em>Private — only you see it.</em></span>
           <Input.TextArea value={goal} onChange={(e) => setGoal(e.target.value)} autoSize={{ minRows: 2, maxRows: 4 }}

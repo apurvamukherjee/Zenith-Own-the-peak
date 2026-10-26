@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Input, Popconfirm } from "antd";
 import { TbSnowflake, TbAlertTriangle, TbFirstAidKit } from "react-icons/tb";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useBackClose } from "../../hooks/useBackClose";
-import { ARC_DAYS, FINAL_CALL_HOUR, drillAmount, minimumOf, type Drill } from "../../lib/winterArc";
+import { ARC_DAYS, FINAL_CALL_HOUR, drillAmount, minimumOf, formatFor, formatLabel, type Drill } from "../../lib/winterArc";
 import { pauseDay, type ArcToday } from "./useWinterArc";
 
 // "I am soft" only exists inside the opt-in swearing tier: a self-insult you
@@ -29,7 +30,11 @@ export function ArcGate({ arc, onFinish }: { arc: ArcToday; onFinish: (d: Drill)
     await setSetting("arcSkipped", arc.date);
   };
   const { drill } = arc;
+  const format = formatLabel(formatFor(arc.date, drill), drill.unit);
   const finalCall = new Date().getHours() >= FINAL_CALL_HOUR;
+  const navigate = useNavigate();
+  // Dismiss for now (same as "Later today") so Back from /arc doesn't land on the gate again.
+  const explain = () => { later(); navigate("/arc"); };
 
   return createPortal(
     <motion.div className="arc-gate" role="dialog" aria-modal="true" aria-labelledby="arc-gate-title"
@@ -44,7 +49,13 @@ export function ArcGate({ arc, onFinish }: { arc: ArcToday; onFinish: (d: Drill)
             <span className="arc-card__amount">{drillAmount(drill)}</span>
             {drill.debtDays > 0 && <span className="arc-card__debt"><TbAlertTriangle size={13} /> {drill.debtDays}-day debt — clear it to re-link</span>}
           </div>
+          {format && <div className="arc-card__format">{format}</div>}
         </div>
+
+        <p className="arc-gate__why">
+          Clear it to keep the chain. Miss it and tomorrow's drill carries <b>+50%</b> to repay it; reserves cover what debt can't, anything left is a scar.{" "}
+          <button type="button" className="arc-card__link" onClick={explain}>How it works</button>
+        </p>
 
         {!skipping ? (
           <>

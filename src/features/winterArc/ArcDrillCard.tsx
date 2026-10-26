@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { App, Popconfirm } from "antd";
-import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit, TbSchool, TbHome, TbStopwatch } from "react-icons/tb";
+import { TbSnowflake, TbCheck, TbAlertTriangle, TbShieldHalf, TbFirstAidKit, TbSchool, TbHome, TbStopwatch, TbChevronRight } from "react-icons/tb";
 import type { MuscleGroup } from "../../db/types";
 import { setSetting, useSetting } from "../../hooks/useSettings";
 import { hapticSuccess } from "../../lib/haptics";
@@ -44,6 +45,7 @@ export function ArcDrillCard({ trainedToday, gate = true }: { trainedToday: Musc
         <div className="arc-card__eyebrow"><TbSnowflake size={14} /> Winter Arc · the final 61</div>
         <div className="arc-card__title display">{until > 0 ? `${until} day${until === 1 ? "" : "s"} out` : "It's already started"}</div>
         <p className="arc-card__copy">Nov 1 → Dec 31. One random drill a day. Miss one and you owe it. 3 reserves, no excuses.</p>
+        <Link to="/arc" className="arc-card__link arc-card__how">How it works <TbChevronRight size={13} /></Link>
         {joined ? (
           <div className="arc-card__done">
             <TbCheck size={16} /> You're in{blackIce ? " — Black Ice" : ""}. Lock in.
@@ -84,6 +86,7 @@ function ArcDay({ arc, signed, gate, onVow }: { arc: ArcToday; signed: boolean; 
   const { message } = App.useApp();
   const [wrapped, setWrapped] = useState(false);
   const [safety, setSafety] = useState(false);
+  const onArcPage = useLocation().pathname === "/arc";
   const [timer, setTimer] = useState(false);
   const format = formatFor(arc.date, drill);
   const formatText = formatLabel(format, drill.unit);
@@ -180,6 +183,7 @@ function ArcDay({ arc, signed, gate, onVow }: { arc: ArcToday; signed: boolean; 
         {skipped === arc.date && !row && <span>Skipped — you owe one</span>}
         <span>{arc.kept} kept</span>
         {arc.scars > 0 && <span>{arc.scars} scar{arc.scars === 1 ? "" : "s"}</span>}
+        {!onArcPage && <Link to="/arc" className="arc-card__link">Open the arc <TbChevronRight size={13} /></Link>}
         <button type="button" className="arc-card__link" onClick={onVow}>{signed ? "Vow" : "Sign your vow"}</button>
         <button type="button" className="arc-card__link" aria-pressed={arc.exam}
           onClick={() => void setSetting("arcExamUntil", arc.exam ? "" : shiftDate(arc.date, 6))}>
