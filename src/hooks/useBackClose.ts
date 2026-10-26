@@ -15,6 +15,13 @@ import { useEffect, useRef } from "react";
 // it, and the resulting async popstate could invoke onClose and close the
 // overlay for no reason the user caused. Depending on `open` alone avoids
 // that entirely while still always calling the latest onClose.
+//
+// The pop is deferred a tick and cancelled by an immediate remount, which
+// then reuses the entry. StrictMode's dev double-mount otherwise fired the
+// cleanup's history.back() after the remount had subscribed, so overlays
+// mounted already-open (`useBackClose(true, …)`) closed the instant they opened.
+let pendingBack: number | undefined;
+
 export function useBackClose(open: boolean, onClose: () => void) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -22,14 +29,15 @@ export function useBackClose(open: boolean, onClose: () => void) {
   useEffect(() => {
     if (!open) return;
     let poppedByUser = false;
-    window.history.pushState({ zModal: true }, "");
+    if (pendingBack !== undefined) { window.clearTimeout(pendingBack); pendingBack = undefined; }
+    else window.history.pushState({ zModal: true }, "");
     const onPop = () => { poppedByUser = true; onCloseRef.current(); };
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
       // Closed programmatically (not via Back) → remove our extra entry.
       if (!poppedByUser && (window.history.state as { zModal?: boolean } | null)?.zModal) {
-        window.history.back();
+        pendingBack = window.setTimeout(() => { pendingBack = undefined; window.history.back(); }, 0);
       }
     };
   }, [open]);
