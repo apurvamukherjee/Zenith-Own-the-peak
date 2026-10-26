@@ -6,7 +6,7 @@ import { Input, Popconfirm } from "antd";
 import { TbSnowflake, TbAlertTriangle, TbFirstAidKit } from "react-icons/tb";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useBackClose } from "../../hooks/useBackClose";
-import { ARC_DAYS, FINAL_CALL_HOUR, drillAmount, minimumOf, formatFor, formatLabel, type Drill } from "../../lib/winterArc";
+import { ARC_DAYS, ARC_END, FINAL_CALL_HOUR, drillAmount, minimumOf, formatFor, formatLabel, type Drill } from "../../lib/winterArc";
 import { pauseDay, type ArcToday } from "./useWinterArc";
 
 // "I am soft" only exists inside the opt-in swearing tier: a self-insult you
@@ -53,7 +53,9 @@ export function ArcGate({ arc, onFinish }: { arc: ArcToday; onFinish: (d: Drill)
         </div>
 
         <p className="arc-gate__why">
-          Clear it to keep the chain. Miss it and tomorrow's drill carries <b>+50%</b> to repay it; reserves cover what debt can't, anything left is a scar.{" "}
+          {arc.date === ARC_END
+            ? <>Last day — there's no tomorrow to repay it. Clear it and the arc is closed.{" "}</>
+            : <>Clear it to keep the chain. Miss it and tomorrow's drill carries <b>+50%</b> to repay it; reserves cover what debt can't, anything left is a scar.{" "}</>}
           <button type="button" className="arc-card__link" onClick={explain}>How it works</button>
         </p>
 
