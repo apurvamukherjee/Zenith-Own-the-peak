@@ -80,8 +80,7 @@ export function useUnseenAchievements(): number {
 }
 
 export async function markAllSeen() {
-  const fresh = await db.achievements.where("seen").equals(0).toArray();
-  await Promise.all(fresh.map((f) => db.achievements.update(f.id, { seen: 1 })));
+  await db.achievements.where("seen").equals(0).modify({ seen: 1 });
 }
 
 // App-wide engine: mounted once (AppShell). Recomputes on change (debounced),

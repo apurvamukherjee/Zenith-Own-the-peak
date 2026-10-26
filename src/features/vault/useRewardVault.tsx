@@ -19,8 +19,7 @@ export function useUnseenCosmetics(): number {
 }
 
 export async function markAllCosmeticsSeen() {
-  const fresh = await db.cosmeticUnlocks.where("seen").equals(0).toArray();
-  await Promise.all(fresh.map((f) => db.cosmeticUnlocks.update(f.id, { seen: 1 })));
+  await db.cosmeticUnlocks.where("seen").equals(0).modify({ seen: 1 });
 }
 
 // Set of unlocked (non-default) cosmetic ids — accent themes + frames share
