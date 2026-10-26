@@ -23,7 +23,8 @@ import "./arc.css";
 const PHASE_LABEL = { calibration: "Calibration", build: "Build", deload: "Deload", taper: "Taper", finale: "Finale" } as const;
 const READINESS: { r: Readiness; label: string }[] = [{ r: "fine", label: "Fine" }, { r: "sore", label: "Sore" }, { r: "wrecked", label: "Wrecked" }];
 
-export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | undefined }) {
+/** `gate={false}` on /arc: the page is already the arc, holding it behind the gate is noise. */
+export function ArcDrillCard({ trainedToday, gate = true }: { trainedToday: MuscleGroup[] | undefined; gate?: boolean }) {
   const joined = useSetting("arcJoined");
   const reserves = useSetting("arcReserves");
   const signed = !!parseVow(String(useSetting("arcVow")));
@@ -70,14 +71,14 @@ export function ArcDrillCard({ trainedToday }: { trainedToday: MuscleGroup[] | u
   if (!arc) return <div className="arc-card arc-card--loading" />;
   return (
     <>
-      <ArcDay arc={arc} signed={signed} onVow={() => setVowOpen(true)} />
+      <ArcDay arc={arc} signed={signed} gate={gate} onVow={() => setVowOpen(true)} />
       <ArcChecklist date={arc.date} />
       {vow}
     </>
   );
 }
 
-function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow: () => void }) {
+function ArcDay({ arc, signed, gate, onVow }: { arc: ArcToday; signed: boolean; gate: boolean; onVow: () => void }) {
   const { drill, row } = arc;
   const done = row?.kind === "done";
   const { message } = App.useApp();
@@ -99,7 +100,7 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
 
   return (
     <div className={`arc-card${done ? " is-done" : ""}${row?.kind === "exempt" ? " is-exempt" : ""}`}>
-      {shouldShowGate(arc.date, !!row, later, skipped, new Date().getHours()) && <ArcGate arc={arc} onFinish={finish} />}
+      {gate && shouldShowGate(arc.date, !!row, later, skipped, new Date().getHours()) && <ArcGate arc={arc} onFinish={finish} />}
       {wrapped && <ArcWrappedSheet onClose={() => setWrapped(false)} />}
       <div className="arc-card__eyebrow">
         <TbSnowflake size={14} /> Winter Arc · Day {arc.day}/{ARC_DAYS} · {PHASE_LABEL[arc.phase]}
