@@ -23,6 +23,7 @@ const VaultPage = lazy(() => import("../features/vault/VaultPage").then((m) => (
 const SettingsPage = lazy(() => import("../features/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 const QuickLogPage = lazy(() => import("../features/quick/QuickLogPage").then((m) => ({ default: m.QuickLogPage })));
 const LeaderboardPage = lazy(() => import("../features/leaderboard/LeaderboardPage").then((m) => ({ default: m.LeaderboardPage })));
+const ArcPage = lazy(() => import("../features/winterArc/ArcPage").then((m) => ({ default: m.ArcPage })));
 const TasksPage = lazy(() => import("../features/tasks/TasksPage").then((m) => ({ default: m.TasksPage })));
 
 const Fallback = <div style={{ display: "flex", justifyContent: "center", padding: 48 }}><BloodDrop size={32} /></div>;
@@ -72,6 +73,7 @@ export function AnimatedRoutes() {
             <Route path="quick" element={<QuickLogPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="tasks" element={<TasksPage />} />
+            <Route path="arc" element={<ArcPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
