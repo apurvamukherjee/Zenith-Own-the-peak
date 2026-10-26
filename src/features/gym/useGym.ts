@@ -251,6 +251,19 @@ export async function completeRemainingSets(
   plan: DayExerciseDto,
   alreadyLoggedIndices: number[],
 ): Promise<number> {
+  const rows = await remainingSetRows(sessionId, plan, alreadyLoggedIndices);
+  if (rows.length > 0) {
+    await db.workoutSets.bulkAdd(rows);
+    hapticLight();
+  }
+  return rows.length;
+}
+
+async function remainingSetRows(
+  sessionId: number,
+  plan: DayExerciseDto,
+  alreadyLoggedIndices: number[],
+): Promise<WorkoutSetDto[]> {
   const exercise = await db.exercises.get(plan.exerciseId);
   const midReps = Math.round((plan.repLow + plan.repHigh) / 2);
   const done = new Set(alreadyLoggedIndices);
@@ -275,7 +288,7 @@ export async function completeRemainingSets(
     : [];
   const loggedSoFar = logged.map((s) => ({ setIndex: s.setIndex, weightKg: s.weightKg, reps: s.reps }));
 
-  let added = 0;
+  const rows: WorkoutSetDto[] = [];
   for (let i = 1; i <= plan.sets; i++) {
     if (done.has(i)) continue;
     const last = loggedSoFar.filter((s) => s.setIndex < i).sort((a, b) => b.setIndex - a.setIndex)[0];
@@ -283,16 +296,14 @@ export async function completeRemainingSets(
     const weightKg = last?.weightKg ?? usageW?.value ?? ghost?.weightKg ?? plan.weightKg;
     const reps = last?.reps ?? usageR?.value ?? ghost?.reps ?? midReps;
     const e1rm = estimate1RM(weightKg, reps);
-    await db.workoutSets.add({
+    rows.push({
       sessionId, date, exerciseId: plan.exerciseId,
       exerciseName: exercise?.name ?? "Exercise", setIndex: i,
       weightKg, reps, e1rm, isPR: false, createdAt: Date.now(),
     });
     loggedSoFar.push({ setIndex: i, weightKg, reps });
-    added++;
   }
-  if (added > 0) hapticLight();
-  return added;
+  return rows;
 }
 
 // Complete every remaining set across the WHOLE day's plan in one tap —
@@ -303,10 +314,14 @@ export async function completeAllRemainingForDay(
   exercises: DayExerciseDto[],
   sets: WorkoutSetDto[],
 ): Promise<void> {
+  // One bulkAdd, not a write per set: each separate write re-ran every live
+  // query on workoutSets and queued the gameplay engines behind it.
+  const rows: WorkoutSetDto[] = [];
   for (const ex of exercises) {
     const loggedIndices = sets.filter((s) => s.exerciseId === ex.exerciseId).map((s) => s.setIndex);
-    await completeRemainingSets(sessionId, ex, loggedIndices);
+    rows.push(...await remainingSetRows(sessionId, ex, loggedIndices));
   }
+  if (rows.length > 0) await db.workoutSets.bulkAdd(rows);
   hapticSuccess();
 }
 
@@ -319,18 +334,19 @@ export async function backfillSession(date: string, dayId: number): Promise<numb
     date, weekKey: weekKey(date), dayId, createdAt: Date.now(),
     notes: "Backfilled",
   });
-  for (const ex of plan) {
-    const exercise = await db.exercises.get(ex.exerciseId);
+  const exercises = await db.exercises.bulkGet(plan.map((ex) => ex.exerciseId));
+  const rows: WorkoutSetDto[] = [];
+  plan.forEach((ex, n) => {
     const midReps = Math.round((ex.repLow + ex.repHigh) / 2);
     for (let i = 1; i <= ex.sets; i++) {
-      const e1rm = estimate1RM(ex.weightKg, midReps);
-      await db.workoutSets.add({
+      rows.push({
         sessionId: session, date, exerciseId: ex.exerciseId,
-        exerciseName: exercise?.name ?? "Exercise", setIndex: i,
-        weightKg: ex.weightKg, reps: midReps, e1rm, isPR: false, createdAt: Date.now(),
+        exerciseName: exercises[n]?.name ?? "Exercise", setIndex: i,
+        weightKg: ex.weightKg, reps: midReps, e1rm: estimate1RM(ex.weightKg, midReps), isPR: false, createdAt: Date.now(),
       });
     }
-  }
+  });
+  await db.workoutSets.bulkAdd(rows);
   return session;
 }
 
