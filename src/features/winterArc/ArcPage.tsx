@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   TbSnowflake, TbShieldHalf, TbGhost2, TbFlame, TbSwords, TbFlask, TbChevronRight, TbHome,
 } from "react-icons/tb";
@@ -96,6 +96,11 @@ export function ArcPage() {
   const bosses = useArcBosses(date);
   const { views } = useAchievements();
   const [picked, setPicked] = useState<string | null>(null);
+  const { hash } = useLocation();
+  // "How it works" links land here as /arc#how — scroll the explainer into view.
+  useEffect(() => {
+    if (hash === "#how") document.getElementById("arc-how")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [hash]);
 
   const count = (k: ArcCellState) => [...states.values()].filter((s) => s === k).length;
   const kept = count("done") + count("repaired");
@@ -137,6 +142,41 @@ export function ArcPage() {
 
         <section className="arc-section">
           <ArcDrillCard trainedToday={training?.muscles} gate={false} />
+        </section>
+
+        <section id="arc-how" className="arc-section arc-glass">
+          <h2 className="arc-h2">How the arc works</h2>
+          <div className="arc-how">
+            <details open={!joined}>
+              <summary>One drill a day</summary>
+              <p>Every day picks a hostel-room drill — the same one on every phone. It ramps up over the 61 days, halves in the deload (Nov 29–Dec 5) and the taper, and dodges whatever muscles you trained. Some days it comes as an EMOM, 20/10 intervals or a ladder; the card has a timer.</p>
+              <p>Sore or wrecked? Tap it and the drill becomes 8 minutes of McGill Big 3 + hips. The chain still counts.</p>
+            </details>
+            <details open={!joined}>
+              <summary>Miss a day → you owe it</summary>
+              <p>A missed day isn't over: tomorrow's drill carries <b>+50% debt</b> per missed day (2 days max, never past 1.5× the movement's peak). Clear it and the missed days count as <b>repaired</b>.</p>
+              <p>What debt can't reach, your <b>3 reserves</b> cover automatically. Anything left becomes a <b>scar</b>. Black Ice means zero reserves. The <b>5-minute minimum</b> keeps the chain but repays nothing.</p>
+            </details>
+            <details>
+              <summary>Sick, exams, festivals</summary>
+              <p><b>Sick / injured</b> pauses today or yesterday — no miss, no debt. <b>Exam Mode</b> (one week, you arm it) trims pushes and adds a study item. The <b>Festival Gauntlet</b> (Nov 8–19, Kali Puja → Jagaddhatri) only asks for 9 of 12 days: survive, don't thrive.</p>
+            </details>
+            <details>
+              <summary>Chapters, bosses and the Wraith</summary>
+              <p>Nine Sunday-start chapters. Most have a <TbSwords size={12} /> boss you can fight any day that week; rematches put your old score up as the boss's HP. <TbFlask size={12} /> Trials (push-ups, plank, Death-by) run in week 1, from Dec 1 and on Dec 30 — Wrapped compares them. Dec 31 is Hostel Murph.</p>
+              <p>The <TbGhost2 size={12} /> Winter Wraith has {WRAITH_HP} HP: kept days and bosses hurt it, scars heal it. On a chapter's first day you can stake 50 XP on a perfect week.</p>
+            </details>
+            <details>
+              <summary>The gate, pushes and XP</summary>
+              <p>Until the drill's handled, Home opens behind the Arc Gate. Skipping means typing <i>"I'm skipping today. I owe one drill."</i> and an if-then plan for tomorrow. Pushes escalate through the day (up to 5, quiet hours before bed), and the morning after a miss always opens with a comeback, not a roast.</p>
+              <p>Drill and full checklist earn 1.5× XP. The first drill after a miss earns a +15 comeback bonus. Dec 1 is the Second Wind: Phase 1 scars archive and reserves reset.</p>
+            </details>
+            <details>
+              <summary>Stay safe</summary>
+              <ArcSafety />
+            </details>
+          </div>
+          <p className="arc-foot">Kolkata dates come from panchang listings — a festival can land a day off.</p>
         </section>
 
         <section className="arc-section arc-glass">
@@ -227,41 +267,6 @@ export function ArcPage() {
               );
             })}
           </div>
-        </section>
-
-        <section className="arc-section arc-glass">
-          <h2 className="arc-h2">How the arc works</h2>
-          <div className="arc-how">
-            <details open={!joined}>
-              <summary>One drill a day</summary>
-              <p>Every day picks a hostel-room drill — the same one on every phone. It ramps up over the 61 days, halves in the deload (Nov 29–Dec 5) and the taper, and dodges whatever muscles you trained. Some days it comes as an EMOM, 20/10 intervals or a ladder; the card has a timer.</p>
-              <p>Sore or wrecked? Tap it and the drill becomes 8 minutes of McGill Big 3 + hips. The chain still counts.</p>
-            </details>
-            <details open={!joined}>
-              <summary>Miss a day → you owe it</summary>
-              <p>A missed day isn't over: tomorrow's drill carries <b>+50% debt</b> per missed day (2 days max, never past 1.5× the movement's peak). Clear it and the missed days count as <b>repaired</b>.</p>
-              <p>What debt can't reach, your <b>3 reserves</b> cover automatically. Anything left becomes a <b>scar</b>. Black Ice means zero reserves. The <b>5-minute minimum</b> keeps the chain but repays nothing.</p>
-            </details>
-            <details>
-              <summary>Sick, exams, festivals</summary>
-              <p><b>Sick / injured</b> pauses today or yesterday — no miss, no debt. <b>Exam Mode</b> (one week, you arm it) trims pushes and adds a study item. The <b>Festival Gauntlet</b> (Nov 8–19, Kali Puja → Jagaddhatri) only asks for 9 of 12 days: survive, don't thrive.</p>
-            </details>
-            <details>
-              <summary>Chapters, bosses and the Wraith</summary>
-              <p>Nine Sunday-start chapters. Most have a <TbSwords size={12} /> boss you can fight any day that week; rematches put your old score up as the boss's HP. <TbFlask size={12} /> Trials (push-ups, plank, Death-by) run in week 1, from Dec 1 and on Dec 30 — Wrapped compares them. Dec 31 is Hostel Murph.</p>
-              <p>The <TbGhost2 size={12} /> Winter Wraith has {WRAITH_HP} HP: kept days and bosses hurt it, scars heal it. On a chapter's first day you can stake 50 XP on a perfect week.</p>
-            </details>
-            <details>
-              <summary>The gate, pushes and XP</summary>
-              <p>Until the drill's handled, Home opens behind the Arc Gate. Skipping means typing <i>"I'm skipping today. I owe one drill."</i> and an if-then plan for tomorrow. Pushes escalate through the day (up to 5, quiet hours before bed), and the morning after a miss always opens with a comeback, not a roast.</p>
-              <p>Drill and full checklist earn 1.5× XP. The first drill after a miss earns a +15 comeback bonus. Dec 1 is the Second Wind: Phase 1 scars archive and reserves reset.</p>
-            </details>
-            <details>
-              <summary>Stay safe</summary>
-              <ArcSafety />
-            </details>
-          </div>
-          <p className="arc-foot">Kolkata dates come from panchang listings — a festival can land a day off.</p>
         </section>
       </div>
     </div>
