@@ -31,8 +31,9 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
       const todaySets = await db.workoutSets.where("date").equals(today).toArray();
       const setsGranted = granted("set");
       if (todaySets.length > setsGranted) {
-        for (let i = setsGranted; i < todaySets.length; i++) await grantXP("set");
-        for (const s of todaySets.slice(setsGranted)) if (s.isPR) await grantXP("pr");
+        await grantXP("set", todaySets.length - setsGranted);
+        const prs = todaySets.slice(setsGranted).filter((s) => s.isPR).length;
+        if (prs > 0) await grantXP("pr", prs);
       }
 
       // ── Session done (first set of the day) ───────────────────────────────
@@ -51,7 +52,8 @@ export function useXPEngine(onLevelUp?: (level: number, name: string) => void) {
 
       // ── Meals (capped at 5 per day) ────────────────────────────────────────
       const mealsToday = await db.meals.where("date").equals(today).count();
-      for (let i = granted("meal"); i < Math.min(mealsToday, 5); i++) await grantXP("meal");
+      const mealGrants = Math.min(mealsToday, 5) - granted("meal");
+      if (mealGrants > 0) await grantXP("meal", mealGrants);
 
       // ── Streak day: once per calendar day while the streak is ≥1 ──────────
       if (!granted("streak_day") && await computeUnifiedStreak() > 0) await grantXP("streak_day");

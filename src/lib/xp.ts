@@ -90,12 +90,14 @@ export function levelProgress(totalXP: number): number {
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Grant XP and persist to the xpEvents table. Returns the XpEventDto id. */
-export async function grantXP(action: XpAction): Promise<number> {
+/** Grant XP `count` times and persist to the xpEvents table. Returns the last XpEventDto id. */
+export async function grantXP(action: XpAction, count = 1): Promise<number> {
   const xp = XP[action];
   // One transaction, so two grants racing (XP engine + badge unlocks) can't
   // both read the same prior total and drop one grant from the cache — see
-  // getTotalXP()'s comment for why this cache exists at all.
+  // getTotalXP()'s comment for why this cache exists at all. `count` batches
+  // into one settings write: every settings write re-runs every useSetting
+  // live query in the app, so granting 25 sets one by one meant 25 of those.
   return db.transaction("rw", db.xpEvents, db.settings, async () => {
     const priorTotal = await getTotalXP();
     const event: Omit<XpEventDto, "id"> = {
@@ -104,8 +106,8 @@ export async function grantXP(action: XpAction): Promise<number> {
       weekKey: weekKey(),
       createdAt: Date.now(),
     };
-    const id = await db.xpEvents.add(event as XpEventDto);
-    await db.settings.put({ key: "xpTotalCache", value: priorTotal + xp });
+    const id = await db.xpEvents.bulkAdd(Array.from({ length: count }, () => ({ ...event }) as XpEventDto));
+    await db.settings.put({ key: "xpTotalCache", value: priorTotal + xp * count });
     return id;
   });
 }
