@@ -7,6 +7,7 @@ import { useBackClose } from "../../hooks/useBackClose";
 import { useSetting } from "../../hooks/useSettings";
 import { RULE_PRESETS, MAX_RULES, parseList, parseVow } from "../../lib/arcChecklist";
 import { saveVow } from "./vow";
+import { ArcSafety } from "./ArcSafety";
 
 // Mounted only while open (parent renders it conditionally), so the form
 // state below always starts from the saved vow.
@@ -70,6 +71,8 @@ export function VowSheet({ onClose }: { onClose: () => void }) {
           </div>
           {rules.includes("cold") && cold?.note && <p className="arc-vow__note">{cold.note}</p>}
         </div>
+
+        {!saved && <ArcSafety />}
 
         <button type="button" className="z-btn z-btn--solid arc-vow__sign" disabled={!ready} onClick={() => void sign()}>
           {saved ? "Save vow" : "Sign it — Day 0"}

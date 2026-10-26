@@ -15,6 +15,7 @@ import { ArcAfter } from "./ArcAfter";
 import { ArcWrappedSheet } from "./ArcWrapped";
 import { GAUNTLET } from "../../lib/arcCalendar";
 import { VowSheet } from "./VowSheet";
+import { ArcSafety } from "./ArcSafety";
 import { parseVow } from "../../lib/arcChecklist";
 import "./arc.css";
 
@@ -80,6 +81,7 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
   const done = row?.kind === "done";
   const { message } = App.useApp();
   const [wrapped, setWrapped] = useState(false);
+  const [safety, setSafety] = useState(false);
   const later = String(useSetting("arcGateLater"));
   const skipped = String(useSetting("arcSkipped"));
   const blackIce = Number(useSetting("arcReserves")) === 0;
@@ -169,6 +171,7 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
             <button type="button" className="arc-card__link"><TbFirstAidKit size={13} /> Sick / injured</button>
           </Popconfirm>
         )}
+        <button type="button" className="arc-card__link" aria-expanded={safety} onClick={() => setSafety(!safety)}>Safety</button>
         {arc.missed > 0 && (
           <Popconfirm title="Were you sick yesterday?" description="Marks yesterday as paused instead of missed." okText="Pause yesterday" cancelText="Cancel"
             onConfirm={() => void pauseDay(shiftDate(arc.date, -1))}>
@@ -176,6 +179,7 @@ function ArcDay({ arc, signed, onVow }: { arc: ArcToday; signed: boolean; onVow:
           </Popconfirm>
         )}
       </div>
+      {safety && <ArcSafety />}
     </div>
   );
 }
