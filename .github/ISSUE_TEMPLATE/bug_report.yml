@@ -34,7 +34,7 @@ body:
     id: version
     attributes:
       label: Version
-      description: App version from Settings, or the commit hash if running from source.
+      description: Release you installed (e.g. v1.4.0), or the commit hash if running from source.
   - type: input
     id: device
     attributes:
