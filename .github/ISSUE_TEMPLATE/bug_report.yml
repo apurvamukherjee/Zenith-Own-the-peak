@@ -1,0 +1,46 @@
+name: Bug report
+description: Something in Zenith is broken or behaves wrong.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Train
+        2. Log a set
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where are you running it?
+      options:
+        - Web (zenith-own-the-peak.vercel.app)
+        - Android APK
+        - iOS (sideloaded IPA)
+        - Local dev (npm run dev)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: App version from Settings, or the commit hash if running from source.
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser / OS version
+      placeholder: Pixel 7, Android 15 / Chrome 131 on macOS
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or console errors

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/apurvamukherjee/Zenith-Own-the-peak/discussions
+    about: Ask questions and float ideas in Discussions. Issues are for bugs and concrete feature requests.
