@@ -15,6 +15,7 @@ git clone https://github.com/apurvamukherjee/Zenith-Own-the-peak && cd Zenith-Ow
 
 A local-first personal tracker for **training, nutrition, study, sleep, water, bike fuel, and a full calendar** — one gothic, offline dashboard. No account, no server, your data never leaves your device.
 
+[![CI](https://github.com/apurvamukherjee/Zenith-Own-the-peak/actions/workflows/ci.yml/badge.svg)](https://github.com/apurvamukherjee/Zenith-Own-the-peak/actions/workflows/ci.yml)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
