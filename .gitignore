@@ -16,3 +16,10 @@ ios/DerivedData
 **/*.xcworkspace/xcuserdata
 
 *.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+
+# Promo video source (25 MB); docs/demo.gif is cut from it.
+brag-output/
