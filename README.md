@@ -1,8 +1,15 @@
+# Zenith
+An offline tracker for lifters and students that logs workouts, meals, sleep, water and study in one app.
+```bash
+git clone https://github.com/apurvamukherjee/Zenith-Own-the-peak && cd Zenith-Own-the-peak && npm i && npm run dev
+```
+![Demo](docs/demo.gif)
+
+**Try it without installing:** [zenith-own-the-peak.vercel.app](https://zenith-own-the-peak.vercel.app) · [Android APK](https://github.com/apurvamukherjee/Zenith-Own-the-peak/releases/latest)
+
 <div align="center">
 
 <img src="assets/logo/screen.png" width="120" alt="Zenith logo" />
-
-# ⛰️ ZENITH
 
 ### *Own the peak.*
 
@@ -162,10 +169,10 @@ UI (features/*/*.tsx)        ← presentational only
 
 ## 🔒 Privacy
 
-100% on-device by default. No analytics, no account required. Cloud sync is entirely optional and off unless you turn it on.
+Your logs stay on your device by default, and no account is required. The hosted web version counts anonymous page views with Vercel Web Analytics (no cookies, none of your logged data). Cloud sync is entirely optional and off unless you turn it on.
 
 ## 📄 License
 
-MIT
+[MIT](LICENSE)
 
 <div align="center"><sub>Built with discipline · by Apurva</sub></div>
