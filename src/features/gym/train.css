@@ -120,7 +120,7 @@
 .tr-dock-space { height: 24px; } /* main already pads 72px past the nav; this tops it up to clear the rest dock */
 
 /* ---- Rest dock ---- */
-.rd { position: fixed; z-index: 46; bottom: calc(var(--nav-offset) + 8px); left: max(16px, calc(50vw - var(--col-half) + 16px)); right: max(16px, calc(50vw - var(--col-half) + 16px)); overflow: hidden; padding: 10px 10px 10px 14px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+.rd { position: fixed; z-index: 46; bottom: calc(var(--nav-offset) + 8px); left: max(16px, calc(50vw - var(--col-half) + 16px)); right: max(84px, calc(50vw - var(--col-half) + 84px)); overflow: hidden; padding: 10px 10px 10px 14px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
 .rd-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--accent); transform-origin: left; transition: transform 0.25s linear; }
 .rd-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
 .rd-time { font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 30px; line-height: 1; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--ink); }

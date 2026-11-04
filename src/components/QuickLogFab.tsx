@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Button, InputNumber, App } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbGasStation, TbBolt, TbMicrophone, TbWallet, TbInbox } from "react-icons/tb";
@@ -26,10 +26,8 @@ const actions = [
 export function QuickLogFab() {
   const { message } = App.useApp();
   const navigate = useNavigate();
-  // Hidden on Train: it sat on top of the set table's ✓ column, and its
-  // "Set" shortcut only links back to this page. The rest dock takes the
-  // freed corner there (train.css .rd).
-  const onTrain = useLocation().pathname === "/workout";
+  const { pathname } = useLocation();
+  const shrunk = useShrinkOnScroll(pathname);
   const categories = useExpenseCategories();
   const [open, setOpen] = useState(false);
   const [waterOpen, setWaterOpen] = useState(false);
@@ -68,12 +66,19 @@ export function QuickLogFab() {
   return (
     <>
       {/* FAB button */}
-      {!onTrain && <motion.button
+      <motion.button
+        // Scrolling down tucks it into a slim tab on the screen edge, out of
+        // the card column (a merely smaller button still sat on Train's ✓
+        // column); full size again on scroll up / near the top.
+        animate={shrunk
+          ? { width: 30, height: 44, x: 16, borderRadius: "14px 0 0 14px", fontSize: 18 }
+          : { width: 56, height: 56, x: 0, borderRadius: "18px 18px 18px 18px", fontSize: 24 }}
+        transition={{ type: "spring", stiffness: 420, damping: 32 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setOpen(true)}
         style={{
           position: "fixed", bottom: "calc(var(--nav-offset) + 8px)", right: "max(16px, calc(50vw - var(--col-half) + 16px))", zIndex: 50,
-          width: 56, height: 56, borderRadius: 18,
+          width: 56, height: 56, borderRadius: 18, overflow: "hidden",
           background: "var(--accent)", color: "#fff", border: "none",
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 4px 20px rgba(255,39,64,0.35)", cursor: "pointer",
@@ -82,7 +87,7 @@ export function QuickLogFab() {
         aria-label="Quick log"
       >
         <TbBolt />
-      </motion.button>}
+      </motion.button>
 
       {/* Action sheet */}
       <AnimatePresence>
@@ -170,4 +175,27 @@ export function QuickLogFab() {
       <InboxCaptureModal open={inboxOpen} onClose={() => setInboxOpen(false)} />
     </>
   );
+}
+
+// true while the user scrolls <main> down (past the first screenful's top),
+// false on scroll up, near the top, or after a route change.
+function useShrinkOnScroll(pathname: string): boolean {
+  const [shrunk, setShrunk] = useState(false);
+  useEffect(() => {
+    setShrunk(false);
+    const main = document.querySelector("main");
+    if (!main) return;
+    let last = main.scrollTop;
+    const on = () => {
+      const y = main.scrollTop;
+      if (y < 80) setShrunk(false);
+      else if (y > last + 8) setShrunk(true);
+      else if (y < last - 8) setShrunk(false);
+      else return; // within the jitter band: keep `last` as the anchor
+      last = y;
+    };
+    main.addEventListener("scroll", on, { passive: true });
+    return () => main.removeEventListener("scroll", on);
+  }, [pathname]);
+  return shrunk;
 }
