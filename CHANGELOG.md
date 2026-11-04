@@ -10,6 +10,7 @@ attached to each [GitHub Release](https://github.com/apurvamukherjee/Zenith-Own-
 ## [1.5.0] - 2026-11-04
 
 ### Added
+- Signed APK releases from GitHub Actions: pushing a `v*.*.*` tag builds, signs, verifies and publishes the APK ([docs/RELEASING.md](docs/RELEASING.md)).
 - MIT `LICENSE`, `CONTRIBUTING.md`, issue forms and a CI workflow (typecheck, tests, build).
 - `npm test` script.
 - A 52 s 1080p cinematic walkthrough (`docs/cinematic.mp4`) with an original synthesized soundtrack, plus `scripts/cinematic/` to re-record it from the live app.

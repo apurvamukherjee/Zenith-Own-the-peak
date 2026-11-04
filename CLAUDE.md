@@ -210,6 +210,11 @@ Full instructions in `DEPLOYMENT.md`. Short version:
   Vercel build command. Email OTP delivery needs a Resend API key set via
   `npx convex env set AUTH_RESEND_KEY ...`.
 - **Capacitor**: `web-dir=dist`, `@capacitor/local-notifications` for real push.
+- **Android releases**: `.github/workflows/release-android.yml` builds, signs and
+  publishes the APK on a `v*.*.*` tag push, using the release keystore from repo
+  secrets (`docs/RELEASING.md`). The tag must equal `versionName` and
+  `package.json`'s version. Never sign with a new key: it won't install over
+  existing installs.
 
 ## Non-negotiables
 
