@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Modal, Button, InputNumber, App } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import { TbDroplet, TbMeat, TbBarbell, TbMoon, TbGasStation, TbBolt, TbMicrophone, TbWallet, TbInbox } from "react-icons/tb";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { addWater } from "../features/water/useWater";
 import { useExpenseCategories, addExpense } from "../features/expenses/useExpenses";
 import { expenseIconFor } from "../features/expenses/expenseIcons";
@@ -26,6 +26,10 @@ const actions = [
 export function QuickLogFab() {
   const { message } = App.useApp();
   const navigate = useNavigate();
+  // Hidden on Train: it sat on top of the set table's ✓ column, and its
+  // "Set" shortcut only links back to this page. The rest dock takes the
+  // freed corner there (train.css .rd).
+  const onTrain = useLocation().pathname === "/workout";
   const categories = useExpenseCategories();
   const [open, setOpen] = useState(false);
   const [waterOpen, setWaterOpen] = useState(false);
@@ -64,7 +68,7 @@ export function QuickLogFab() {
   return (
     <>
       {/* FAB button */}
-      <motion.button
+      {!onTrain && <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => setOpen(true)}
         style={{
@@ -78,7 +82,7 @@ export function QuickLogFab() {
         aria-label="Quick log"
       >
         <TbBolt />
-      </motion.button>
+      </motion.button>}
 
       {/* Action sheet */}
       <AnimatePresence>

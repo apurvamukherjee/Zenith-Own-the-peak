@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TbX, TbPlayerPauseFilled, TbPlayerPlayFilled } from "react-icons/tb";
@@ -16,6 +17,15 @@ export function GlobalRestChip() {
   const navigate = useNavigate();
 
   const show = rest.active && location.pathname !== "/workout";
+  // While the chip floats above the FAB, grow the page's bottom padding
+  // (AppShell <main>) so the last card can still scroll clear of both.
+  // A CSS var, not state in AppShell: the store ticks every 250 ms and would
+  // re-render the whole shell.
+  useEffect(() => {
+    if (!show) return;
+    document.documentElement.style.setProperty("--float-pad", "136px");
+    return () => { document.documentElement.style.removeProperty("--float-pad"); };
+  }, [show]);
   const pct = rest.totalSec > 0 ? (1 - rest.remaining / rest.totalSec) * 100 : 0;
 
   return (

@@ -75,7 +75,10 @@ export function AppShell() {
         height: "100dvh", display: "flex", flexDirection: "column" }}>
         <AppBar />
         <NavStrip />
-        <main ref={mainRef} style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingBottom: "calc(var(--nav-offset) + 8px)" }}>
+        {/* +72px past the nav = the FAB's 56px + gap, so the last card on any
+            page can scroll clear of it instead of ending underneath.
+            GlobalRestChip raises --float-pad while it floats above the FAB. */}
+        <main ref={mainRef} style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingBottom: "calc(var(--nav-offset) + var(--float-pad, 72px))" }}>
           <AnimatedRoutes />
         </main>
         <QuickLogFab />
