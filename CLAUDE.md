@@ -216,6 +216,8 @@ Full instructions in `DEPLOYMENT.md`. Short version:
 - Fully local-first: zero configuration required, cloud sync is additive.
 - Gothic dark is the default and primary identity.
 - Brand: **Zenith**, **"Own the peak"**, **"by Apurva"** — keep all in sync.
+- Git: no `Co-Authored-By` or `Claude-Session` trailers in commit messages, and
+  no AI attribution lines in PR titles or bodies. Commits are authored by Apurva alone.
 
 ## Phase 1.1 additions
 

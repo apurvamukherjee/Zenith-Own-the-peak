@@ -7,13 +7,25 @@ attached to each [GitHub Release](https://github.com/apurvamukherjee/Zenith-Own-
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-04
+
 ### Added
 - MIT `LICENSE`, `CONTRIBUTING.md`, issue forms and a CI workflow (typecheck, tests, build).
 - `npm test` script.
+- A 52 s 1080p cinematic walkthrough (`docs/cinematic.mp4`) with an original synthesized soundtrack, plus `scripts/cinematic/` to re-record it from the live app.
+- PR flags are re-derived when a set is deleted, edited or restored.
 
 ### Changed
-- README now opens with a one-line description, install command, demo GIF and live link.
-- README privacy section mentions Vercel Web Analytics on the hosted web version.
+- README rewritten for the current app: cinematic preview and download link, 15 new screenshots, and the Winter Arc, Spending, Habits, Tasks, Reward Vault and Leaderboard modules. Counts corrected (100 badges, 148 exercises, 21 screens).
+- Startup bundle 777 kB → 499 kB: the Convex cloud layer only loads when it's configured.
+- Coach-mark tips sit next to what they explain and stay dismissed; the quick-log button tucks into an edge tab while scrolling.
+- README opens with a one-line description, install command and live link, and its privacy section mentions Vercel Web Analytics on the hosted web version.
+
+### Fixed
+- Dismissed coach-mark tips no longer come back on every visit.
+- Two fast first-set taps can't create duplicate workout sessions.
+- Water pace no longer says "Way behind" when you're a couple hundred ml short right after waking.
+- Focus timer keeps real time when the phone is locked.
 
 ## [1.4.0] - 2026-10-26
 
@@ -81,7 +93,8 @@ attached to each [GitHub Release](https://github.com/apurvamukherjee/Zenith-Own-
 ### Added
 - First Android build with native reminders and a rest-timer notification.
 
-[Unreleased]: https://github.com/apurvamukherjee/Zenith-Own-the-peak/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/apurvamukherjee/Zenith-Own-the-peak/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/apurvamukherjee/Zenith-Own-the-peak/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/apurvamukherjee/Zenith-Own-the-peak/compare/v1.3.4...v1.4.0
 [1.3.4]: https://github.com/apurvamukherjee/Zenith-Own-the-peak/compare/v1.3.3...v1.3.4
 [1.3.3]: https://github.com/apurvamukherjee/Zenith-Own-the-peak/compare/v1.3.2...v1.3.3

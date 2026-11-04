@@ -21,5 +21,7 @@ ios/DerivedData
 .env.*
 !.env.example
 
-# Promo video source (25 MB); docs/demo.gif is cut from it.
+# Old promo video source (25 MB), kept out of the repo.
 brag-output/
+# scripts/cinematic working files (frames, fonts, soundtrack)
+cinematic-out/
