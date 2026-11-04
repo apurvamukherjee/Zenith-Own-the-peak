@@ -27,13 +27,23 @@ export async function computeScoresForMonth(dates: string[], waterGoal: number, 
     db.weekSchedule.toArray(),
   ]);
   const dayIdByWeekday = new Map(weekSchedule.map((w) => [w.weekday, w.dayId]));
+  // Group once (O(rows)) instead of filtering every table per date — the
+  // achievements engine scores every active day ever on each write, and the
+  // per-date filter made that O(days × rows).
+  const sum = (m: Map<string, number>, k: string, v: number) => m.set(k, (m.get(k) ?? 0) + v);
+  const waterBy = new Map<string, number>();
+  for (const w of water) sum(waterBy, w.date, w.amountMl);
+  const proteinBy = new Map<string, number>();
+  for (const m of meals) sum(proteinBy, m.date, m.protein || 0);
+  const setDates = new Set(sets.map((s) => s.date));
+  const sleepDates = new Set(sleep.map((s) => s.date));
   const out = new Map<string, DayMetrics>();
   for (const date of dates) {
-    const waterMl = water.filter((w) => w.date === date).reduce((s, w) => s + w.amountMl, 0);
-    const waterPct = Math.min(100, Math.round((waterMl / waterGoal) * 100));
-    const sessionDone = sets.some((s) => s.date === date);
-    const sleepLogged = sleep.some((s) => s.date === date);
-    const protein = meals.filter((m) => m.date === date).reduce((s, m) => s + m.protein, 0);
+    const waterMl = waterBy.get(date) ?? 0;
+    const waterPct = waterGoal > 0 ? Math.min(100, Math.round((waterMl / waterGoal) * 100)) : 0;
+    const sessionDone = setDates.has(date);
+    const sleepLogged = sleepDates.has(date);
+    const protein = proteinBy.get(date) ?? 0;
     const proteinPct = Math.min(100, proteinTarget > 0 ? Math.round((protein / proteinTarget) * 100) : 0);
     const weekday = new Date(date + "T00:00").getDay();
     const scheduledDayId = dayIdByWeekday.get(weekday);

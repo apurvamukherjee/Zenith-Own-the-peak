@@ -208,7 +208,7 @@ export function SummitCard({ score, pillars, streak, freezeAvailable, week, urge
             day streak
             {freezeAvailable && <span className="hb-freeze" title="Streak freeze available this week"><TbSnowflake size={10} /> 1</span>}
           </span>
-          {nextMilestone && <span className="hb-foot__sub">{nextMilestone - streak} to {nextMilestone}</span>}
+          {nextMilestone && <span className="hb-foot__sub">{nextMilestone - streak} {nextMilestone - streak === 1 ? "day" : "days"} to a {nextMilestone}-day streak</span>}
         </span>
         <span className="hb-week" aria-label="Last 7 days">
           {week.map((d, i) => {

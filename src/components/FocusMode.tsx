@@ -19,7 +19,10 @@ export function FocusMode({ task, onClose }: Props) {
   useEffect(() => {
     if (!task) return;
     setElapsed(0);
-    const id = window.setInterval(() => setElapsed((e) => e + 1), 1000);
+    // Wall-clock based: background tabs / a locked phone throttle intervals,
+    // so counting ticks made the countdown fall behind real time.
+    const started = Date.now();
+    const id = window.setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
     return () => window.clearInterval(id);
   }, [task?.id]);
 

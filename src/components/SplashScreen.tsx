@@ -198,7 +198,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           ))}
           {SPARKS.map((s, i) => (
             <motion.circle key={i} cx="130" cy="34" r={i % 2 ? 1.1 : 1.8} fill={i % 3 ? "#ff2740" : "#ffd76b"}
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 0, cx: 130, cy: 34 }}
               animate={{ cx: 130 + s.dx, cy: [34, 34 + s.dy - 10, 34 + s.dy + 14], opacity: [0, 1, 0] }}
               transition={{ duration: 0.9 * k, delay: IMPACT * k, ease: "easeOut" }} />
           ))}

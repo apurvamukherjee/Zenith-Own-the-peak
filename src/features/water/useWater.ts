@@ -44,9 +44,12 @@ export function computeStatus(total: number, goal: number, wakeHour: number, win
   const expected = Math.round(goal * fraction);
   const deltaMl = total - expected;
   let status: WaterStatus;
+  // Ratio AND an absolute gap: right after waking, expected is tiny, so a
+  // pure ratio flagged "Way behind" for being a couple hundred ml short.
+  const short = expected - total;
   if (total >= goal) status = "done";
-  else if (total < expected * 0.6) status = "way-behind";
-  else if (total < expected * 0.85) status = "behind";
+  else if (total < expected * 0.6 && short >= 500) status = "way-behind";
+  else if (total < expected * 0.85 && short >= 200) status = "behind";
   else status = "on-track";
   return { status, expected, deltaMl };
 }

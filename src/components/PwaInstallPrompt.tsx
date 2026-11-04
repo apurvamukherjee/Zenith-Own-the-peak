@@ -19,7 +19,8 @@ export function PwaInstallPrompt() {
   const onHome = useLocation().pathname === "/";
 
   useEffect(() => {
-    const dismissed = localStorage.getItem("zenith:pwa-dismissed");
+    let dismissed: string | null = null;
+    try { dismissed = localStorage.getItem("zenith:pwa-dismissed"); } catch { /* storage blocked */ }
     const handler = (e: Event) => {
       e.preventDefault();
       setEvent(e as BeforeInstallPromptEvent);
@@ -31,7 +32,7 @@ export function PwaInstallPrompt() {
 
   function dismiss() {
     setShow(false);
-    localStorage.setItem("zenith:pwa-dismissed", "1");
+    try { localStorage.setItem("zenith:pwa-dismissed", "1"); } catch { /* storage blocked */ }
   }
   async function install() {
     if (!event) return;

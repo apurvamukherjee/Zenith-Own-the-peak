@@ -147,16 +147,15 @@ export function useGoogleCalendarSync() {
     if (!accountStatus?.connected) wasConnected.current = false;
   }, [accountStatus?.connected, accountStatus?.needsReauth, pullNow]);
 
-  // Debounced push whenever local data changes. Reuses the same bus/pattern
-  // as auto-backup (src/features/sync/useSync.ts) — imprecise (any Dexie
-  // write anywhere resets this timer, not just task edits) but that's the
-  // established, already-shipping precedent for this exact kind of debounce.
+  // Debounced push whenever a task changes. Same bus/pattern as auto-backup
+  // (src/features/sync/useSync.ts), filtered to the two tables a push reads,
+  // so logging a set or a glass of water doesn't hit Convex/Google.
   useEffect(() => {
     if (!isAuthenticated || !accountStatus?.connected || accountStatus.needsReauth) return;
     const off = onMutation(() => {
       if (pushTimer.current) window.clearTimeout(pushTimer.current);
       pushTimer.current = window.setTimeout(() => { void pushNow(); }, 4000);
-    });
+    }, ["tasks", "googleSyncOutbox"]); // only task edits/deletes can need a push
     return () => {
       off();
       if (pushTimer.current) window.clearTimeout(pushTimer.current);

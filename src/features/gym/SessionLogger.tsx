@@ -31,7 +31,7 @@ import { buildItems, findNextSet, findNextInGroup, arrangeForToday, doNextOrder,
 import { prettyDate, todayKey } from "../../lib/date.utils";
 import { db } from "../../db/db";
 import { skipRest, startRest } from "../../lib/restTimerStore";
-import { CoachMark } from "../../components/CoachMark";
+import { CoachTips } from "../../components/CoachMark";
 import { useSetting, setSetting } from "../../hooks/useSettings";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 
@@ -443,8 +443,6 @@ export function SessionLogger() {
   }
 
   const isRest = !dayId || dayId === 0;
-  const coachDone = Number(useSetting("coachLogger"));
-  const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
 
   const COACH_STEPS = [
     { title: "Log a set", body: "Tap the check to log the set as shown. Tap the weight or reps to adjust them — or tap PREV to copy last session. Rest starts automatically." },
@@ -455,14 +453,6 @@ export function SessionLogger() {
   return (
     <>
       <PageTransition>
-        {coachStep >= 0 && !isRest && (
-          <CoachMark
-            steps={COACH_STEPS}
-            current={coachStep}
-            onNext={() => setCoachStep((s) => s + 1)}
-            onDone={() => { setCoachStep(-1); void setSetting("coachLogger", 1); }}
-          />
-        )}
         <Hero tone={isRest ? "surface" : "ember"} embers={!isRest} className="tr-hero">
           {!isRest && <TrainingHeroBg />}
           <div className="tr-hero__content">
@@ -548,6 +538,8 @@ export function SessionLogger() {
         ) : (
           <>
             <MuscleTargets load={load} picked={(dayPlan?.muscles.length ?? 0) > 0} />
+            {/* Right above the first set table it explains, not above the hero. */}
+            <CoachTips settingKey="coachLogger" steps={COACH_STEPS} hidden={items.length === 0} />
             {items.map((item, idx) => (
               <div key={itemKey(item)} data-key={itemKey(item)} className="tr-slot">
                 {item.type === "single" ? (

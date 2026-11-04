@@ -1,7 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import type { DayExerciseDto, WorkoutSetDto, WorkoutSessionDto, Effort, DropStageDto, MuscleGroup } from "../../db/types";
-import { estimate1RM, bestE1RM } from "../../lib/workout.utils";
+import { estimate1RM, bestE1RM, prFlagChanges } from "../../lib/workout.utils";
 import { todayKey, weekKey } from "../../lib/date.utils";
 import { hapticLight, hapticSuccess } from "../../lib/haptics";
 import { placeAfterGroup } from "./groupExercises";
@@ -72,9 +72,13 @@ export function useAllDayExercises() {
 // ---- Write functions ----
 export async function ensureSession(dayId: number): Promise<number> {
   const date = todayKey();
-  const existing = await db.workoutSessions.where({ date, dayId }).first();
-  if (existing?.id) return existing.id;
-  return db.workoutSessions.add({ date, weekKey: weekKey(), dayId, createdAt: Date.now() });
+  // One rw transaction so two fast first-set taps can't both miss the lookup
+  // and create two sessions for the same day (sets would split between them).
+  return db.transaction("rw", db.workoutSessions, async () => {
+    const existing = await db.workoutSessions.where({ date, dayId }).first();
+    if (existing?.id) return existing.id;
+    return db.workoutSessions.add({ date, weekKey: weekKey(), dayId, createdAt: Date.now() });
+  });
 }
 
 export async function logSet(params: {
@@ -97,11 +101,28 @@ export async function logSet(params: {
   return { isPR, e1rm };
 }
 
-export async function deleteSet(id: number) { await db.workoutSets.delete(id); }
+// Re-derive PR flags for one exercise's sets logged at/after `from`, in the
+// same transaction as the write that invalidated them (see prFlagChanges).
+async function refreshPRFlags(exerciseName: string, from: number) {
+  const sets = await db.workoutSets.where("exerciseName").equals(exerciseName).toArray();
+  const changes = prFlagChanges(sets, from);
+  if (changes.length) await db.workoutSets.bulkUpdate(changes.map(({ id, isPR }) => ({ key: id, changes: { isPR } })));
+}
+
+// Deleting a PR set hands the record back to whichever later set now beats
+// everything before it; deleting a big set can make a later one a PR.
+export async function deleteSet(id: number) {
+  await db.transaction("rw", db.workoutSets, async () => {
+    const set = await db.workoutSets.get(id);
+    if (!set) return;
+    await db.workoutSets.delete(id);
+    await refreshPRFlags(set.exerciseName, set.createdAt);
+  });
+}
 
 // Correct an already-logged set (wrong weight/reps entered in the moment).
-// Recomputes e1RM/PR against every OTHER set for this exercise so editing a
-// set can both create and revoke a PR, same as a fresh logSet would.
+// Recomputes e1RM, then replays PR flags from this set onward so editing can
+// create or revoke a PR here AND on every set logged after it.
 export async function updateSet(
   id: number,
   patch: Partial<Pick<WorkoutSetDto, "weightKg" | "reps" | "dropStages">>,
@@ -111,13 +132,11 @@ export async function updateSet(
   const weightKg = patch.weightKg ?? existing.weightKg;
   const reps = patch.reps ?? existing.reps;
   const e1rm = estimate1RM(weightKg, reps);
-  const priorBest = bestE1RM(
-    await db.workoutSets.where("exerciseName").equals(existing.exerciseName)
-      .and((s) => s.id !== id).toArray(),
-  );
-  const isPR = e1rm > 0 && e1rm > priorBest;
-  await db.workoutSets.update(id, { ...patch, weightKg, reps, e1rm, isPR });
-  return { isPR, e1rm };
+  return db.transaction("rw", db.workoutSets, async () => {
+    await db.workoutSets.update(id, { ...patch, weightKg, reps, e1rm });
+    await refreshPRFlags(existing.exerciseName, existing.createdAt);
+    return { isPR: (await db.workoutSets.get(id))?.isPR ?? false, e1rm };
+  });
 }
 
 // ---- Planner writes ----
@@ -350,9 +369,12 @@ export async function backfillSession(date: string, dayId: number): Promise<numb
   return session;
 }
 
-// Undo for a swipe-delete: re-adds the exact row (same setIndex/e1rm/isPR),
-// so nothing is recomputed — it's as if the delete never happened.
+// Undo for a swipe-delete: re-adds the exact row (same setIndex/e1rm/
+// createdAt), then replays PR flags so the ones deleteSet moved go back.
 export async function restoreSet(set: WorkoutSetDto) {
   const { id: _id, ...row } = set;
-  await db.workoutSets.add(row);
+  await db.transaction("rw", db.workoutSets, async () => {
+    await db.workoutSets.add(row);
+    await refreshPRFlags(row.exerciseName, row.createdAt);
+  });
 }

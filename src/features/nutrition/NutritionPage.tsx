@@ -34,7 +34,7 @@ import { addWater } from "../water/useWater";
 import { hapticLight } from "../../lib/haptics";
 import { useBackClose } from "../../hooks/useBackClose";
 import { useUndo } from "./useUndo";
-import { CoachMark } from "../../components/CoachMark";
+import { CoachTips } from "../../components/CoachMark";
 import { useBulkSelect } from "./useBulkSelect";
 
 const STATUS_TONE = {
@@ -57,10 +57,8 @@ export function NutritionPage() {
   const [tplName, setTplName] = useState("");
   const bulk = useBulkSelect<number>();
   const remindersOn = Number(useSetting("remSupps")) === 1;
-  const coachDone = Number(useSetting("coachNutrition"));
-  const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
   const NUTRITION_COACH = [
-    { title: "Log from catalog", body: "Tap the + button and search for food (e.g. 'chicken breast') to get auto-calculated macros by weight." },
+    { title: "Log from catalog", body: "Tap + Food and search (e.g. 'chicken breast') to get auto-calculated macros by weight." },
     { title: "Bulk delete", body: "Long-press any meal to enter selection mode. Then tap 'All N' to select everything and delete in one go." },
   ];
 
@@ -99,16 +97,10 @@ export function NutritionPage() {
 
   return (
     <PageTransition>
-      {coachStep >= 0 && (
-        <CoachMark
-          steps={NUTRITION_COACH}
-          current={coachStep}
-          onNext={() => setCoachStep((s) => s + 1)}
-          onDone={() => { setCoachStep(-1); void setSetting("coachNutrition", 1); }}
-        />
-      )}
       <SectionTitle eyebrow="Fuel your body" title="Nutrition"
         right={<button type="button" className="z-btn z-btn--solid" onClick={() => setFoodOpen(true)}><TbPlus size={16} /> Food</button>} />
+      {/* Under the title so it sits next to the + Food button it points at. */}
+      <CoachTips settingKey="coachNutrition" steps={NUTRITION_COACH} />
 
       <FuelHero meals={meals} proteinTarget={proteinTarget} fatTarget={fatTarget} carbTarget={carbTarget} kcalTarget={calorieTarget} />
 

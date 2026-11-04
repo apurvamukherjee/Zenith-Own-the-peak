@@ -15,8 +15,23 @@ export function bumpMutation(table?: string) {
   // narrower transaction and throw "object store not found". A setTimeout
   // lets the triggering transaction commit first so each listener starts its
   // own, correctly-scoped transaction.
-  setTimeout(() => listeners.forEach((l) => l(table)), 0);
+  //
+  // Bumps are coalesced: a bulk write fires the hook once per ROW (a "Complete
+  // full day" is ~25 workoutSets rows), but listeners only need to hear once
+  // per distinct table per tick.
+  pending.add(table ?? UNKNOWN);
+  if (flushScheduled) return;
+  flushScheduled = true;
+  setTimeout(() => {
+    flushScheduled = false;
+    const tables = [...pending];
+    pending.clear();
+    for (const t of tables) listeners.forEach((l) => l(t === UNKNOWN ? undefined : t));
+  }, 0);
 }
+const UNKNOWN = "\u0000unknown";
+const pending = new Set<string>();
+let flushScheduled = false;
 export function suppressMutations(on: boolean) { suppressed = on; }
 
 /**

@@ -22,11 +22,9 @@ import { useEasterEggs } from "../hooks/useEasterEggs";
 import { useXPEngine } from "../hooks/useXPEngine";
 import { unlockAudio } from "../lib/audio";
 import { convexConfigured } from "../lib/convexClient";
-import { GoogleCalendarSyncEngine } from "../features/googleCalendar/useGoogleCalendarSync";
-import { CloudSyncEngine } from "../features/sync/useSync";
 import { useArcVoice } from "../features/winterArc/useArcVoice";
-import { ArcSocialSync } from "../features/winterArc/ArcSocial";
 
+const CloudEngines = lazy(() => import("./CloudEngines"));
 const DebugPanel = lazy(() => import("./DebugPanel").then((m) => ({ default: m.DebugPanel })));
 
 export function AppShell() {
@@ -77,7 +75,10 @@ export function AppShell() {
         height: "100dvh", display: "flex", flexDirection: "column" }}>
         <AppBar />
         <NavStrip />
-        <main ref={mainRef} style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingBottom: "calc(var(--nav-offset) + 8px)" }}>
+        {/* +72px past the nav = the FAB's 56px + gap, so the last card on any
+            page can scroll clear of it instead of ending underneath.
+            GlobalRestChip raises --float-pad while it floats above the FAB. */}
+        <main ref={mainRef} style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingBottom: "calc(var(--nav-offset) + var(--float-pad, 72px))" }}>
           <AnimatedRoutes />
         </main>
         <QuickLogFab />
@@ -89,9 +90,7 @@ export function AppShell() {
           connect) — gated behind convexConfigured the same way every other
           Convex-dependent piece is, since main.tsx only mounts
           ConvexAuthProvider when configured. */}
-      {convexConfigured && <GoogleCalendarSyncEngine />}
-      {convexConfigured && <CloudSyncEngine />}
-      {convexConfigured && <ArcSocialSync />}
+      {convexConfigured && <Suspense fallback={null}><CloudEngines /></Suspense>}
       <PRCelebration />
       <PeakFlash triggerKey={eggs.peakFlash} />
       <BirthdayConfetti />
