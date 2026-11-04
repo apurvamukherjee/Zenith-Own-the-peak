@@ -72,9 +72,13 @@ export function useAllDayExercises() {
 // ---- Write functions ----
 export async function ensureSession(dayId: number): Promise<number> {
   const date = todayKey();
-  const existing = await db.workoutSessions.where({ date, dayId }).first();
-  if (existing?.id) return existing.id;
-  return db.workoutSessions.add({ date, weekKey: weekKey(), dayId, createdAt: Date.now() });
+  // One rw transaction so two fast first-set taps can't both miss the lookup
+  // and create two sessions for the same day (sets would split between them).
+  return db.transaction("rw", db.workoutSessions, async () => {
+    const existing = await db.workoutSessions.where({ date, dayId }).first();
+    if (existing?.id) return existing.id;
+    return db.workoutSessions.add({ date, weekKey: weekKey(), dayId, createdAt: Date.now() });
+  });
 }
 
 export async function logSet(params: {
