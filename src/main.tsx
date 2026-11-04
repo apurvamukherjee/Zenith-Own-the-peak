@@ -1,11 +1,10 @@
 import "@ant-design/v5-patch-for-react-19";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import "./index.css";
 import "./components/ui/ui.css";
 import App from "./App";
-import { convexClient } from "./lib/convexClient";
+import { convexConfigured } from "./lib/convexClient";
 import { initStatusBar } from "./lib/nativeShell";
 import { inject } from "@vercel/analytics";
 import { installDevClock } from "./lib/devClock";
@@ -17,12 +16,12 @@ initStatusBar();
 void navigator.storage?.persist?.();
 if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js");
 
-const root = convexClient ? (
-  <ConvexAuthProvider client={convexClient}>
-    <App />
-  </ConvexAuthProvider>
-) : (
-  <App />
-);
-
-createRoot(document.getElementById("root")!).render(<StrictMode>{root}</StrictMode>);
+const container = document.getElementById("root")!;
+if (convexConfigured) {
+  // Convex + auth (~200 kB) load only for installs that use the cloud.
+  void import("./lib/convexRoot").then(({ ConvexRoot }) => {
+    createRoot(container).render(<StrictMode><ConvexRoot><App /></ConvexRoot></StrictMode>);
+  });
+} else {
+  createRoot(container).render(<StrictMode><App /></StrictMode>);
+}

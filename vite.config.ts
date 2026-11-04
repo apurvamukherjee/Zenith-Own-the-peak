@@ -10,11 +10,15 @@ export default defineConfig({
     target: ["es2019", "safari14", "chrome80", "firefox78", "edge88"],
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
-          antd: ["antd", "@ant-design/icons"],
-          charts: ["recharts"],
-          motion: ["framer-motion"],
+        // Function form: the object form only matches each package's bare
+        // entry, so react-dom/client + scheduler leaked into the app chunk.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (/node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|@remix-run)\//.test(id)) return "react";
+          if (/node_modules\/(antd|@ant-design|rc-[^/]+|@rc-component)\//.test(id)) return "antd";
+          if (/node_modules\/(recharts|d3-[^/]+|victory-vendor)\//.test(id)) return "charts";
+          if (/node_modules\/(framer-motion|motion-dom|motion-utils)\//.test(id)) return "motion";
+          return undefined;
         },
       },
     },

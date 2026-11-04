@@ -6,8 +6,7 @@ import { PageTransition } from "../../components/PageTransition";
 import { SectionTitle } from "../../components/SectionTitle";
 import { Hero } from "../../components/ui/Hero";
 import "./train.css";
-import { CoachMark } from "../../components/CoachMark";
-import { useSetting, setSetting } from "../../hooks/useSettings";
+import { CoachTips } from "../../components/CoachMark";
 import { MUSCLE_LABELS } from "../../config/exerciseLibrary";
 import { BodyMap, MusclePicker, MuscleGlyph, heatOf } from "../../components/BodyMap";
 import { muscleLoad } from "./muscleLoad";
@@ -238,8 +237,6 @@ export function WorkoutPlanner() {
   const schedule = useWeekSchedule();
   const [addOpen, setAddOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
-  const coachDone = Number(useSetting("coachPlanner"));
-  const [coachStep, setCoachStep] = useState(coachDone ? -1 : 0);
   const PLANNER_COACH = [
     { title: "Plan your week", body: "Assign a workout day to each weekday below. You can have multiple days with different muscle groups." },
     { title: "Link supersets", body: "In any day card, tap the chain icon between two exercises to link them as a superset A1→A2." },
@@ -247,20 +244,14 @@ export function WorkoutPlanner() {
 
   return (
     <PageTransition>
-      {coachStep >= 0 && (
-        <CoachMark
-          steps={PLANNER_COACH}
-          current={coachStep}
-          onNext={() => setCoachStep((s) => s + 1)}
-          onDone={() => { setCoachStep(-1); void setSetting("coachPlanner", 1); }}
-        />
-      )}
       <SectionTitle eyebrow="Planner" title="Build your program" right={
         <Button type="primary" icon={<TbPlus />} onClick={() => setAddOpen(true)}>New day</Button>
       } />
 
       <PlanHeroCard onOpenSwitcher={() => setSwitcherOpen(true)} />
       <PlanSwitcherSheet open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
+
+      <CoachTips settingKey="coachPlanner" steps={PLANNER_COACH} />
 
       {/* Weekly schedule — 7-tile strip, Sun..Sat to match weekSchedule.weekday */}
       <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 8 }}>

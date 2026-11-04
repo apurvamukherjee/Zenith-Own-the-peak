@@ -22,11 +22,9 @@ import { useEasterEggs } from "../hooks/useEasterEggs";
 import { useXPEngine } from "../hooks/useXPEngine";
 import { unlockAudio } from "../lib/audio";
 import { convexConfigured } from "../lib/convexClient";
-import { GoogleCalendarSyncEngine } from "../features/googleCalendar/useGoogleCalendarSync";
-import { CloudSyncEngine } from "../features/sync/useSync";
 import { useArcVoice } from "../features/winterArc/useArcVoice";
-import { ArcSocialSync } from "../features/winterArc/ArcSocial";
 
+const CloudEngines = lazy(() => import("./CloudEngines"));
 const DebugPanel = lazy(() => import("./DebugPanel").then((m) => ({ default: m.DebugPanel })));
 
 export function AppShell() {
@@ -89,9 +87,7 @@ export function AppShell() {
           connect) — gated behind convexConfigured the same way every other
           Convex-dependent piece is, since main.tsx only mounts
           ConvexAuthProvider when configured. */}
-      {convexConfigured && <GoogleCalendarSyncEngine />}
-      {convexConfigured && <CloudSyncEngine />}
-      {convexConfigured && <ArcSocialSync />}
+      {convexConfigured && <Suspense fallback={null}><CloudEngines /></Suspense>}
       <PRCelebration />
       <PeakFlash triggerKey={eggs.peakFlash} />
       <BirthdayConfetti />
