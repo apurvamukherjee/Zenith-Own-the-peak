@@ -169,7 +169,7 @@ npm test           # node --test: Winter Arc logic, PR flags, gym grouping, musc
 npm run build      # typecheck + production build → /dist
 ```
 
-CI runs the typecheck, the tests and the build on every pull request.
+CI runs the typecheck, the tests and the build on every pull request, and a tag push builds and publishes a signed APK ([docs/RELEASING.md](docs/RELEASING.md)).
 
 ## ☁️ Deploy
 
@@ -188,8 +188,7 @@ npm run apk   # signed release APK → android/app/build/outputs/apk/release/
 npm run ios   # build, sync and open Xcode
 ```
 
-Before a release, bump `versionCode` and `versionName` in `android/app/build.gradle`.
-APKs are published under this repo's GitHub Releases.
+**Releases are automated.** Push a version tag such as `v1.5.0`, and GitHub Actions builds the APK, signs it with the release key (stored as repository secrets) and publishes it under [Releases](https://github.com/apurvamukherjee/Zenith-Own-the-peak/releases). Setup and the release checklist are in [docs/RELEASING.md](docs/RELEASING.md).
 
 ## 🧱 Architecture
 
